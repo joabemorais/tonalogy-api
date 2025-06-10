@@ -79,14 +79,14 @@ def test_base_case_empty_sequence(
     Tests the simplest base case: an empty chord sequence should be satisfied.
     """
     # GIVEN: an evaluator and an empty progression
-    evaluator = SatisfactionEvaluator(aragao_kripke_config, [c_major_tonality])
+    evaluator = SatisfactionEvaluator(aragao_kripke_config, [c_major_tonality], c_major_tonality)
     empty_progression: List[Chord] = []
     
     # WHEN: the evaluation is executed
     success, _ = evaluator.evaluate_satisfaction_recursive(
         current_tonality=c_major_tonality,
-        current_state_in_path=tonic_state,
-        remaining_chord_sequence=empty_progression,
+        current_state=tonic_state,
+        remaining_chords=empty_progression,
         recursion_depth=0,
         parent_explanation=Explanation()
     )
@@ -103,14 +103,14 @@ def test_single_valid_chord_in_tonic(
     Tests Aragão's Eq. 3: a progression with a single chord that is valid in the tonic.
     """
     # GIVEN: an evaluator and a progression with a valid chord
-    evaluator = SatisfactionEvaluator(aragao_kripke_config, [c_major_tonality])
+    evaluator = SatisfactionEvaluator(aragao_kripke_config, [c_major_tonality], c_major_tonality)
     progression: List[Chord] = [Chord("C")]
     
     # WHEN: the evaluation is executed
     success, explanation = evaluator.evaluate_satisfaction_recursive(
         current_tonality=c_major_tonality,
-        current_state_in_path=tonic_state,
-        remaining_chord_sequence=progression,
+        current_state=tonic_state,
+        remaining_chords=progression,
         recursion_depth=0,
         parent_explanation=Explanation()
     )
@@ -130,14 +130,14 @@ def test_direct_continuation_success_V_I(
     This should follow the path s_t -> s_d.
     """
     # GIVEN: an evaluator and the inverted progression [C, G]
-    evaluator = SatisfactionEvaluator(aragao_kripke_config, [c_major_tonality])
+    evaluator = SatisfactionEvaluator(aragao_kripke_config, [c_major_tonality], c_major_tonality)
     progression: List[Chord] = [Chord("C"), Chord("G")]
     
     # WHEN: the evaluation is executed
     success, explanation = evaluator.evaluate_satisfaction_recursive(
         current_tonality=c_major_tonality,
-        current_state_in_path=tonic_state,
-        remaining_chord_sequence=progression,
+        current_state=tonic_state,
+        remaining_chords=progression,
         recursion_depth=0,
         parent_explanation=Explanation()
     )
@@ -161,14 +161,14 @@ def test_direct_continuation_failure_no_path(
     Dm is s_sd. G is s_d. Starting at s_t -> Dm(s_sd). s_sd has no successor, so it fails.
     """
     # GIVEN: an evaluator and the inverted progression [Dm, G]
-    evaluator = SatisfactionEvaluator(aragao_kripke_config, [c_major_tonality])
+    evaluator = SatisfactionEvaluator(aragao_kripke_config, [c_major_tonality], c_major_tonality)
     progression: List[Chord] = [Chord("Dm"), Chord("G")]
     
     # WHEN: the evaluation is executed at the tonic
     success, _ = evaluator.evaluate_satisfaction_recursive(
         current_tonality=c_major_tonality,
-        current_state_in_path=tonic_state,
-        remaining_chord_sequence=progression,
+        current_state=tonic_state,
+        remaining_chords=progression,
         recursion_depth=0,
         parent_explanation=Explanation()
     )
@@ -190,7 +190,7 @@ def test_tonicization_pivot_success_complex_progression(
     # GIVEN: an evaluator with multiple tonalities and the complete progression
     all_tonalities: List[Tonality] = [c_major_tonality, d_minor_tonality]
     # Analysis starts in C Major
-    evaluator = SatisfactionEvaluator(aragao_kripke_config, all_tonalities)
+    evaluator = SatisfactionEvaluator(aragao_kripke_config, all_tonalities, c_major_tonality)
     
     # The original progression is Em A7 Dm G C. The inverted is C G Dm A7 Em.
     progression: List[Chord] = [Chord("C"), Chord("G"), Chord("Dm"), Chord("A7"), Chord("Em")]
@@ -198,8 +198,8 @@ def test_tonicization_pivot_success_complex_progression(
     # WHEN: the evaluation is executed
     success, explanation = evaluator.evaluate_satisfaction_recursive(
         current_tonality=c_major_tonality,
-        current_state_in_path=tonic_state,
-        remaining_chord_sequence=progression,
+        current_state=tonic_state,
+        remaining_chords=progression,
         recursion_depth=0,
         parent_explanation=Explanation()
     )
