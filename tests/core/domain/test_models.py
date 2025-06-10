@@ -85,7 +85,7 @@ def test_get_state_by_tonal_function_multiple_matches_returns_one(kripke_config_
 
 # --- Tests for get_successors_of_state ---
 
-def test_get_successors_of_sd(kripke_config_populated: KripkeStructureConfig, sample_states: Dict):
+def test_get_successors_of_ssd(kripke_config_populated: KripkeStructureConfig, sample_states: Dict):
     """Test successors for s_sd (Subdominant), which has multiple distinct successors."""
     successors_of_ssd = kripke_config_populated.get_successors_of_state(sample_states["s_sd"])
     expected_successors = {sample_states["s_d"], sample_states["s_t"]}
