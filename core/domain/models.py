@@ -40,3 +40,46 @@ class KripkeState:
 
     state_id: str
     associated_tonal_function: TonalFunction
+
+
+@dataclass
+class Key:
+    """
+    Representa uma Tonalidade, que é uma função de rótulo L_i no formalismo.
+    Mapeia funções tonais a conjuntos de acordes que podem realizá-las.
+    Não usamos 'frozen=True' aqui, pois poderíamos querer adicionar ou
+    modificar os mapeamentos de acordes no futuro, embora seja improvável.
+    """
+
+    key_name: str
+    function_to_chords_map: Dict[TonalFunction, Set[Chord]]
+
+    def get_chords_for_function(self, func: TonalFunction) -> Set[Chord]:
+        """Retorna o conjunto de acordes para uma dada função tonal."""
+        return self.function_to_chords_map.get(func, set())
+
+    def chord_fulfills_function(
+        self, test_chord: Chord, target_function: TonalFunction
+    ) -> bool:
+        """Verifica se um acorde cumpre uma determinada função nesta tonalidade."""
+        return test_chord in self.get_chords_for_function(target_function)
+
+
+@dataclass
+class KripkeStructureConfig:
+    """
+    Define a parte estática da estrutura de Kripke: <S, S0, SF, R>.
+    Esta configuração é a base sobre a qual as diferentes Tonalidades (L_i) operam.
+    'field(default_factory=set)' é usado para garantir que um novo conjunto vazio
+    seja criado para cada instância se nenhum valor for fornecido, evitando
+    problemas com objetos mutáveis como padrões em classes.
+    """
+
+    states: Set[KripkeState] = field(default_factory=set)
+    initial_states_S0: Set[KripkeState] = field(default_factory=set)
+    final_states_SF: Set[KripkeState] = field(default_factory=set)
+    # A Relação de Acessibilidade R é um conjunto de tuplas, onde cada tupla
+    # representa uma transição permitida de um estado para outro.
+    accessibility_relation_R: Set[Tuple[KripkeState, KripkeState]] = field(
+        default_factory=set
+    )
