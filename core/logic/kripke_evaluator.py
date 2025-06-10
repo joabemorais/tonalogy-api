@@ -23,7 +23,7 @@ class SatisfactionEvaluator:
         Args:
             kripke_config: The base Kripke structure configuration (S, S0, SF, R).
             all_available_keys: A list of all Key objects known to the system,
-                                used for trying the L' rule (modulation) from Eq. 5. [1]
+                                used for trying the L' rule (modulation) from Eq. 5.
         """
         self.kripke_config: KripkeStructureConfig = kripke_config
         self.all_available_tonalities: List[Tonality] = all_available_tonalities
@@ -44,7 +44,7 @@ class SatisfactionEvaluator:
         Recursively evaluates if the remaining_chord_sequence is satisfied starting
         from current_state_in_path under current_key.
 
-        Implements the logic from Definition 5 of Aragão [1], considering
+        Implements the logic from Definition 5 of Aragão, considering
         Equations 3, 4, and 5.
 
         Args:
@@ -109,8 +109,8 @@ class SatisfactionEvaluator:
             )
 
             if not phi_sub_sequence: # BASE CASE 2: P is the last chord, P in L (Eq. 3)
-                explanation_eq3_L = explanation_after_P_in_L # Already clonado e com P adicionado
-                explanation_eq3_L.add_step( # Adiciona a conclusão da Eq.3
+                explanation_eq3_L = explanation_after_P_in_L # Already cloned and with added P
+                explanation_eq3_L.add_step( # Add the Eq.3's conclusion
                     formal_rule_applied="Eq.3 (L)",
                     observation="End of sequence. Progression satisfied.",
                     evaluated_functional_state=current_state_in_path, # State where P was satisfied
@@ -141,7 +141,7 @@ class SatisfactionEvaluator:
             # Now, the "Refined Flow" suggests we should try generalized Option 4B for φ.
             # And also Eq. 5 (P as pivot) is an alternative for Pφ.
 
-            # --- ATTEMPT 3 (NOVO): Independent re-evaluation of φ (Generalized Option 4B: K,L* |=_{\overline{\π}} φ) ---
+            # --- ATTEMPT 3: Independent re-evaluation of φ (Generalized Option 4B: K,L* |=_{\overline{\π}} φ) ---
             # This is attempted IF P was satisfied in L, BUT the direct continuation of φ in L (above) failed.
             # This corresponds to the "or K,L|=π′ϕ" from Eq.4, where π' is a new path for φ,
             # potentially in a new tonality L*.
@@ -172,7 +172,7 @@ class SatisfactionEvaluator:
                             )
                             success_phi_re_eval, expl_phi_re_eval = self.evaluate_satisfaction_recursive(
                                 l_star_tonality, potential_start_state_for_phi, phi_sub_sequence,
-                                recursion_depth + 1, # A profundidade da recursão continua
+                                recursion_depth + 1,
                                 explanation_for_phi_re_eval_branch
                             )
                             if success_phi_re_eval:
