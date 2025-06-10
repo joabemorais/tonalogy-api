@@ -6,12 +6,12 @@ from dataclasses import dataclass, field
 @dataclass(frozen=True)
 class Chord:
     """
-    Representa um símbolo de acorde individual (e.g., "Am", "G").
-    'dataclass' gera automaticamente métodos como __init__, __repr__, etc.
-    'frozen=True' torna os objetos desta classe imutáveis. Uma vez criado, um
-    acorde não pode ser alterado. Isso é bom para a consistência dos dados.
-    Como é 'frozen', o Python gera automaticamente os métodos __eq__ e __hash__,
-    o que nos permite usar objetos Chord em conjuntos (sets) e como chaves de dicionários.
+    Represents an individual chord symbol (e.g., "Am", "G").
+    'dataclass' automatically generates methods like __init__, __repr__, etc.
+    'frozen=True' makes objects of this class immutable. Once created, a
+    chord cannot be changed. This is good for data consistency.
+    Since it's 'frozen', Python automatically generates __eq__ and __hash__ methods,
+    which allows us to use Chord objects in sets and as dictionary keys.
     """
 
     name: str
@@ -19,8 +19,8 @@ class Chord:
 
 class TonalFunction(Enum):
     """
-    Representa as categorias funcionais abstratas (Tônica, Dominante, Subdominante).
-    Usar uma Enum garante que só possamos usar esses valores definidos, evitando erros.
+    Represents the abstract functional categories (Tonic, Dominant, Subdominant).
+    Using an Enum ensures we can only use these defined values, avoiding errors.
     """
 
     TONIC = auto()
@@ -31,11 +31,11 @@ class TonalFunction(Enum):
 @dataclass(frozen=True)
 class KripkeState:
     """
-    Representa um estado 's' na estrutura de Kripke (e.g., s_t, s_d, s_sd).
-    Associa um ID de estado a uma função tonal.
-    'frozen=True' também gera __eq__ e __hash__ para nós, permitindo que
-    KripkeState seja usado em conjuntos e como chaves de dicionário, o que é
-    essencial para representar a relação de acessibilidade R.
+    Represents a state 's' in the Kripke structure (e.g., s_t, s_d, s_sd).
+    Associates a state ID with a tonal function.
+    'frozen=True' also generates __eq__ and __hash__ for us, allowing
+    KripkeState to be used in sets and as dictionary keys, which is
+    essential for representing the accessibility relation R.
     """
 
     state_id: str
@@ -45,41 +45,41 @@ class KripkeState:
 @dataclass
 class Key:
     """
-    Representa uma Tonalidade, que é uma função de rótulo L_i no formalismo.
-    Mapeia funções tonais a conjuntos de acordes que podem realizá-las.
-    Não usamos 'frozen=True' aqui, pois poderíamos querer adicionar ou
-    modificar os mapeamentos de acordes no futuro, embora seja improvável.
+    Represents a Tonality, which is a labeling function L_i in the formalism.
+    Maps tonal functions to sets of chords that can fulfill them.
+    We don't use 'frozen=True' here, as we might want to add or
+    modify chord mappings in the future, although it's unlikely.
     """
 
     key_name: str
     function_to_chords_map: Dict[TonalFunction, Set[Chord]]
 
     def get_chords_for_function(self, func: TonalFunction) -> Set[Chord]:
-        """Retorna o conjunto de acordes para uma dada função tonal."""
+        """Returns the set of chords for a given tonal function."""
         return self.function_to_chords_map.get(func, set())
 
     def chord_fulfills_function(
         self, test_chord: Chord, target_function: TonalFunction
     ) -> bool:
-        """Verifica se um acorde cumpre uma determinada função nesta tonalidade."""
+        """Checks if a chord fulfills a specific function in this key."""
         return test_chord in self.get_chords_for_function(target_function)
 
 
 @dataclass
 class KripkeStructureConfig:
     """
-    Define a parte estática da estrutura de Kripke: <S, S0, SF, R>.
-    Esta configuração é a base sobre a qual as diferentes Tonalidades (L_i) operam.
-    'field(default_factory=set)' é usado para garantir que um novo conjunto vazio
-    seja criado para cada instância se nenhum valor for fornecido, evitando
-    problemas com objetos mutáveis como padrões em classes.
+    Defines the static part of the Kripke structure: <S, S0, SF, R>.
+    This configuration is the foundation upon which different Keys (L_i) operate.
+    'field(default_factory=set)' is used to ensure that a new empty set
+    is created for each instance if no value is provided, avoiding
+    issues with mutable objects as defaults in classes.
     """
 
     states: Set[KripkeState] = field(default_factory=set)
-    initial_states_S0: Set[KripkeState] = field(default_factory=set)
-    final_states_SF: Set[KripkeState] = field(default_factory=set)
-    # A Relação de Acessibilidade R é um conjunto de tuplas, onde cada tupla
-    # representa uma transição permitida de um estado para outro.
+    initial_states: Set[KripkeState] = field(default_factory=set)
+    final_states: Set[KripkeState] = field(default_factory=set)
+    # The Accessibility Relation R is a set of tuples, where each tuple
+    # represents an allowed transition from one state to another.
     accessibility_relation_R: Set[Tuple[KripkeState, KripkeState]] = field(
         default_factory=set
     )
