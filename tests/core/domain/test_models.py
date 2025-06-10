@@ -47,7 +47,7 @@ def kripke_config_populated(sample_states: Dict) -> KripkeStructureConfig:
 def c_major_key() -> Tonality:
     """Provides a sample C Major Key object."""
     return Tonality(
-        key_name="C Major",
+        tonality_name="C Major",
         function_to_chords_map={
             TonalFunction.TONIC: {Chord("C"), Chord("Am")},
             TonalFunction.DOMINANT: {Chord("G"), Chord("G7"), Chord("Bdim")},
@@ -59,7 +59,7 @@ def c_major_key() -> Tonality:
 def g_major_key_partial() -> Tonality:
     """Provides a sample G Major Key with only Tonic and Dominant defined."""
     return Tonality(
-        key_name="G Major Partial",
+        tonality_name="G Major Partial",
         function_to_chords_map={
             TonalFunction.TONIC: {Chord("G"), Chord("Em")},
             TonalFunction.DOMINANT: {Chord("D"), Chord("D7")}
@@ -130,3 +130,42 @@ def test_get_successors_empty_config_overall(kripke_config_empty: KripkeStructur
     dummy_state = KripkeState(state_id="s_dummy", associated_tonal_function=TonalFunction.TONIC)
     successors = kripke_config_empty.get_successors_of_state(dummy_state)
     assert successors == [], "Should be no successors in an entirely empty config"
+
+# --- Tests for Tonality Helper Methods ---
+
+def test_key_get_chords_for_function_exists(c_major_key: Tonality):
+    """Test getting chords for a function that exists in the key map."""
+    tonic_chords = c_major_key.get_chords_for_function(TonalFunction.TONIC)
+    expected_tonic_chords = {Chord("C"), Chord("Am")}
+    assert tonic_chords == expected_tonic_chords, "Incorrect tonic chords for C Major"
+
+    dominant_chords = c_major_key.get_chords_for_function(TonalFunction.DOMINANT)
+    expected_dominant_chords = {Chord("G"), Chord("G7"), Chord("Bdim")}
+    assert dominant_chords == expected_dominant_chords, "Incorrect dominant chords for C Major"
+
+def test_key_get_chords_for_function_not_exists(g_major_key_partial: Tonality):
+    """Test getting chords for a function that is not defined in the key map."""
+    # g_major_key_partial does not have SUBDOMINANT defined
+    subdominant_chords = g_major_key_partial.get_chords_for_function(TonalFunction.SUBDOMINANT)
+    assert subdominant_chords == set(), "Should return an empty set for an undefined function"
+
+def test_key_chord_fulfills_function_true(c_major_key: Tonality):
+    """Test when a chord correctly fulfills a function."""
+    assert c_major_key.chord_fulfills_function(Chord("C"), TonalFunction.TONIC) is True, "C should be Tonic in C Major"
+    assert c_major_key.chord_fulfills_function(Chord("G7"), TonalFunction.DOMINANT) is True, "G7 should be Dominant in C Major"
+    assert c_major_key.chord_fulfills_function(Chord("Dm"), TonalFunction.SUBDOMINANT) is True, "Dm should be Subdominant in C Major"
+
+def test_key_chord_fulfills_function_false_wrong_chord(c_major_key: Tonality):
+    """Test when a chord does not fulfill the specified function (wrong chord for function)."""
+    assert c_major_key.chord_fulfills_function(Chord("G"), TonalFunction.TONIC) is False, "G should not be Tonic in C Major"
+    assert c_major_key.chord_fulfills_function(Chord("C"), TonalFunction.DOMINANT) is False, "C should not be Dominant in C Major"
+
+def test_key_chord_fulfills_function_false_function_not_in_key(g_major_key_partial: Tonality):
+    """Test when the function itself is not defined for the key."""
+    # SUBDOMINANT is not in g_major_key_partial
+    assert g_major_key_partial.chord_fulfills_function(Chord("C"), TonalFunction.SUBDOMINANT) is False, "C cannot be Subdominant if Subdominant is not defined for the key"
+
+def test_key_chord_fulfills_function_empty_chord_set_for_function(c_major_key: Tonality):
+    """Test a scenario where a function might exist but have an empty set of chords (edge case)."""
+    empty_tonic_key = Tonality("Test Tonality", {TonalFunction.TONIC: set()})
+    assert empty_tonic_key.chord_fulfills_function(Chord("C"), TonalFunction.TONIC) is False, "C cannot be Tonic if Tonic set is empty"
