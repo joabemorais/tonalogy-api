@@ -1,6 +1,6 @@
 # Tonalogy API
 
-Backend Service for Tonal Analysis and Visualization
+*Backend Service for Tonal Analysis and Visualization*
 
 ## Project Context
 
@@ -8,6 +8,8 @@ This repository contains the primary backend service for the Tonalogy project. I
 This service is a direct implementation of the computational model proposed in the undergraduate thesis:
 
 > “Uma Implementação Computacional para Análise de Tonalidade em Progressões Harmônicas via Semântica de Mundos Possíveis”
+> 
+> [A Computational Implementation for Tonality Analysis in Harmonic Progressions via Possible Worlds Semantics]
 
 ## Architectural Role
 
