@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from typing import Set, Dict, Tuple
+from typing import Set, Dict, Tuple, List, Optional
 from dataclasses import dataclass, field
 
 
@@ -35,7 +35,7 @@ class KripkeState:
     Associates a state ID with a tonal function.
     'frozen=True' also generates __eq__ and __hash__ for us, allowing
     KripkeState to be used in sets and as dictionary keys, which is
-    essential for representing the accessibility relation R.
+    essential for representing the accessibility relation.
     """
 
     state_id: str
@@ -78,8 +78,32 @@ class KripkeStructureConfig:
     states: Set[KripkeState] = field(default_factory=set)
     initial_states: Set[KripkeState] = field(default_factory=set)
     final_states: Set[KripkeState] = field(default_factory=set)
-    # The Accessibility Relation R is a set of tuples, where each tuple
+    # The Accessibility Relation is a set of tuples, where each tuple
     # represents an allowed transition from one state to another.
-    accessibility_relation_R: Set[Tuple[KripkeState, KripkeState]] = field(
+    accessibility_relation: Set[Tuple[KripkeState, KripkeState]] = field(
         default_factory=set
     )
+
+    def get_state_by_tonal_function(self, func: TonalFunction) -> Optional[KripkeState]:
+        """
+        Finds and returns the first KripkeState in this configuration
+        that is associated with the given TonalFunction.
+        Returns None if no such state is found.
+        This is used, for example, to find the 'Tonic' state to start an analysis.
+        """
+        for state in self.states:
+            if state.associated_tonal_function == func:
+                return state
+        return None # No state found for the given function
+
+    def get_successors_of_state(self, source_state: KripkeState) -> List[KripkeState]:
+        """
+        Returns a list of KripkeStates that are directly accessible
+        from the given source_state, according to the accessibility_relation.
+        This is crucial for traversing the Kripke structure during analysis.
+        """
+        successors: List[KripkeState] = [
+            r_target for r_source, r_target in self.accessibility_relation
+            if r_source == source_state
+        ]
+        return successors
