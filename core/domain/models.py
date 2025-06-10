@@ -96,7 +96,7 @@ class KripkeStructureConfig:
                 return state
         return None # No state found for the given function
 
-    def get_successors_of_state(self, source_state: KripkeState) -> List:
+    def get_successors_of_state(self, source_state: KripkeState) -> List[KripkeState]:
         """
         Returns a list of KripkeStates that are directly accessible
         from the given source_state, according to the accessibility_relation_R.
