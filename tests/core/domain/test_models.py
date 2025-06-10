@@ -165,7 +165,10 @@ def test_key_chord_fulfills_function_false_function_not_in_key(g_major_key_parti
     # SUBDOMINANT is not in g_major_key_partial
     assert g_major_key_partial.chord_fulfills_function(Chord("C"), TonalFunction.SUBDOMINANT) is False, "C cannot be Subdominant if Subdominant is not defined for the key"
 
-def test_key_chord_fulfills_function_empty_chord_set_for_function(c_major_key: Tonality):
+def test_key_chord_fulfills_function_empty_chord_set_for_function():
     """Test a scenario where a function might exist but have an empty set of chords (edge case)."""
-    empty_tonic_key = Tonality("Test Tonality", {TonalFunction.TONIC: set()})
+    empty_tonic_key = Tonality(
+        tonality_name="Test Tonality",
+        function_to_chords_map={TonalFunction.TONIC: set()}
+    )
     assert empty_tonic_key.chord_fulfills_function(Chord("C"), TonalFunction.TONIC) is False, "C cannot be Tonic if Tonic set is empty"
