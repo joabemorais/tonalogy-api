@@ -133,8 +133,3 @@ def test_full_analysis_of_complex_progression(
   assert step_em.processed_chord == Chord("Em")
   assert step_em.tonality_used_in_step.tonality_name == "C Major"
   assert step_em.evaluated_functional_state.associated_tonal_function == TonalFunction.TONIC
-
-  print("\n--- Analysis of Generated Explanation ---")
-  for step in explanation.steps:
-    print(step)
-  print("--- End of Analysis ---")
