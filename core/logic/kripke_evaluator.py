@@ -1,73 +1,35 @@
-from typing import List, Tuple, Optional
+from typing import List, Tuple
 
-# Assuming your domain models are in core.domain.models
-# Adjust the import path if your structure is different or if you've
-# exposed these via __init__.py files in parent packages.
 from core.domain.models import (
     KripkeStructureConfig,
     Tonality,
     KripkeState,
     Chord,
     Explanation,
-    # DetailedExplanationStep is implicitly used by Explanation.add_step
 )
 
-# A practical limit to prevent infinite recursion in case of unexpected cyclic paths
-# or very long non-terminating sequences. Aragão's specific examples are finite.
-MAX_RECURSION_DEPTH = 50 # Adjust as needed
+MAX_RECURSION_DEPTH = 50
 
 class SatisfactionEvaluator:
-    """
-    Implements the complex recursive logic of Definition 5 from Aragão's paper]
-    to determine if a sequence of chords is satisfied by a Kripke structure
-    under a given tonality (label function L).
-    """
-
-    def __init__(self, kripke_config: KripkeStructureConfig, all_available_tonalitys: List[Tonality]):
-        """
-        Initializes the SatisfactionEvaluator.
-
-        Args:
-            kripke_config: The base Kripke structure configuration (S, S0, SF, R).
-            all_available_tonalitys: A list of all Tonality objects known to the system,
-                                used for trying the L' rule (modulation) from Eq. 5.
-        """
+    def __init__(self, kripke_config: KripkeStructureConfig, all_available_tonalities: List[Tonality]):
         self.kripke_config: KripkeStructureConfig = kripke_config
-        self.all_available_tonalitys: List[Tonality] = all_available_tonalitys
-        
+        self.all_available_tonalities: List[Tonality] = all_available_tonalities
+        # O ProgressionAnalyzer pode ser necessário para a reavaliação completa de phi
+        # Se não quisermos uma dependência circular, podemos passar uma referência a um método
+        # ou simplificar a reavaliação de phi para começar sempre do estado Tônica.
+        # Por agora, vamos manter a lógica de reavaliação dentro desta classe.
+
     def evaluate_satisfaction_recursive(
         self,
-        current_tonality: Tonality,                     # L
-        current_state_in_path: KripkeState,        # π_k (current functional state for P)
-        remaining_chord_sequence: List[Chord],     # Pφ (current chord P and tail φ)
+        current_tonality: Tonality,
+        current_state_in_path: KripkeState,
+        remaining_chord_sequence: List[Chord],
         recursion_depth: int,
-        partial_explanation: Explanation
+        parent_explanation: Explanation # Renomeado para clareza
     ) -> Tuple[bool, Explanation]:
-        """
-        Recursively evaluates if the remaining_chord_sequence is satisfied starting
-        from current_state_in_path under current_tonality.
 
-        Implements the logic from Definition 5 of Aragão, considering
-        Equations 3, 4, and 5.
-
-        Args:
-            current_tonality: The current tonality (L) being used for evaluation.
-            current_state_in_path: The current Kripke state (π_k) where the
-                                   first chord of remaining_chord_sequence is being evaluated.
-            remaining_chord_sequence: The list of chords (Pφ) yet to be satisfied.
-                                      The first chord is P, the rest is φ.
-            recursion_depth: Current depth of recursion, to prevent infinite loops.
-            partial_explanation: The Explanation object being built up.
-
-        Returns:
-            A tuple (success: bool, resulting_explanation: Explanation).
-            'success' is True if the sequence is satisfied, False otherwise.
-            'resulting_explanation' contains the trace of the evaluation.
-        """
-
-        # Protection against excessive recursion
         if recursion_depth > MAX_RECURSION_DEPTH:
-            explanation_failure = partial_explanation.clone()
+            explanation_failure = parent_explanation.clone()
             explanation_failure.add_step(
                 formal_rule_applied="Recursion Limit",
                 observation=f"Exceeded maximum recursion depth ({MAX_RECURSION_DEPTH}).",
@@ -76,183 +38,191 @@ class SatisfactionEvaluator:
             )
             return False, explanation_failure
 
-        # BASE CASE 1: Empty chord sequence (Aragão's Def. 5 implies satisfaction if sequence is fully read)
-        # If there are no more chords to verify, the sequence up to this point was satisfied.
         if not remaining_chord_sequence:
-            # This base case is typically hit when a previous call successfully processed its chord
-            # and called recursively with an empty phi_sub_sequence.
-            # The explanation step for the *last actual chord* would have been added by the caller.
-            # However, adding a "fully consumed" step can be useful for clarity.
-            current_explanation = partial_explanation.clone() # Clone to avoid modifying parent's branch if this is part of a larger success
+            current_explanation = parent_explanation.clone()
             current_explanation.add_step(
                 formal_rule_applied="Base (Empty Seq)",
                 observation="Chord sequence fully consumed successfully.",
-                evaluated_functional_state=current_state_in_path, # State where the consumption finished
+                evaluated_functional_state=current_state_in_path,
                 tonality_used_in_step=current_tonality
             )
             return True, current_explanation
 
-        current_chord: Chord = remaining_chord_sequence        # P
-        phi_sub_sequence: List[Chord] = remaining_chord_sequence[1:] # φ (can be empty)
+        current_chord: Chord = remaining_chord_sequence
+        phi_sub_sequence: List[Chord] = remaining_chord_sequence[1:]
 
-        # Check if P ∈ L(π_k)
+        # --- ATTEMPT 1: P em L, e então φ em L via sucessores de current_state_in_path ---
+        # (Corresponde a K,L|=π_k P e K,L|=π_{k+1,n} φ da Eq. 4A)
         p_satisfied_in_L: bool = current_tonality.chord_fulfills_function(
             current_chord,
             current_state_in_path.associated_tonal_function
         )
 
-        # --- ATTEMPT 1: Try to satisfy P in current_tonality (L) and then φ in current_tonality (L) ---
-        # This corresponds to K,L |=π_k P and then K,L |=π_k+1,n φ (part of Eq. 4/5)
         if p_satisfied_in_L:
-            # BASE CASE 2: P ∈ L(π_k) and φ is empty (P is the last chord).
-            # This corresponds to Aragão's Eq. 3: K,L |=π P <=> P ∈ L(π_0)
-            # (where current_state_in_path is π_0 for this P)
-            if not phi_sub_sequence:
-                explanation_eq3_L = partial_explanation.clone()
-                explanation_eq3_L.add_step(
+            # P está satisfeito em L no estado atual.
+            # Clonar a explicação aqui, pois este é um ponto de ramificação válido.
+            explanation_after_P_in_L = parent_explanation.clone()
+            explanation_after_P_in_L.add_step(
+                formal_rule_applied="P in L", # Um passo genérico para P
+                observation=(
+                    f"Chord '{current_chord.name}' fulfills function "
+                    f"'{current_state_in_path.associated_tonal_function.to_string()}' "
+                    f"in tonality '{current_tonality.tonality_name}' (at state '{current_state_in_path.state_id}')."
+                ),
+                evaluated_functional_state=current_state_in_path,
+                processed_chord=current_chord,
+                tonality_used_in_step=current_tonality
+            )
+
+            if not phi_sub_sequence: # BASE CASE 2: P é o último acorde, P em L (Eq. 3)
+                explanation_eq3_L = explanation_after_P_in_L # Já clonado e com P adicionado
+                explanation_eq3_L.add_step( # Adiciona a conclusão da Eq.3
                     formal_rule_applied="Eq.3 (L)",
-                    observation=(
-                        f"Chord '{current_chord.name}' fulfills function "
-                        f"'{current_state_in_path.associated_tonal_function.to_string()}' "
-                        f"in tonality '{current_tonality.tonality_name}'. End of sequence."
-                    ),
-                    evaluated_functional_state=current_state_in_path,
-                    processed_chord=current_chord,
+                    observation="End of sequence. Progression satisfied.",
+                    evaluated_functional_state=current_state_in_path, # Estado onde P foi satisfeito
+                    processed_chord=current_chord, # O P que foi satisfeito
                     tonality_used_in_step=current_tonality
                 )
                 return True, explanation_eq3_L
 
-            # RECURSIVE CASE: P ∈ L(π_k) and φ is not empty.
-            # Try to satisfy φ by continuing with the same tonality L, moving to successor states.
-            # K,L |=π_k+1,n φ (from Eq. 4 or Eq. 5)
+            # RECURSIVO: Tentar φ em L via sucessores (Eq. 4A para φ)
             successors = self.kripke_config.get_successors_of_state(current_state_in_path)
-            if not successors: # No way to continue the path for φ
-                 explanation_no_succ_L = partial_explanation.clone()
-                 explanation_no_succ_L.add_step(
-                    formal_rule_applied="Attempt L (No Succ)",
-                    observation=(
-                        f"Chord '{current_chord.name}' fulfills function in tonality '{current_tonality.tonality_name}', "
-                        f"but no successor states from '{current_state_in_path.state_id}' to satisfy remaining sequence."
-                    ),
-                    evaluated_functional_state=current_state_in_path,
-                    processed_chord=current_chord,
-                    tonality_used_in_step=current_tonality
-                )
-                # Do not return False yet, ATTEMPT 2 (L') might still work.
-            else:
-                for next_possible_state in successors:
-                    explanation_for_L_branch = partial_explanation.clone()
+            if successors:
+                for next_state_L in successors:
+                    explanation_for_L_branch = explanation_after_P_in_L.clone() # Clonar a partir do ponto onde P foi satisfeito em L
                     explanation_for_L_branch.add_step(
-                        formal_rule_applied="Eq.4/5 (P in L, try φ in L)",
+                        formal_rule_applied="Try φ in L (Eq.4A)",
                         observation=(
-                            f"Chord '{current_chord.name}' fulfills function "
-                            f"'{current_state_in_path.associated_tonal_function.to_string()}' "
-                            f"in tonality '{current_tonality.tonality_name}'. Trying next state '{next_possible_state.state_id}' "
-                            f"for remaining sequence."
-                        ),
-                        evaluated_functional_state=current_state_in_path,
-                        processed_chord=current_chord,
-                        tonality_used_in_step=current_tonality
-                    )
-
-                    success_recursive_L, explanation_recursive_L = self.evaluate_satisfaction_recursive(
-                        current_tonality=current_tonality,             # Continue with L
-                        current_state_in_path=next_possible_state,  # π_k+1
-                        remaining_chord_sequence=phi_sub_sequence, # φ
-                        recursion_depth=recursion_depth + 1,
-                        partial_explanation=explanation_for_L_branch
-                    )
-                    if success_recursive_L:
-                        return True, explanation_recursive_L # Found a satisfaction path with L
-
-        # --- ATTEMPT 2: Try to satisfy P in an alternative_tonality (L') and then φ in L' ---
-        # This corresponds to Aragão's Eq. 5: K,L'|=π_0' P AND K,L'|=π_1,n' φ
-        # This attempt is made if ATTEMPT 1 failed for φ, or if P was not satisfied in L initially.
-        for alternative_tonality in self.all_available_tonalitys:
-            if alternative_tonality.tonality_name == current_tonality.tonality_name:
-                # If p_satisfied_in_L was true, we've already tried this tonality for P and its φ continuation.
-                # If p_satisfied_in_L was false, then trying current_tonality again here is redundant.
-                continue
-
-            # Check if P ∈ L'(π_k)
-            p_satisfied_in_L_prime: bool = alternative_tonality.chord_fulfills_function(
-                current_chord,
-                current_state_in_path.associated_tonal_function
-            )
-
-            if p_satisfied_in_L_prime:
-                # BASE CASE (with L'): P ∈ L'(π_k) and φ is empty. (Eq. 3 for L')
-                if not phi_sub_sequence:
-                    explanation_eq3_L_prime = partial_explanation.clone()
-                    explanation_eq3_L_prime.add_step(
-                        formal_rule_applied="Eq.3 (L')",
-                        observation=(
-                            f"Chord '{current_chord.name}' fulfills function "
-                            f"'{current_state_in_path.associated_tonal_function.to_string()}' "
-                            f"in tonality '{alternative_tonality.tonality_name}' (tonality change from '{current_tonality.tonality_name}'). End of sequence."
-                        ),
-                        evaluated_functional_state=current_state_in_path,
-                        processed_chord=current_chord,
-                        tonality_used_in_step=alternative_tonality
-                    )
-                    return True, explanation_eq3_L_prime
-
-                # RECURSIVE CASE (with L'): P ∈ L'(π_k) and φ is not empty.
-                # Try to satisfy K,L' |=π_k+1,n' φ
-                successors_L_prime = self.kripke_config.get_successors_of_state(current_state_in_path)
-                if not successors_L_prime:
-                    explanation_no_succ_L_prime = partial_explanation.clone()
-                    explanation_no_succ_L_prime.add_step(
-                        formal_rule_applied="Attempt L' (No Succ)",
-                        observation=(
-                            f"Chord '{current_chord.name}' fulfills function in tonality '{alternative_tonality.tonality_name}', "
-                            f"but no successor states from '{current_state_in_path.state_id}' to satisfy remaining sequence in L'."
-                        ),
-                        evaluated_functional_state=current_state_in_path,
-                        processed_chord=current_chord,
-                        tonality_used_in_step=alternative_tonality
-                    )
-                    # Continue to the next alternative_tonality if this one has no successors for phi
-                else:
-                    for next_possible_state_L_prime in successors_L_prime:
-                        explanation_for_L_prime_branch = partial_explanation.clone()
-                        explanation_for_L_prime_branch.add_step(
-                            formal_rule_applied="Eq.5 (P in L', try φ in L')",
-                            observation=(
-                                f"Chord '{current_chord.name}' fulfills function "
-                                f"'{current_state_in_path.associated_tonal_function.to_string()}' "
-                                f"in tonality '{alternative_tonality.tonality_name}' (tonality change from '{current_tonality.tonality_name}'). "
-                                f"Trying next state '{next_possible_state_L_prime.state_id}' for remaining sequence."
-                            ),
-                            evaluated_functional_state=current_state_in_path,
-                            processed_chord=current_chord,
-                            tonality_used_in_step=alternative_tonality
+                            f"Attempting to satisfy tail '{[c.name for c in phi_sub_sequence]}' in tonality '{current_tonality.tonality_name}' "
+                            f"from next state '{next_state_L.state_id}'."
                         )
+                        # Não há current_chord/state específico para *este* passo de tentativa de ramo
+                    )
+                    success_phi_L, expl_phi_L = self.evaluate_satisfaction_recursive(
+                        current_tonality, next_state_L, phi_sub_sequence, recursion_depth + 1, explanation_for_L_branch
+                    )
+                    if success_phi_L:
+                        return True, expl_phi_L
+            # Se chegamos aqui, P estava em L, mas φ não pôde ser satisfeito continuando em L via sucessores.
+            # Agora, o "Fluxo Refinado" sugere que devemos tentar a Opção 4B generalizada para φ.
+            # E também a Eq. 5 (P como pivô) é uma alternativa para Pφ.
 
-                        success_recursive_L_prime, explanation_recursive_L_prime = self.evaluate_satisfaction_recursive(
-                            current_tonality=alternative_tonality,         # Continue with L'
-                            current_state_in_path=next_possible_state_L_prime,  # π_k+1
-                            remaining_chord_sequence=phi_sub_sequence,        # φ
-                            recursion_depth=recursion_depth + 1,
-                            partial_explanation=explanation_for_L_prime_branch
+            # --- ATTEMPT 3 (NOVO): Reavaliação independente de φ (Opção 4B generalizada: K,L* |=_{\overline{\pi}} φ) ---
+            # Isto é tentado SE P foi satisfeito em L, MAS a continuação direta de φ em L (acima) falhou.
+            # Isto corresponde ao "ou K,L|=π′ϕ" da Eq.4, onde π' é um novo caminho para φ,
+            # potencialmente em uma nova tonalidade L*.
+            if phi_sub_sequence: # Só faz sentido se houver uma cauda φ
+                explanation_before_phi_re_eval = explanation_after_P_in_L.clone() # Explicação até P ter sido satisfeito em L
+                explanation_before_phi_re_eval.add_step(
+                    formal_rule_applied="Attempt Eq.4B (Re-eval φ)",
+                    observation=(
+                        f"Continuation of tail '{[c.name for c in phi_sub_sequence]}' in tonality '{current_tonality.tonality_name}' failed. "
+                        f"Now attempting to satisfy tail independently via alternative paths/tonalitys."
+                    )
+                )
+                
+                first_chord_of_phi = phi_sub_sequence
+                for l_star_tonality in self.all_available_tonalities:
+                    # Para cada L*, tentar iniciar phi_sub_sequence a partir de qualquer estado s'
+                    # onde o primeiro acorde de phi (P_phi) é satisfeito em L*(s').
+                    for potential_start_state_for_phi in self.kripke_config.states:
+                        if l_star_tonality.chord_fulfills_function(first_chord_of_phi, potential_start_state_for_phi.associated_tonal_function):
+                            explanation_for_phi_re_eval_branch = explanation_before_phi_re_eval.clone()
+                            explanation_for_phi_re_eval_branch.add_step(
+                                formal_rule_applied="Try φ in L* (Eq.4B)",
+                                observation=(
+                                    f"Attempting independent satisfaction of tail '{[c.name for c in phi_sub_sequence]}' "
+                                    f"in tonality '{l_star_tonality.tonality_name}' starting from state '{potential_start_state_for_phi.state_id}' "
+                                    f"for its first chord '{first_chord_of_phi.name}'."
+                                )
+                            )
+                            success_phi_re_eval, expl_phi_re_eval = self.evaluate_satisfaction_recursive(
+                                l_star_tonality, potential_start_state_for_phi, phi_sub_sequence,
+                                recursion_depth + 1, # A profundidade da recursão continua
+                                explanation_for_phi_re_eval_branch
+                            )
+                            if success_phi_re_eval:
+                                return True, expl_phi_re_eval
+            # Se P estava em L, mas nem a continuação de φ em L (ATTEMPT 1) nem a reavaliação de φ (ATTEMPT 3) funcionaram,
+            # ainda precisamos considerar a Eq. 5 (ATTEMPT 2) como uma forma alternativa de satisfazer Pφ como um todo.
+
+        # --- ATTEMPT 2: P como pivô para L' (Eq. 5: K,L|=π0P e K,L'|=π′0P e K,L'|=π′1,nφ) ---
+        # Esta é uma alternativa para satisfazer Pφ na tonalidade original L.
+        # Requer que P seja satisfeito em L no estado atual (verificado por p_satisfied_in_L).
+        # E P também seja satisfeito em L' no estado atual.
+        # E φ seja satisfeita em L' a partir dos sucessores do estado atual.
+        if p_satisfied_in_L: # Condição 1 da Eq. 5: K,L|=π_k P
+            for alternative_tonality_for_pivot in self.all_available_tonalities:
+                if alternative_tonality_for_pivot.tonality_name == current_tonality.tonality_name:
+                    continue # Não é realmente uma alternativa L'
+
+                # Condição 2 da Eq. 5: K,L'|=π_k P (usando current_state_in_path como π_k para L')
+                p_satisfied_in_L_prime_for_pivot: bool = alternative_tonality_for_pivot.chord_fulfills_function(
+                    current_chord,
+                    current_state_in_path.associated_tonal_function
+                )
+
+                if p_satisfied_in_L_prime_for_pivot:
+                    # P está satisfeito em L (p_satisfied_in_L) E P está satisfeito em L' (p_satisfied_in_L_prime_for_pivot)
+                    # no mesmo current_state_in_path.
+                    explanation_after_P_in_L_and_Lprime = parent_explanation.clone() # Começa do pai, pois esta é uma alternativa para Pφ
+                    explanation_after_P_in_L_and_Lprime.add_step(
+                        formal_rule_applied="Eq.5 (P in L & L')",
+                        observation=(
+                            f"Chord '{current_chord.name}' acts as pivot: fulfills function "
+                            f"'{current_state_in_path.associated_tonal_function.to_string()}' "
+                            f"in original tonality '{current_tonality.tonality_name}' AND in alternative tonality '{alternative_tonality_for_pivot.tonality_name}' "
+                            f"at state '{current_state_in_path.state_id}'."
+                        ),
+                        evaluated_functional_state=current_state_in_path,
+                        processed_chord=current_chord,
+                        tonality_used_in_step=current_tonality # Ou talvez ambos? Para clareza, o original.
+                    )
+
+                    if not phi_sub_sequence: # BASE CASE: P é o último, satisfeito via Eq. 5
+                        explanation_eq5_L_prime_p_last = explanation_after_P_in_L_and_Lprime
+                        explanation_eq5_L_prime_p_last.add_step(
+                            formal_rule_applied="Eq.5 (L', φ empty)",
+                            observation="End of sequence. Progression satisfied via pivot chord.",
+                            # evaluated_functional_state, processed_chord já no passo anterior
+                            tonality_used_in_step=alternative_tonality_for_pivot # A "nova" tonalidade para a (vazia) cauda
                         )
-                        if success_recursive_L_prime:
-                            return True, explanation_recursive_L_prime # Found a satisfaction path with L'
+                        return True, explanation_eq5_L_prime_p_last
+
+                    # RECURSIVO: Tentar φ em L' via sucessores (Condição 3 da Eq. 5)
+                    successors_for_L_prime_pivot = self.kripke_config.get_successors_of_state(current_state_in_path)
+                    if successors_for_L_prime_pivot:
+                        for next_state_L_prime in successors_for_L_prime_pivot:
+                            explanation_for_L_prime_pivot_branch = explanation_after_P_in_L_and_Lprime.clone()
+                            explanation_for_L_prime_pivot_branch.add_step(
+                                formal_rule_applied="Try φ in L' (Eq.5 cont.)",
+                                observation=(
+                                    f"Attempting to satisfy tail '{[c.name for c in phi_sub_sequence]}' in pivoted tonality '{alternative_tonality_for_pivot.tonality_name}' "
+                                    f"from next state '{next_state_L_prime.state_id}'."
+                                )
+                            )
+                            success_phi_L_prime, expl_phi_L_prime = self.evaluate_satisfaction_recursive(
+                                alternative_tonality_for_pivot, next_state_L_prime, phi_sub_sequence,
+                                recursion_depth + 1, explanation_for_L_prime_pivot_branch
+                            )
+                            if success_phi_L_prime:
+                                return True, expl_phi_L_prime
+                    # Se φ não pôde ser satisfeito em L' após o pivô, este ramo da Eq.5 falha.
         
-        # If none of the attempts (with L or any L') led to a solution for current_chord and phi_sub_sequence
-        # from current_state_in_path.
-        # Add a failure step for the current_chord at this specific state and tonality combination.
-        # This helps trace why a particular branch failed.
-        final_branch_explanation = partial_explanation.clone()
+        # Se P não foi satisfeito em L (p_satisfied_in_L é False), E
+        # a tentativa de usar P como pivô para L' (ATTEMPT 2) também não funcionou (ou não foi aplicável),
+        # OU se P foi satisfeito em L mas nenhuma das continuações para φ (ATTEMPT 1 ou ATTEMPT 3) funcionou.
+        # Então, este ramo da avaliação falha para current_chord.
+        final_branch_explanation = parent_explanation.clone()
         final_branch_explanation.add_step(
             formal_rule_applied="Branch Failure",
             observation=(
                 f"Chord '{current_chord.name}' could not be satisfied from state "
                 f"'{current_state_in_path.state_id}' ({current_state_in_path.associated_tonal_function.to_string()}) "
-                f"with current tonality '{current_tonality.tonality_name}' or via any alternative tonality L' for this branch."
+                f"under tonality '{current_tonality.tonality_name}' through any applicable rule (Eq.3, Eq.4A, Eq.4B general, or Eq.5)."
             ),
             evaluated_functional_state=current_state_in_path,
             processed_chord=current_chord,
-            tonality_used_in_step=current_tonality # The tonality under which this branch ultimately failed for P
+            tonality_used_in_step=current_tonality
         )
         return False, final_branch_explanation
