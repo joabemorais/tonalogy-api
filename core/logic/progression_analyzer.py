@@ -26,7 +26,7 @@ class ProgressionAnalyzer:
   def check_tonal_progression(
     self,
     input_chord_sequence: List[Chord],
-    keys_to_test: List[Tonality]
+    tonalities_to_test: List[Tonality]
   ) -> Tuple[bool, Explanation]:
     """
     Checks if a chord sequence is a valid tonal progression in
@@ -34,7 +34,7 @@ class ProgressionAnalyzer:
 
     Args:
       input_chord_sequence: The list of Chord objects to be analyzed.
-      keys_to_test: A list of Tonality objects to use as starting points.
+      tonalities_to_test: A list of Tonality objects to use as starting points.
 
     Returns:
       A tuple containing a success boolean and the Explanation object with the
@@ -60,7 +60,7 @@ class ProgressionAnalyzer:
       return False, failure_explanation
 
     # Iterate over each candidate tonality to find one that satisfies the progression.
-    for candidate_tonality in keys_to_test:
+    for candidate_tonality in tonalities_to_test:
       # For each attempt in a new tonality, we create a new evaluator.
       # It's crucial to pass the 'candidate_tonality' as the 'original_tonality',
       # as this informs the evaluator which is the "main" tonality
@@ -70,7 +70,7 @@ class ProgressionAnalyzer:
       initial_explanation = Explanation()
       initial_explanation.add_step(
         formal_rule_applied="Analysis Start",
-        observation=f"Testing progression in tonality: '{candidate_tonality.key_name}'.",
+        observation=f"Testing progression in tonality: '{candidate_tonality.tonality_name}'.",
         tonality_used_in_step=candidate_tonality
       )
 
@@ -86,12 +86,12 @@ class ProgressionAnalyzer:
       if success:
         final_explanation.add_step(
           formal_rule_applied="Overall Success",
-          observation=f"Progression identified as tonal in '{candidate_tonality.key_name}'.",
+          observation=f"Progression identified as tonal in '{candidate_tonality.tonality_name}'.",
           tonality_used_in_step=candidate_tonality
         )
         return True, final_explanation
 
     # If the loop ends without finding a solution in any of the tested tonalities.
     failure_explanation = Explanation()
-    failure_explanation.add_step(formal_rule_applied="Overall Failure", observation="No tested key satisfied the progression.")
+    failure_explanation.add_step(formal_rule_applied="Overall Failure", observation="No tested tonality satisfied the progression.")
     return False, failure_explanation
