@@ -293,7 +293,6 @@ def test_explanation_add_step_with_fixtures(empty_explanation: Explanation, samp
     assert step2.processed_chord is None
     assert step2.tonality_used_in_step is None
 
-
 def test_explanation_clone_empty_with_fixture(empty_explanation: Explanation):
     """Test cloning an empty Explanation using a fixture."""
     exp_orig = empty_explanation
