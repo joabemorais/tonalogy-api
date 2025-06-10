@@ -2,8 +2,8 @@ from typing import List, Tuple, Optional
 
 # Importar os modelos de domínio que criamos anteriormente
 from core.domain.models import (
-    Chord, KripkeState, Key as Tonality, KripkeStructureConfig,
-    Explanation, DetailedExplanationStep, TonalFunction
+    Chord, KripkeState, Tonality, KripkeStructureConfig,
+    Explanation, TonalFunction
 )
 
 # Constante para evitar recursão infinita em casos complexos
@@ -47,14 +47,21 @@ class SatisfactionEvaluator:
         explanation_after_P = parent_explanation.clone()
         explanation_after_P.add_step(
             formal_rule_applied="P in L",
-            observation=f"Chord '{p_chord.name}' fulfills function '{current_state.associated_tonal_function.name}' in '{current_tonality.key_name}'.",
+            observation=f"Chord '{p_chord.name}' fulfills function '{current_state.associated_tonal_function.name}' in '{current_tonality.tonality_name}'.",
             evaluated_functional_state=current_state,
             processed_chord=p_chord,
-            key_used_in_step=current_tonality
+            tonality_used_in_step=current_tonality
         )
 
         # Caso base: Se P era o último acorde, a continuação é um sucesso.
         if not phi_sub_sequence:
+            explanation_after_P.add_step(
+                formal_rule_applied="P in L",
+                observation=f"End of sequence. All chords have been successfully processed.",
+                evaluated_functional_state=current_state,
+                processed_chord=p_chord,
+                tonality_used_in_step=current_tonality
+            )
             return True, explanation_after_P
 
         # Caso recursivo: Tentar satisfazer a cauda a partir dos sucessores.
@@ -68,49 +75,78 @@ class SatisfactionEvaluator:
         return False, None # A continuação direta a partir deste estado não levou a uma solução.
 
     def _try_tonicization_pivot(
-        self,
-        p_chord: Chord,
-        phi_sub_sequence: List[Chord],
-        current_tonality: Tonality,
-        current_state: KripkeState,
-        parent_explanation: Explanation,
-        recursion_depth: int
-    ) -> Tuple[bool, Optional[Explanation]]:
-        """
-        TENTATIVA 2: Implementa a tonicização (variação da Eq. 5 de Aragão).
-        Verifica se P pode atuar como uma nova tônica em uma tonalidade L'.
-        """
-        for l_prime_tonality in self.all_available_tonalities:
-            # Não é um pivô se a tonalidade for a mesma.
-            if l_prime_tonality.key_name == current_tonality.key_name:
-                continue
+      self,
+      p_chord: Chord,
+      phi_sub_sequence: List[Chord],
+      current_tonality: Tonality,
+      current_state: KripkeState,
+      parent_explanation: Explanation,
+      recursion_depth: int
+  ) -> Tuple[bool, Optional[Explanation]]:
+      """
+      TENTATIVA 2: Implementa a tonicização com lógica de detecção de pivô aprimorada.
+      """
+      new_tonic_state = self.kripke_config.get_state_by_tonal_function(TonalFunction.TONIC)
+      if not new_tonic_state:
+          return False, None
 
-            # O acorde P precisa cumprir a função atual em L E a função de TÔNICA em L'.
-            p_is_valid_in_L = current_tonality.chord_fulfills_function(p_chord, current_state.associated_tonal_function)
-            p_is_tonic_in_L_prime = l_prime_tonality.chord_fulfills_function(p_chord, TonalFunction.TONIC)
+      for l_prime_tonality in self.all_available_tonalities:
+          if l_prime_tonality.tonality_name == current_tonality.tonality_name:
+              continue
 
-            if p_is_valid_in_L and p_is_tonic_in_L_prime:
-                explanation_for_pivot = parent_explanation.clone()
-                explanation_for_pivot.add_step(
-                    formal_rule_applied="Eq.5 (Tonicization Pivot)",
-                    observation=f"Chord '{p_chord.name}' acts as pivot. It is '{current_state.associated_tonal_function.name}' in '{current_tonality.key_name}' and becomes the new TONIC in '{l_prime_tonality.key_name}'.",
-                    evaluated_functional_state=current_state,
-                    processed_chord=p_chord,
-                    key_used_in_step=current_tonality
-                )
-                
-                new_tonic_state = self.kripke_config.get_state_by_tonal_function(TonalFunction.TONIC)
-                if not new_tonic_state: return False, None # Configuração inválida
+          # --- Lógica de Detecção de Pivô Aprimorada (Sua Lógica) ---
+          p_is_tonic_in_L_prime = l_prime_tonality.chord_fulfills_function(p_chord, TonalFunction.TONIC)
+          if not p_is_tonic_in_L_prime:
+              continue
 
-                # Tentar satisfazer a cauda a partir dos sucessores da NOVA tônica na NOVA tonalidade.
-                for next_state in self.kripke_config.get_successors_of_state(new_tonic_state):
-                    success, final_explanation = self.evaluate_satisfaction_recursive(
-                        l_prime_tonality, next_state, phi_sub_sequence, recursion_depth + 1, explanation_for_pivot
-                    )
-                    if success:
-                        return True, final_explanation
+          p_functions_in_L = [func for func in TonalFunction if current_tonality.chord_fulfills_function(p_chord, func)]
+          
+          tonicization_reinforced = False
+          if phi_sub_sequence:
+              next_chord = phi_sub_sequence[0]
+              if l_prime_tonality.chord_fulfills_function(next_chord, TonalFunction.DOMINANT):
+                  tonicization_reinforced = True
+          
+          pivot_valid = p_is_tonic_in_L_prime and (bool(p_functions_in_L) or tonicization_reinforced)
+          
+          if not pivot_valid:
+              continue
 
-        return False, None # Nenhuma oportunidade de pivô para tônica foi encontrada/bem-sucedida.
+          # --- Continuação da Análise Após Encontrar um Pivô Válido ---
+          
+          explanation_for_pivot = parent_explanation.clone()
+          functions_str = ", ".join([f.name for f in p_functions_in_L]) if p_functions_in_L else "a transitional role"
+          
+          explanation_for_pivot.add_step(
+              formal_rule_applied="Tonicization Pivot (Eq.5)",
+              observation=(
+                  f"Chord '{p_chord.name}' acts as pivot. It has '{functions_str}' in '{current_tonality.tonality_name}' "
+                  f"and becomes the new TONIC in '{l_prime_tonality.tonality_name}'. "
+                  f"(Reinforced by next chord: {tonicization_reinforced})"
+              ),
+              evaluated_functional_state=current_state,
+              processed_chord=p_chord,
+              tonality_used_in_step=current_tonality
+          )
+
+          # Caso Base: Se o pivô era o último acorde, sucesso.
+          if not phi_sub_sequence:
+              return True, explanation_for_pivot
+
+          # Caso Recursivo: Tenta satisfazer a cauda (phi) a partir dos SUCESSORES da nova tônica.
+          # Esta é a lógica de continuação correta.
+          for next_state in self.kripke_config.get_successors_of_state(new_tonic_state):
+              success, final_explanation = self.evaluate_satisfaction_recursive(
+                  current_tonality=l_prime_tonality,  # A tonalidade agora é L'
+                  current_state=next_state,           # O estado é o sucessor da nova tônica
+                  remaining_chords=phi_sub_sequence,  # A cauda da progressão
+                  recursion_depth=recursion_depth + 1,
+                  parent_explanation=explanation_for_pivot
+              )
+              if success:
+                  return True, final_explanation
+      
+      return False, None # Nenhuma oportunidade de pivô foi encontrada ou bem-sucedida.
 
     def _try_reanchor_tail(
         self,
@@ -132,7 +168,7 @@ class SatisfactionEvaluator:
         )
 
         # Lista de tonalidades para tentar, com a original primeiro.
-        tonalities_to_try = [self.original_tonality] + [k for k in self.all_available_tonalities if k.key_name != self.original_tonality.key_name]
+        tonalities_to_try = [self.original_tonality] + [k for k in self.all_available_tonalities if k.tonality_name != self.original_tonality.tonality_name]
         
         # O estado inicial para uma reancoragem é sempre a tônica.
         tonic_start_state = self.kripke_config.get_state_by_tonal_function(TonalFunction.TONIC)
