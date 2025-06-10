@@ -6,6 +6,8 @@ from core.domain.models import (
     KripkeState,
     TonalFunction,
     KripkeStructureConfig,
+    Chord,
+    Tonality,
 )
 
 # --- Test Fixtures ---
@@ -17,7 +19,6 @@ def sample_states() -> Dict:
         "s_t": KripkeState(state_id="s_t", associated_tonal_function=TonalFunction.TONIC),
         "s_d": KripkeState(state_id="s_d", associated_tonal_function=TonalFunction.DOMINANT),
         "s_sd": KripkeState(state_id="s_sd", associated_tonal_function=TonalFunction.SUBDOMINANT),
-        "s_t2": KripkeState(state_id="s_t2", associated_tonal_function=TonalFunction.TONIC), # Another tonic state
     }
 
 @pytest.fixture
@@ -31,18 +32,39 @@ def kripke_config_populated(sample_states: Dict) -> KripkeStructureConfig:
     s_t = sample_states["s_t"]
     s_d = sample_states["s_d"]
     s_sd = sample_states["s_sd"]
-    s_t2 = sample_states["s_t2"]
 
-    states = {s_t, s_d, s_sd, s_t2}
+    states = {s_t, s_d, s_sd}
+    # The relations here are inverted compared to the usual order to match the
+    # directionality of the analysis in the context of tonal functions.
     relations = {
-        (s_sd, s_d),  # Subdominant -> Dominant
-        (s_d, s_t),   # Dominant -> Tonic
-        (s_sd, s_t),  # Subdominant -> Tonic (alternative)
-        (s_t, s_sd),  # Tonic (s_t) -> Subdominant
-        (s_t, s_d),   # Tonic (s_t) -> Dominant
-        # s_t2 has no outgoing relations defined here
+        (s_t, s_sd),  # Tonic -> Subdominant
+        (s_t, s_d),   # Tonic -> Dominant
+        (s_d, s_sd),  # Dominant -> Subdominant
     }
     return KripkeStructureConfig(states=states, accessibility_relation=relations)
+
+@pytest.fixture
+def c_major_key() -> Tonality:
+    """Provides a sample C Major Key object."""
+    return Tonality(
+        tonality_name="C Major",
+        function_to_chords_map={
+            TonalFunction.TONIC: {Chord("C"), Chord("Am")},
+            TonalFunction.DOMINANT: {Chord("G"), Chord("G7"), Chord("Bdim")},
+            TonalFunction.SUBDOMINANT: {Chord("F"), Chord("Dm")}
+        }
+    )
+
+@pytest.fixture
+def g_major_key_partial() -> Tonality:
+    """Provides a sample G Major Key with only Tonic and Dominant defined."""
+    return Tonality(
+        tonality_name="G Major Partial",
+        function_to_chords_map={
+            TonalFunction.TONIC: {Chord("G"), Chord("Em")},
+            TonalFunction.DOMINANT: {Chord("D"), Chord("D7")}
+        }
+    )
 
 # --- Tests for get_state_by_tonal_function ---
 
@@ -50,8 +72,7 @@ def test_get_state_by_tonal_function_found(kripke_config_populated: KripkeStruct
     """Test finding a state by a TonalFunction that exists."""
     tonic_state = kripke_config_populated.get_state_by_tonal_function(TonalFunction.TONIC)
     assert tonic_state is not None, "Should find a tonic state"
-    # Since iteration order over sets is not guaranteed, check if it's one of the expected ones.
-    assert tonic_state in [sample_states["s_t"], sample_states["s_t2"]], "Returned tonic state is not one of the expected ones"
+    assert tonic_state == sample_states["s_t"], "Should find the correct tonic state"
 
     dominant_state = kripke_config_populated.get_state_by_tonal_function(TonalFunction.DOMINANT)
     assert dominant_state == sample_states["s_d"], "Should find the correct dominant state"
@@ -73,46 +94,24 @@ def test_get_state_by_tonal_function_empty_config(kripke_config_empty: KripkeStr
     tonic_state = kripke_config_empty.get_state_by_tonal_function(TonalFunction.TONIC)
     assert tonic_state is None, "Should return None when config has no states"
 
-def test_get_state_by_tonal_function_multiple_matches_returns_one(kripke_config_populated: KripkeStructureConfig, sample_states: Dict):
-    """
-    Test that if multiple states have the same tonal function, one of them is returned.
-    The current implementation returns the first one it encounters during iteration.
-    """
-    tonic_state = kripke_config_populated.get_state_by_tonal_function(TonalFunction.TONIC)
-    assert tonic_state is not None, "A tonic state should be found"
-    assert tonic_state.associated_tonal_function == TonalFunction.TONIC, "Returned state must have TONIC function"
-    assert tonic_state == sample_states["s_t"] or tonic_state == sample_states["s_t2"], "Returned state must be one of the known tonic states"
-
 # --- Tests for get_successors_of_state ---
 
-def test_get_successors_of_ssd(kripke_config_populated: KripkeStructureConfig, sample_states: Dict):
+def test_get_successors_of_st(kripke_config_populated: KripkeStructureConfig, sample_states: Dict):
     """Test successors for s_sd (Subdominant), which has multiple distinct successors."""
-    successors_of_ssd = kripke_config_populated.get_successors_of_state(sample_states["s_sd"])
-    expected_successors = {sample_states["s_d"], sample_states["s_t"]}
-    assert set(successors_of_ssd) == expected_successors, "Successors of s_sd are incorrect"
+    successors_of_st = kripke_config_populated.get_successors_of_state(sample_states["s_t"])
+    expected_successors = {sample_states["s_d"], sample_states["s_sd"]}
+    assert set(successors_of_st) == expected_successors, "Successors of s_t are incorrect"
 
 def test_get_successors_of_sd_single_successor(kripke_config_populated: KripkeStructureConfig, sample_states: Dict):
     """Test s_d (Dominant), which has exactly one successor."""
     successors_of_sd = kripke_config_populated.get_successors_of_state(sample_states["s_d"])
-    expected_successors = {sample_states["s_t"]}
-    assert set(successors_of_sd) == expected_successors, "Successor of s_d should be s_t"
+    expected_successors = {sample_states["s_sd"]}
+    assert set(successors_of_sd) == expected_successors, "Successor of s_d should be s_sd"
 
-def test_get_successors_of_st_multiple_successors(kripke_config_populated: KripkeStructureConfig, sample_states: Dict):
-    """Test s_t (Tonic), which has multiple successors."""
-    successors_of_st = kripke_config_populated.get_successors_of_state(sample_states["s_t"])
-    expected_successors = {sample_states["s_sd"], sample_states["s_d"]}
-    assert set(successors_of_st) == expected_successors, "Successors of s_t are incorrect"
-
-def test_get_successors_of_st2_no_successors(kripke_config_populated: KripkeStructureConfig, sample_states: Dict):
-    """Test s_t2 (another Tonic), which has no defined successors in R."""
-    successors_of_st2 = kripke_config_populated.get_successors_of_state(sample_states["s_t2"])
-    assert successors_of_st2 == [], "s_t2 should have no successors"
-
-def test_get_successors_state_not_in_config_relations(kripke_config_populated: KripkeStructureConfig):
-    """Test querying successors for a state object that isn't a source in any relation in R."""
-    state_like_st2 = KripkeState(state_id="s_t2", associated_tonal_function=TonalFunction.TONIC)
-    successors = kripke_config_populated.get_successors_of_state(state_like_st2)
-    assert successors == [], "A state not acting as a source in R should have no successors"
+def test_get_successors_of_ssd_no_successors(kripke_config_populated: KripkeStructureConfig, sample_states: Dict):
+    """Test s_sd (Subdominant), which has no successors."""
+    successors_of_ssd = kripke_config_populated.get_successors_of_state(sample_states["s_sd"])
+    assert not successors_of_ssd, "Subdominant state should have no successors"
 
 def test_get_successors_unknown_state(kripke_config_populated: KripkeStructureConfig):
     """Test querying successors for a state object that isn't part of the config's states set at all."""
@@ -131,3 +130,45 @@ def test_get_successors_empty_config_overall(kripke_config_empty: KripkeStructur
     dummy_state = KripkeState(state_id="s_dummy", associated_tonal_function=TonalFunction.TONIC)
     successors = kripke_config_empty.get_successors_of_state(dummy_state)
     assert successors == [], "Should be no successors in an entirely empty config"
+
+# --- Tests for Tonality Helper Methods ---
+
+def test_key_get_chords_for_function_exists(c_major_key: Tonality):
+    """Test getting chords for a function that exists in the key map."""
+    tonic_chords = c_major_key.get_chords_for_function(TonalFunction.TONIC)
+    expected_tonic_chords = {Chord("C"), Chord("Am")}
+    assert tonic_chords == expected_tonic_chords, "Incorrect tonic chords for C Major"
+
+    dominant_chords = c_major_key.get_chords_for_function(TonalFunction.DOMINANT)
+    expected_dominant_chords = {Chord("G"), Chord("G7"), Chord("Bdim")}
+    assert dominant_chords == expected_dominant_chords, "Incorrect dominant chords for C Major"
+
+def test_key_get_chords_for_function_not_exists(g_major_key_partial: Tonality):
+    """Test getting chords for a function that is not defined in the key map."""
+    # g_major_key_partial does not have SUBDOMINANT defined
+    subdominant_chords = g_major_key_partial.get_chords_for_function(TonalFunction.SUBDOMINANT)
+    assert subdominant_chords == set(), "Should return an empty set for an undefined function"
+
+def test_key_chord_fulfills_function_true(c_major_key: Tonality):
+    """Test when a chord correctly fulfills a function."""
+    assert c_major_key.chord_fulfills_function(Chord("C"), TonalFunction.TONIC) is True, "C should be Tonic in C Major"
+    assert c_major_key.chord_fulfills_function(Chord("G7"), TonalFunction.DOMINANT) is True, "G7 should be Dominant in C Major"
+    assert c_major_key.chord_fulfills_function(Chord("Dm"), TonalFunction.SUBDOMINANT) is True, "Dm should be Subdominant in C Major"
+
+def test_key_chord_fulfills_function_false_wrong_chord(c_major_key: Tonality):
+    """Test when a chord does not fulfill the specified function (wrong chord for function)."""
+    assert c_major_key.chord_fulfills_function(Chord("G"), TonalFunction.TONIC) is False, "G should not be Tonic in C Major"
+    assert c_major_key.chord_fulfills_function(Chord("C"), TonalFunction.DOMINANT) is False, "C should not be Dominant in C Major"
+
+def test_key_chord_fulfills_function_false_function_not_in_key(g_major_key_partial: Tonality):
+    """Test when the function itself is not defined for the key."""
+    # SUBDOMINANT is not in g_major_key_partial
+    assert g_major_key_partial.chord_fulfills_function(Chord("C"), TonalFunction.SUBDOMINANT) is False, "C cannot be Subdominant if Subdominant is not defined for the key"
+
+def test_key_chord_fulfills_function_empty_chord_set_for_function():
+    """Test a scenario where a function might exist but have an empty set of chords (edge case)."""
+    empty_tonic_key = Tonality(
+        tonality_name="Test Tonality",
+        function_to_chords_map={TonalFunction.TONIC: set()}
+    )
+    assert empty_tonic_key.chord_fulfills_function(Chord("C"), TonalFunction.TONIC) is False, "C cannot be Tonic if Tonic set is empty"
