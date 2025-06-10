@@ -43,7 +43,7 @@ class KripkeState:
 
 
 @dataclass
-class Key:
+class Tonality:
     """
     Represents a Tonality, which is a labeling function L_i in the formalism.
     Maps tonal functions to sets of chords that can fulfill them.
@@ -51,7 +51,7 @@ class Key:
     modify chord mappings in the future, although it's unlikely.
     """
 
-    key_name: str
+    tonality_name: str
     function_to_chords_map: Dict[TonalFunction, Set[Chord]]
 
     def get_chords_for_function(self, func: TonalFunction) -> Set[Chord]:
@@ -61,7 +61,7 @@ class Key:
     def chord_fulfills_function(
         self, test_chord: Chord, target_function: TonalFunction
     ) -> bool:
-        """Checks if a chord fulfills a specific function in this key."""
+        """Checks if a chord fulfills a specific function in this tonality."""
         return test_chord in self.get_chords_for_function(target_function)
 
 
@@ -69,7 +69,7 @@ class Key:
 class KripkeStructureConfig:
     """
     Defines the static part of the Kripke structure: <S, S0, SF, R>.
-    This configuration is the foundation upon which different Keys (L_i) operate.
+    This configuration is the foundation upon which different Tonalities (L_i) operate.
     'field(default_factory=set)' is used to ensure that a new empty set
     is created for each instance if no value is provided, avoiding
     issues with mutable objects as defaults in classes.
