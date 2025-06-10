@@ -41,3 +41,42 @@ def kripke_config_populated(sample_states: Dict) -> KripkeStructureConfig:
         # s_t2 has no outgoing relations defined here
     }
     return KripkeStructureConfig(states=states, accessibility_relation_R=relations)
+
+# --- Tests for get_state_by_tonal_function ---
+
+def test_get_state_by_tonal_function_found(kripke_config_populated: KripkeStructureConfig, sample_states: Dict):
+    """Test finding a state by a TonalFunction that exists."""
+    tonic_state = kripke_config_populated.get_state_by_tonal_function(TonalFunction.TONIC)
+    assert tonic_state is not None, "Should find a tonic state"
+    # Since iteration order over sets is not guaranteed, check if it's one of the expected ones.
+    assert tonic_state in [sample_states["s_t"], sample_states["s_t2"]], "Returned tonic state is not one of the expected ones"
+
+    dominant_state = kripke_config_populated.get_state_by_tonal_function(TonalFunction.DOMINANT)
+    assert dominant_state == sample_states["s_d"], "Should find the correct dominant state"
+
+    subdominant_state = kripke_config_populated.get_state_by_tonal_function(TonalFunction.SUBDOMINANT)
+    assert subdominant_state == sample_states["s_sd"], "Should find the correct subdominant state"
+
+def test_get_state_by_tonal_function_not_found(kripke_config_populated: KripkeStructureConfig):
+    """Test finding a state by a TonalFunction that does not exist in any state."""
+    # Define a TonalFunction value that is guaranteed not to be in use
+    class MockNonExistentFunction(Enum):
+        UNKNOWN_FUNCTION = auto()
+    
+    unknown_function_state = kripke_config_populated.get_state_by_tonal_function(MockNonExistentFunction.UNKNOWN_FUNCTION)
+    assert unknown_function_state is None, "Should return None for a non-existent tonal function"
+
+def test_get_state_by_tonal_function_empty_config(kripke_config_empty: KripkeStructureConfig):
+    """Test on an empty KripkeStructureConfig."""
+    tonic_state = kripke_config_empty.get_state_by_tonal_function(TonalFunction.TONIC)
+    assert tonic_state is None, "Should return None when config has no states"
+
+def test_get_state_by_tonal_function_multiple_matches_returns_one(kripke_config_populated: KripkeStructureConfig, sample_states: Dict):
+    """
+    Test that if multiple states have the same tonal function, one of them is returned.
+    The current implementation returns the first one it encounters during iteration.
+    """
+    tonic_state = kripke_config_populated.get_state_by_tonal_function(TonalFunction.TONIC)
+    assert tonic_state is not None, "A tonic state should be found"
+    assert tonic_state.associated_tonal_function == TonalFunction.TONIC, "Returned state must have TONIC function"
+    assert tonic_state == sample_states["s_t"] or tonic_state == sample_states["s_t2"], "Returned state must be one of the known tonic states"
