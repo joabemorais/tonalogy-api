@@ -87,7 +87,7 @@ def test_check_progression_returns_true_on_second_tonality(mocker, mock_kripke_c
   assert mock_evaluator_instance.evaluate_satisfaction_recursive.call_count == 2
 
 
-def test_check_progression_returns_false_if_all_tonalitys_fail(mocker, mock_kripke_config, c_major_tonality_mock):
+def test_check_progression_returns_false_if_all_tonalities_fail(mocker, mock_kripke_config, c_major_tonality_mock):
   """
   Verifies if the analyzer returns False if no tonality satisfies the progression.
   """
