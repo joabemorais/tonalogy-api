@@ -1,10 +1,12 @@
-# tonalogy-api/tests/core/domain/test_models.py
-
 import pytest
 from enum import Enum, auto
 from typing import Dict
 
-from core.domain.models import KripkeState, TonalFunction, KripkeStructureConfig
+from core.domain.models import (
+    KripkeState,
+    TonalFunction,
+    KripkeStructureConfig,
+)
 
 # --- Test Fixtures ---
 
@@ -21,7 +23,7 @@ def sample_states() -> Dict:
 @pytest.fixture
 def kripke_config_empty() -> KripkeStructureConfig:
     """Provides an empty KripkeStructureConfig."""
-    return KripkeStructureConfig(states=set(), accessibility_relation_R=set())
+    return KripkeStructureConfig(states=set(), accessibility_relation=set())
 
 @pytest.fixture
 def kripke_config_populated(sample_states: Dict) -> KripkeStructureConfig:
@@ -40,7 +42,7 @@ def kripke_config_populated(sample_states: Dict) -> KripkeStructureConfig:
         (s_t, s_d),   # Tonic (s_t) -> Dominant
         # s_t2 has no outgoing relations defined here
     }
-    return KripkeStructureConfig(states=states, accessibility_relation_R=relations)
+    return KripkeStructureConfig(states=states, accessibility_relation=relations)
 
 # --- Tests for get_state_by_tonal_function ---
 
@@ -104,28 +106,28 @@ def test_get_successors_of_st_multiple_successors(kripke_config_populated: Kripk
 def test_get_successors_of_st2_no_successors(kripke_config_populated: KripkeStructureConfig, sample_states: Dict):
     """Test s_t2 (another Tonic), which has no defined successors in R."""
     successors_of_st2 = kripke_config_populated.get_successors_of_state(sample_states["s_t2"])
-    assert successors_of_st2 == None, "s_t2 should have no successors"
+    assert successors_of_st2 == [], "s_t2 should have no successors"
 
 def test_get_successors_state_not_in_config_relations(kripke_config_populated: KripkeStructureConfig):
     """Test querying successors for a state object that isn't a source in any relation in R."""
     state_like_st2 = KripkeState(state_id="s_t2", associated_tonal_function=TonalFunction.TONIC)
     successors = kripke_config_populated.get_successors_of_state(state_like_st2)
-    assert successors == None, "A state not acting as a source in R should have no successors"
+    assert successors == [], "A state not acting as a source in R should have no successors"
 
 def test_get_successors_unknown_state(kripke_config_populated: KripkeStructureConfig):
     """Test querying successors for a state object that isn't part of the config's states set at all."""
     unknown_state = KripkeState(state_id="s_unknown", associated_tonal_function=TonalFunction.TONIC)
     successors = kripke_config_populated.get_successors_of_state(unknown_state)
-    assert successors == None, "An unknown state should have no successors from the defined relations"
+    assert successors == [], "An unknown state should have no successors from the defined relations"
 
 def test_get_successors_empty_relations_config(sample_states: Dict):
-    """Test when the accessibility_relation_R is empty, but states exist."""
-    config_no_relations = KripkeStructureConfig(states=set(sample_states.values()), accessibility_relation_R=set())
+    """Test when the accessibility_relation is empty, but states exist."""
+    config_no_relations = KripkeStructureConfig(states=set(sample_states.values()), accessibility_relation=set())
     successors = config_no_relations.get_successors_of_state(sample_states["s_t"])
-    assert successors == None, "Should be no successors if R is empty"
+    assert successors == [], "Should be no successors if R is empty"
 
 def test_get_successors_empty_config_overall(kripke_config_empty: KripkeStructureConfig):
     """Test get_successors_of_state on a completely empty KripkeStructureConfig."""
     dummy_state = KripkeState(state_id="s_dummy", associated_tonal_function=TonalFunction.TONIC)
     successors = kripke_config_empty.get_successors_of_state(dummy_state)
-    assert successors == None, "Should be no successors in an entirely empty config"
+    assert successors == [], "Should be no successors in an entirely empty config"
