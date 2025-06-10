@@ -35,7 +35,7 @@ class KripkeState:
     Associates a state ID with a tonal function.
     'frozen=True' also generates __eq__ and __hash__ for us, allowing
     KripkeState to be used in sets and as dictionary keys, which is
-    essential for representing the accessibility relation R.
+    essential for representing the accessibility relation.
     """
 
     state_id: str
@@ -99,7 +99,7 @@ class KripkeStructureConfig:
     def get_successors_of_state(self, source_state: KripkeState) -> List[KripkeState]:
         """
         Returns a list of KripkeStates that are directly accessible
-        from the given source_state, according to the accessibility_relation_R.
+        from the given source_state, according to the accessibility_relation.
         This is crucial for traversing the Kripke structure during analysis.
         """
         successors: List[KripkeState] = [
