@@ -102,7 +102,7 @@ class KripkeStructureConfig:
         from the given source_state, according to the accessibility_relation_R.
         This is crucial for traversing the Kripke structure during analysis.
         """
-        successors: List = []
+        successors: List[KripkeState] = []
         for r_source, r_target in self.accessibility_relation_R:
             if r_source == source_state:
                 successors.append(r_target)
