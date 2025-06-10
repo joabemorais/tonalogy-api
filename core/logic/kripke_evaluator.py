@@ -1,31 +1,31 @@
 from typing import List, Tuple, Optional
 
-# Importar os modelos de domínio que criamos anteriormente
+# Import the domain models we created previously
 from core.domain.models import (
     Chord, KripkeState, Tonality, KripkeStructureConfig,
     Explanation, TonalFunction
 )
 
-# Constante para evitar recursão infinita em casos complexos
+# Constant to avoid infinite recursion in complex cases
 MAX_RECURSION_DEPTH = 20
 
 class SatisfactionEvaluator:
     """
-    Implementa a lógica recursiva da Definição 5 de Aragão, refatorada para
-    priorizar estratégias de análise musicalmente intuitivas.
+    Implements the recursive logic of Aragão's Definition 5, refactored to
+    prioritize musically intuitive analysis strategies.
     """
-    def __init__(self, kripke_config: KripkeStructureConfig, all_available_tonalities: List[Tonality], original_tonality: Tonality):
+    def __init__(self, kripke_config: KripkeStructureConfig, all_available_tonalities: List[Tonality], original_tonality: Tonality) -> None:
         """
-        Inicializa o SatisfactionEvaluator.
+        Initializes the SatisfactionEvaluator.
 
         Args:
-            kripke_config: A configuração base da estrutura Kripke (S, S0, SF, R).
-            all_available_tonalities: Uma lista de todas as tonalidades conhecidas pelo sistema.
-            original_tonality: A tonalidade principal da análise, usada para priorizar a reancoragem.
+            kripke_config: The base Kripke structure configuration (S, S0, SF, R).
+            all_available_tonalities: A list of all tonalities known to the system.
+            original_tonality: The main tonality of the analysis, used to prioritize re-anchoring.
         """
         self.kripke_config: KripkeStructureConfig = kripke_config
         self.all_available_tonalities: List[Tonality] = all_available_tonalities
-        self.original_tonality: Tonality = original_tonality # Armazena a tonalidade inicial da análise
+        self.original_tonality: Tonality = original_tonality # Stores the initial tonality of the analysis
 
     def _try_direct_continuation(
         self,
@@ -37,13 +37,13 @@ class SatisfactionEvaluator:
         recursion_depth: int
     ) -> Tuple[bool, Optional[Explanation]]:
         """
-        TENTATIVA 1: Implementa a continuação direta (Eq. 4A de Aragão).
-        Verifica se P se encaixa e, em caso afirmativo, tenta satisfazer a cauda (phi) nos estados sucessores.
+        ATTEMPT 1: Implements direct continuation (Aragão's Eq. 4A).
+        Checks if P fits and, if so, tries to satisfy the tail (phi) in successor states.
         """
         if not current_tonality.chord_fulfills_function(p_chord, current_state.associated_tonal_function):
-            return False, None # P não se encaixa na função atual nesta tonalidade.
+            return False, None # P doesn't fit the current function in this tonality.
 
-        # P é satisfeito. Logar este fato.
+        # P is satisfied. Log this fact.
         explanation_after_P = parent_explanation.clone()
         explanation_after_P.add_step(
             formal_rule_applied="P in L",
@@ -53,7 +53,7 @@ class SatisfactionEvaluator:
             tonality_used_in_step=current_tonality
         )
 
-        # Caso base: Se P era o último acorde, a continuação é um sucesso.
+        # Base case: If P was the last chord, continuation is a success.
         if not phi_sub_sequence:
             explanation_after_P.add_step(
                 formal_rule_applied="P in L",
@@ -64,7 +64,7 @@ class SatisfactionEvaluator:
             )
             return True, explanation_after_P
 
-        # Caso recursivo: Tentar satisfazer a cauda a partir dos sucessores.
+        # Recursive case: Try to satisfy the tail from successors.
         for next_state in self.kripke_config.get_successors_of_state(current_state):
             success, final_explanation = self.evaluate_satisfaction_recursive(
                 current_tonality, next_state, phi_sub_sequence, recursion_depth + 1, explanation_after_P
@@ -72,7 +72,7 @@ class SatisfactionEvaluator:
             if success:
                 return True, final_explanation
 
-        return False, None # A continuação direta a partir deste estado não levou a uma solução.
+        return False, None # Direct continuation from this state didn't lead to a solution.
 
     def _try_tonicization_pivot(
       self,
@@ -84,9 +84,9 @@ class SatisfactionEvaluator:
       recursion_depth: int
   ) -> Tuple[bool, Optional[Explanation]]:
       """
-      TENTATIVA 2: Implementa a tonicização com lógica de detecção de pivô aprimorada.
+      ATTEMPT 2: Implements tonicization with enhanced pivot detection logic.
       """
-      new_tonic_state = self.kripke_config.get_state_by_tonal_function(TonalFunction.TONIC)
+      new_tonic_state: Optional[KripkeState] = self.kripke_config.get_state_by_tonal_function(TonalFunction.TONIC)
       if not new_tonic_state:
           return False, None
 
@@ -94,28 +94,28 @@ class SatisfactionEvaluator:
           if l_prime_tonality.tonality_name == current_tonality.tonality_name:
               continue
 
-          # --- Lógica de Detecção de Pivô Aprimorada (Sua Lógica) ---
-          p_is_tonic_in_L_prime = l_prime_tonality.chord_fulfills_function(p_chord, TonalFunction.TONIC)
+          # --- Enhanced Pivot Detection Logic (Your Logic) ---
+          p_is_tonic_in_L_prime: bool = l_prime_tonality.chord_fulfills_function(p_chord, TonalFunction.TONIC)
           if not p_is_tonic_in_L_prime:
               continue
 
-          p_functions_in_L = [func for func in TonalFunction if current_tonality.chord_fulfills_function(p_chord, func)]
+          p_functions_in_L: List[TonalFunction] = [func for func in TonalFunction if current_tonality.chord_fulfills_function(p_chord, func)]
           
-          tonicization_reinforced = False
+          tonicization_reinforced: bool = False
           if phi_sub_sequence:
-              next_chord = phi_sub_sequence[0]
+              next_chord: Chord = phi_sub_sequence[0]
               if l_prime_tonality.chord_fulfills_function(next_chord, TonalFunction.DOMINANT):
                   tonicization_reinforced = True
           
-          pivot_valid = p_is_tonic_in_L_prime and (bool(p_functions_in_L) or tonicization_reinforced)
+          pivot_valid: bool = p_is_tonic_in_L_prime and (bool(p_functions_in_L) or tonicization_reinforced)
           
           if not pivot_valid:
               continue
 
-          # --- Continuação da Análise Após Encontrar um Pivô Válido ---
+          # --- Continuation of Analysis After Finding a Valid Pivot ---
           
           explanation_for_pivot = parent_explanation.clone()
-          functions_str = ", ".join([f.name for f in p_functions_in_L]) if p_functions_in_L else "a transitional role"
+          functions_str: str = ", ".join([f.name for f in p_functions_in_L]) if p_functions_in_L else "a transitional role"
           
           explanation_for_pivot.add_step(
               formal_rule_applied="Tonicization Pivot (Eq.5)",
@@ -129,24 +129,24 @@ class SatisfactionEvaluator:
               tonality_used_in_step=current_tonality
           )
 
-          # Caso Base: Se o pivô era o último acorde, sucesso.
+          # Base Case: If the pivot was the last chord, success.
           if not phi_sub_sequence:
               return True, explanation_for_pivot
 
-          # Caso Recursivo: Tenta satisfazer a cauda (phi) a partir dos SUCESSORES da nova tônica.
-          # Esta é a lógica de continuação correta.
+          # Recursive Case: Try to satisfy the tail (phi) from SUCCESSORS of the new tonic.
+          # This is the correct continuation logic.
           for next_state in self.kripke_config.get_successors_of_state(new_tonic_state):
               success, final_explanation = self.evaluate_satisfaction_recursive(
-                  current_tonality=l_prime_tonality,  # A tonalidade agora é L'
-                  current_state=next_state,           # O estado é o sucessor da nova tônica
-                  remaining_chords=phi_sub_sequence,  # A cauda da progressão
+                  current_tonality=l_prime_tonality,  # The tonality is now L'
+                  current_state=next_state,           # The state is the successor of the new tonic
+                  remaining_chords=phi_sub_sequence,  # The tail of the progression
                   recursion_depth=recursion_depth + 1,
                   parent_explanation=explanation_for_pivot
               )
               if success:
                   return True, final_explanation
       
-      return False, None # Nenhuma oportunidade de pivô foi encontrada ou bem-sucedida.
+      return False, None # No pivot opportunity was found or successful.
 
     def _try_reanchor_tail(
         self,
@@ -155,11 +155,11 @@ class SatisfactionEvaluator:
         recursion_depth: int
     ) -> Tuple[bool, Optional[Explanation]]:
         """
-        TENTATIVA 3: Reancoragem geral da cauda (Eq. 4B de Aragão).
-        Tenta satisfazer a cauda como um novo problema, priorizando a tonalidade original.
+        ATTEMPT 3: General tail re-anchoring (Aragão's Eq. 4B).
+        Tries to satisfy the tail as a new problem, prioritizing the original tonality.
         """
         if not phi_sub_sequence:
-            return False, None # Não há cauda para reancorar.
+            return False, None # There's no tail to re-anchor.
 
         explanation_before_reanchor = parent_explanation.clone()
         explanation_before_reanchor.add_step(
@@ -167,12 +167,13 @@ class SatisfactionEvaluator:
             observation=f"Direct continuation/pivot failed. Attempting to re-evaluate tail '{[c.name for c in phi_sub_sequence]}' from a new context."
         )
 
-        # Lista de tonalidades para tentar, com a original primeiro.
-        tonalities_to_try = [self.original_tonality] + [k for k in self.all_available_tonalities if k.tonality_name != self.original_tonality.tonality_name]
+        # List of tonalities to try, with the original first.
+        tonalities_to_try: List[Tonality] = [self.original_tonality] + [k for k in self.all_available_tonalities if k.tonality_name != self.original_tonality.tonality_name]
         
-        # O estado inicial para uma reancoragem é sempre a tônica.
-        tonic_start_state = self.kripke_config.get_state_by_tonal_function(TonalFunction.TONIC)
-        if not tonic_start_state: return False, None
+        # The initial state for a re-anchoring is always the tonic.
+        tonic_start_state: Optional[KripkeState] = self.kripke_config.get_state_by_tonal_function(TonalFunction.TONIC)
+        if not tonic_start_state: 
+            return False, None
 
         for l_star_tonality in tonalities_to_try:
             success, final_explanation = self.evaluate_satisfaction_recursive(
@@ -181,7 +182,7 @@ class SatisfactionEvaluator:
             if success:
                 return True, final_explanation
 
-        return False, None # A reancoragem falhou em todas as tonalidades.
+        return False, None # Re-anchoring failed in all tonalities.
 
     def evaluate_satisfaction_recursive(
         self,
@@ -192,59 +193,59 @@ class SatisfactionEvaluator:
         parent_explanation: Explanation
     ) -> Tuple[bool, Explanation]:
         """
-        Método principal que orquestra a busca por uma solução usando as estratégias
-        em ordem de prioridade.
+        Main method that orchestrates the search for a solution using strategies
+        in order of priority.
         """
-        # --- Verificações Iniciais ---
+        # --- Initial Checks ---
         if recursion_depth > MAX_RECURSION_DEPTH:
             explanation_failure = parent_explanation.clone()
             explanation_failure.add_step(formal_rule_applied="Recursion Limit", observation="Exceeded maximum recursion depth.")
             return False, explanation_failure
 
         if not remaining_chords:
-            return True, parent_explanation # Sucesso, sequência vazia.
+            return True, parent_explanation # Success, empty sequence.
 
-        p_chord = remaining_chords[0]
-        phi_sub_sequence = remaining_chords[1:]
+        p_chord: Chord = remaining_chords[0]
+        phi_sub_sequence: List[Chord] = remaining_chords[1:]
 
-        # --- ESTRATÉGIA DE BUSCA ---
+        # --- SEARCH STRATEGY ---
 
-        # TENTATIVA 1: Continuação Direta
+        # ATTEMPT 1: Direct Continuation
         success, explanation = self._try_direct_continuation(
             p_chord, phi_sub_sequence, current_tonality, current_state, parent_explanation, recursion_depth
         )
         if success:
             return True, explanation
 
-        # TENTATIVA 2: Tonicização/Pivô
+        # ATTEMPT 2: Tonicization/Pivot
         success, explanation = self._try_tonicization_pivot(
             p_chord, phi_sub_sequence, current_tonality, current_state, parent_explanation, recursion_depth
         )
         if success:
             return True, explanation
 
-        # TENTATIVA 3: Reancoragem Geral da Cauda
+        # ATTEMPT 3: General Tail Re-anchoring
 
-        p_is_valid_in_current_context = current_tonality.chord_fulfills_function(p_chord, current_state.associated_tonal_function)
+        p_is_valid_in_current_context: bool = current_tonality.chord_fulfills_function(p_chord, current_state.associated_tonal_function)
 
         if p_is_valid_in_current_context:
-            # P é válido, mas a continuação direta falhou. Agora é a hora de logar P
-            # e tentar a reancoragem para a sua cauda.
+            # P is valid, but direct continuation failed. Now it's time to log P
+            # and try re-anchoring for its tail.
             explanation_before_reanchor = parent_explanation.clone()
             explanation_before_reanchor.add_step(
               formal_rule_applied="P in L (prior to re-anchor)",
-              observation=f"Chord '{p_chord.name}' is valid in '{current_tonality.key_name}', but direct continuation failed. Attempting to re-anchor tail.",
+              observation=f"Chord '{p_chord.name}' is valid in '{current_tonality.tonality_name}', but direct continuation failed. Attempting to re-anchor tail.",
               evaluated_functional_state=current_state,
               processed_chord=p_chord,
               tonality_used_in_step=current_tonality
             )
 
-            # Tentar reancorar a cauda (phi) a partir do estado atual.
+            # Try to re-anchor the tail (phi) from the current state.
             success, explanation = self._try_reanchor_tail(
                 phi_sub_sequence, explanation_before_reanchor, recursion_depth
             )
             if success:
               return True, explanation
 
-        # Se nenhuma estratégia funcionou.
+        # If no strategy worked.
         return False, parent_explanation
