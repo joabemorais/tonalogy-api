@@ -224,26 +224,27 @@ class SatisfactionEvaluator:
             return True, explanation
 
         # TENTATIVA 3: Reancoragem Geral da Cauda
-        success, explanation = self._try_reanchor_tail(
-            phi_sub_sequence, parent_explanation, recursion_depth
-        )
-        if success:
-            # Se a reancoragem da cauda funcionou, precisamos adicionar a validação do acorde P atual
-            # à explicação retornada, pois a reancoragem só lidou com a cauda.
-            # No entanto, a lógica de reancoragem como está agora no _try_reanchor_tail já
-            # chama o evaluate_satisfaction_recursive principal para a cauda, então a explicação
-            # já estará sendo construída corretamente dentro dessa chamada.
-            # O que precisamos é garantir que o P atual foi logado.
-            final_explanation = parent_explanation.clone()
-            final_explanation.add_step(
-                formal_rule_applied="P in L (prior to successful re-anchor)",
-                observation=f"Chord '{p_chord.name}' was valid in '{current_tonality.key_name}', leading to a successful re-anchor of its tail.",
-                evaluated_functional_state=current_state,
-                processed_chord=p_chord,
-                key_used_in_step=current_tonality
+
+        p_is_valid_in_current_context = current_tonality.chord_fulfills_function(p_chord, current_state.associated_tonal_function)
+
+        if p_is_valid_in_current_context:
+            # P é válido, mas a continuação direta falhou. Agora é a hora de logar P
+            # e tentar a reancoragem para a sua cauda.
+            explanation_before_reanchor = parent_explanation.clone()
+            explanation_before_reanchor.add_step(
+              formal_rule_applied="P in L (prior to re-anchor)",
+              observation=f"Chord '{p_chord.name}' is valid in '{current_tonality.key_name}', but direct continuation failed. Attempting to re-anchor tail.",
+              evaluated_functional_state=current_state,
+              processed_chord=p_chord,
+              tonality_used_in_step=current_tonality
             )
-            final_explanation.steps.extend(explanation.steps) # Adicionar os passos da reancoragem bem-sucedida
-            return True, final_explanation
+
+            # Tentar reancorar a cauda (phi) a partir do estado atual.
+            success, explanation = self._try_reanchor_tail(
+                phi_sub_sequence, explanation_before_reanchor, recursion_depth
+            )
+            if success:
+              return True, explanation
 
         # Se nenhuma estratégia funcionou.
         return False, parent_explanation
