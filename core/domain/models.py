@@ -131,7 +131,7 @@ class Explanation:
     Collects a sequence of DetailedExplanationStep objects to trace the
     derivation of a tonal progression analysis.
     """
-    steps: List = field(default_factory=list)
+    steps: List[DetailedExplanationStep] = field(default_factory=list)
 
     def add_step(
         self,
