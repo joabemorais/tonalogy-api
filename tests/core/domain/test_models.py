@@ -8,10 +8,13 @@ from core.domain.models import (
     KripkeStructureConfig,
     Chord,
     Tonality,
+    Explanation,
+    DetailedExplanationStep,
 )
 
 # --- Test Fixtures ---
 
+# Kripke-related fixtures
 @pytest.fixture
 def sample_states() -> Dict:
     """Provides a dictionary of sample KripkeState objects for tests."""
@@ -43,9 +46,10 @@ def kripke_config_populated(sample_states: Dict) -> KripkeStructureConfig:
     }
     return KripkeStructureConfig(states=states, accessibility_relation=relations)
 
+# Tonality-related fixtures
 @pytest.fixture
 def c_major_key() -> Tonality:
-    """Provides a sample C Major Key object."""
+    """Provides a sample C Major Tonality object."""
     return Tonality(
         tonality_name="C Major",
         function_to_chords_map={
@@ -57,7 +61,7 @@ def c_major_key() -> Tonality:
 
 @pytest.fixture
 def g_major_key_partial() -> Tonality:
-    """Provides a sample G Major Key with only Tonic and Dominant defined."""
+    """Provides a sample G Major Tonality with only Tonic and Dominant defined."""
     return Tonality(
         tonality_name="G Major Partial",
         function_to_chords_map={
@@ -65,6 +69,64 @@ def g_major_key_partial() -> Tonality:
             TonalFunction.DOMINANT: {Chord("D"), Chord("D7")}
         }
     )
+
+# Explanation-related fixtures
+@pytest.fixture
+def sample_detailed_step(sample_states: Dict, c_major_key: Tonality) -> DetailedExplanationStep:
+    """A sample DetailedExplanationStep with all fields populated."""
+    return DetailedExplanationStep(
+        evaluated_functional_state=sample_states["s_t"],
+        processed_chord=Chord("C"),
+        key_used_in_step=c_major_key,
+        formal_rule_applied="Eq.3 (L)",
+        observation="Chord C fulfills Tonic in C Major."
+    )
+
+@pytest.fixture
+def sample_detailed_step_minimal() -> DetailedExplanationStep:
+    """A sample DetailedExplanationStep with only mandatory fields."""
+    return DetailedExplanationStep(
+        formal_rule_applied="Analysis Start",
+        observation="Beginning analysis for C Major.",
+        evaluated_functional_state=None,
+        processed_chord=None,
+        key_used_in_step=None
+    )
+
+@pytest.fixture
+def empty_explanation() -> Explanation:
+    """An empty Explanation object."""
+    return Explanation()
+
+@pytest.fixture
+def explanation_with_one_step(sample_detailed_step: DetailedExplanationStep) -> Explanation:
+    """An Explanation object with one sample step."""
+    return Explanation(steps=[sample_detailed_step])
+
+@pytest.fixture
+def explanation_with_multiple_steps(sample_detailed_step: DetailedExplanationStep, sample_detailed_step_minimal: DetailedExplanationStep, sample_states: Dict, c_major_key: Tonality) -> Explanation:
+    """An Explanation object with multiple diverse steps."""
+    exp = Explanation()
+    exp.add_step( # Using add_step to ensure it's tested implicitly
+        formal_rule_applied=sample_detailed_step_minimal.formal_rule_applied,
+        observation=sample_detailed_step_minimal.observation
+        # Other fields will be None by default in add_step
+    )
+    exp.add_step(
+        evaluated_functional_state=sample_detailed_step.evaluated_functional_state,
+        processed_chord=sample_detailed_step.processed_chord,
+        key_used_in_step=sample_detailed_step.key_used_in_step,
+        formal_rule_applied=sample_detailed_step.formal_rule_applied,
+        observation=sample_detailed_step.observation
+    )
+    exp.add_step(
+        evaluated_functional_state=sample_states["s_d"],
+        processed_chord=Chord("G7"),
+        key_used_in_step=c_major_key,
+        formal_rule_applied="Eq.4/5 (P in L, φ in L)",
+        observation="Chord G7 fulfills Dominant in C Major. Trying next state..."
+    )
+    return exp
 
 # --- Tests for get_state_by_tonal_function ---
 
