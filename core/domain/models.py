@@ -1,6 +1,7 @@
 from enum import Enum, auto
 from typing import Set, Dict, Tuple, List, Optional
 from dataclasses import dataclass, field
+import copy
 
 
 @dataclass(frozen=True)
@@ -107,3 +108,68 @@ class KripkeStructureConfig:
             if r_source == source_state
         ]
         return successors
+
+
+@dataclass
+class DetailedExplanationStep:
+    """
+    Represents a single detailed step in the analysis explanation.
+    Using Optional for some fields as they might not be relevant for all step types
+    (e.g., an "Analysis Start" step might not have a specific KripkeState or Chord).
+    """
+    # Using Optional since some steps (like 'Analysis Start' or 'Overall Failure')
+    # might not have all these fields populated.
+    evaluated_functional_state: Optional[KripkeState]
+    processed_chord: Optional[Chord]
+    tonality_used_in_step: Optional[Tonality]
+    formal_rule_applied: str  # e.g., "Eq.3 (L)", "Analysis Start", "Base (Empty Seq)"
+    observation: str          # Human-readable message for this step
+
+@dataclass
+class Explanation:
+    """
+    Collects a sequence of DetailedExplanationStep objects to trace the
+    derivation of a tonal progression analysis.
+    """
+    steps: List[DetailedExplanationStep] = field(default_factory=list)
+
+    def add_step(
+        self,
+        formal_rule_applied: str,
+        observation: str,
+        evaluated_functional_state: Optional[KripkeState] = None,
+        processed_chord: Optional[Chord] = None,
+        tonality_used_in_step: Optional[Tonality] = None,
+    ):
+        """
+        Adds a new detailed step to the explanation.
+        The order of parameters is slightly changed for convenience,
+        making rule and observation mandatory.
+        """
+        step = DetailedExplanationStep(
+            evaluated_functional_state=evaluated_functional_state,
+            processed_chord=processed_chord,
+            tonality_used_in_step=tonality_used_in_step,
+            formal_rule_applied=formal_rule_applied,
+            observation=observation
+        )
+        self.steps.append(step)
+
+    def clone(self) -> 'Explanation':
+        """
+        Creates a deep enough copy of this Explanation object.
+        This is crucial for the recursive evaluation, allowing different
+        analysis paths to have independent explanation trails.
+        The list of steps is deep copied, but the objects within the steps
+        (KripkeState, Chord, Tonality) are immutable or treated as such (Tonality might not be frozen),
+        so a shallow copy of those is sufficient if they are not modified after creation.
+        However, DetailedExplanationStep itself is a dataclass and will be copied.
+        Using copy.deepcopy for the list of steps ensures that new DetailedExplanationStep
+        objects are created for the clone.
+        """
+        # `copy.deepcopy` will create new DetailedExplanationStep objects
+        # and a new list to hold them.
+        # Since Chord and KripkeState are frozen (immutable), and Tonality is typically
+        # treated as immutable once configured for an analysis branch,
+        # deepcopying the steps list itself is the main concern.
+        return Explanation(steps=copy.deepcopy(self.steps))
