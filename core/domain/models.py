@@ -78,9 +78,9 @@ class KripkeStructureConfig:
     states: Set[KripkeState] = field(default_factory=set)
     initial_states: Set[KripkeState] = field(default_factory=set)
     final_states: Set[KripkeState] = field(default_factory=set)
-    # The Accessibility Relation R is a set of tuples, where each tuple
+    # The Accessibility Relation is a set of tuples, where each tuple
     # represents an allowed transition from one state to another.
-    accessibility_relation_R: Set[Tuple[KripkeState, KripkeState]] = field(
+    accessibility_relation: Set[Tuple[KripkeState, KripkeState]] = field(
         default_factory=set
     )
 
@@ -103,7 +103,7 @@ class KripkeStructureConfig:
         This is crucial for traversing the Kripke structure during analysis.
         """
         successors: List[KripkeState] = []
-        for r_source, r_target in self.accessibility_relation_R:
+        for r_source, r_target in self.accessibility_relation:
             if r_source == source_state:
                 successors.append(r_target)
         return successors
