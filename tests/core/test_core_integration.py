@@ -80,7 +80,7 @@ def test_full_analysis_of_complex_progression(
   analyzer = ProgressionAnalyzer(aragao_kripke_config, all_tonalities)
 
   # The original progression is Em A7 Dm G C.
-  # Inverted for analysis: C G Dm A7 Em.
+  # In "check_tonal_progression", we analyze it in reverse order.
   progression_to_analyze: List[Chord] = [
     Chord("Em"),
     Chord("A7"),
