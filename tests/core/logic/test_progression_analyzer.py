@@ -19,21 +19,21 @@ def mock_kripke_config():
 @pytest.fixture
 def c_major_tonality_mock():
   """Creates a mock for C Major tonality."""
-  key = MagicMock(spec=Tonality)
-  key.key_name = "C Major"
-  return key
+  tonality = MagicMock(spec=Tonality)
+  tonality.tonality_name = "C Major"
+  return tonality
 
 @pytest.fixture
 def g_major_tonality_mock():
   """Creates a mock for G Major tonality."""
-  key = MagicMock(spec=Tonality)
-  key.key_name = "G Major"
-  return key
+  tonality = MagicMock(spec=Tonality)
+  tonality.tonality_name = "G Major"
+  return tonality
 
 
 # --- Tests ---
 
-def test_check_progression_returns_true_on_first_key(mocker, mock_kripke_config, c_major_tonality_mock):
+def test_check_progression_returns_true_on_first_tonality(mocker, mock_kripke_config, c_major_tonality_mock):
   """
   Verifies if the analyzer returns True when the first tested tonality is successful.
   """
@@ -60,7 +60,7 @@ def test_check_progression_returns_true_on_first_key(mocker, mock_kripke_config,
   mock_evaluator_instance.evaluate_satisfaction_recursive.assert_called_once()
 
 
-def test_check_progression_returns_true_on_second_key(mocker, mock_kripke_config, c_major_tonality_mock, g_major_tonality_mock):
+def test_check_progression_returns_true_on_second_tonality(mocker, mock_kripke_config, c_major_tonality_mock, g_major_tonality_mock):
   """
   Verifies if the analyzer continues to the second tonality if the first one fails.
   """
@@ -87,7 +87,7 @@ def test_check_progression_returns_true_on_second_key(mocker, mock_kripke_config
   assert mock_evaluator_instance.evaluate_satisfaction_recursive.call_count == 2
 
 
-def test_check_progression_returns_false_if_all_keys_fail(mocker, mock_kripke_config, c_major_tonality_mock):
+def test_check_progression_returns_false_if_all_tonalities_fail(mocker, mock_kripke_config, c_major_tonality_mock):
   """
   Verifies if the analyzer returns False if no tonality satisfies the progression.
   """
