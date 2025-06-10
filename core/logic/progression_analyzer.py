@@ -71,7 +71,7 @@ class ProgressionAnalyzer:
             initial_explanation.add_step(
                 formal_rule_applied="Analysis Start",
                 observation=f"Testing progression in tonality: '{candidate_tonality.key_name}'.",
-                key_used_in_step=candidate_tonality
+                tonality_used_in_step=candidate_tonality
             )
 
             success, final_explanation = evaluator.evaluate_satisfaction_recursive(
@@ -87,7 +87,7 @@ class ProgressionAnalyzer:
                 final_explanation.add_step(
                     formal_rule_applied="Overall Success",
                     observation=f"Progression identified as tonal in '{candidate_tonality.key_name}'.",
-                    key_used_in_step=candidate_tonality
+                    tonality_used_in_step=candidate_tonality
                 )
                 return True, final_explanation
 
