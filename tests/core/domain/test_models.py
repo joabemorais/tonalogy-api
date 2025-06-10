@@ -1,6 +1,7 @@
 import pytest
 from enum import Enum, auto
 from typing import Dict
+import copy
 
 from core.domain.models import (
     KripkeState,
@@ -77,8 +78,8 @@ def sample_detailed_step(sample_states: Dict, c_major_key: Tonality) -> Detailed
     return DetailedExplanationStep(
         evaluated_functional_state=sample_states["s_t"],
         processed_chord=Chord("C"),
-        key_used_in_step=c_major_key,
-        formal_rule_applied="Eq.3 (L)",
+        tonality_used_in_step=c_major_key,
+        formal_rule_applied="Eq.3 (P in L)",
         observation="Chord C fulfills Tonic in C Major."
     )
 
@@ -90,7 +91,7 @@ def sample_detailed_step_minimal() -> DetailedExplanationStep:
         observation="Beginning analysis for C Major.",
         evaluated_functional_state=None,
         processed_chord=None,
-        key_used_in_step=None
+        tonality_used_in_step=None
     )
 
 @pytest.fixture
@@ -115,14 +116,14 @@ def explanation_with_multiple_steps(sample_detailed_step: DetailedExplanationSte
     exp.add_step(
         evaluated_functional_state=sample_detailed_step.evaluated_functional_state,
         processed_chord=sample_detailed_step.processed_chord,
-        key_used_in_step=sample_detailed_step.key_used_in_step,
+        tonality_used_in_step=sample_detailed_step.tonality_used_in_step,
         formal_rule_applied=sample_detailed_step.formal_rule_applied,
         observation=sample_detailed_step.observation
     )
     exp.add_step(
         evaluated_functional_state=sample_states["s_d"],
         processed_chord=Chord("G7"),
-        key_used_in_step=c_major_key,
+        tonality_used_in_step=c_major_key,
         formal_rule_applied="Eq.4/5 (P in L, φ in L)",
         observation="Chord G7 fulfills Dominant in C Major. Trying next state..."
     )
@@ -234,3 +235,119 @@ def test_key_chord_fulfills_function_empty_chord_set_for_function():
         function_to_chords_map={TonalFunction.TONIC: set()}
     )
     assert empty_tonic_key.chord_fulfills_function(Chord("C"), TonalFunction.TONIC) is False, "C cannot be Tonic if Tonic set is empty"
+
+# --- Tests for Explanation and DetailedExplanationStep ---
+
+def test_detailed_explanation_step_creation_with_fixture(sample_detailed_step: DetailedExplanationStep, sample_states: Dict, c_major_key: Tonality):
+    """Test basic creation of a DetailedExplanationStep using a fixture."""
+    step = sample_detailed_step
+    assert step.evaluated_functional_state == sample_states["s_t"]
+    assert step.processed_chord == Chord("C")
+    assert step.tonality_used_in_step == c_major_key
+    assert step.formal_rule_applied == "Eq.3 (P in L)"
+    assert step.observation == "Chord C fulfills Tonic in C Major."
+
+def test_detailed_explanation_step_minimal_creation(sample_detailed_step_minimal: DetailedExplanationStep):
+    """Test creation of a minimal DetailedExplanationStep."""
+    step = sample_detailed_step_minimal
+    assert step.evaluated_functional_state is None
+    assert step.processed_chord is None
+    assert step.tonality_used_in_step is None
+    assert step.formal_rule_applied == "Analysis Start"
+    assert step.observation == "Beginning analysis for C Major."
+
+
+def test_explanation_creation_empty_with_fixture(empty_explanation: Explanation):
+    """Test creating an empty Explanation using a fixture."""
+    exp = empty_explanation
+    assert exp.steps == [], "New Explanation should start with an empty steps list"
+
+def test_explanation_add_step_with_fixtures(empty_explanation: Explanation, sample_states: Dict, c_major_key: Tonality):
+    """Test the add_step method of the Explanation class using fixtures."""
+    exp = empty_explanation
+    s_t = sample_states["s_t"]
+    c_chord = Chord("C")
+
+    exp.add_step(
+        evaluated_functional_state=s_t,
+        processed_chord=c_chord,
+        tonality_used_in_step=c_major_key,
+        formal_rule_applied="Test Rule",
+        observation="Test observation."
+    )
+    assert len(exp.steps) == 1
+    step1 = exp.steps[0]
+    assert step1.evaluated_functional_state == s_t
+    assert step1.processed_chord == c_chord
+    assert step1.tonality_used_in_step == c_major_key
+    assert step1.formal_rule_applied == "Test Rule"
+    assert step1.observation == "Test observation."
+
+    exp.add_step(
+        formal_rule_applied="Another Rule",
+        observation="Another observation, no specific state/chord/key."
+    )
+    assert len(exp.steps) == 2
+    step2 = exp.steps[1]
+    assert step2.evaluated_functional_state is None
+    assert step2.processed_chord is None
+    assert step2.tonality_used_in_step is None
+
+
+def test_explanation_clone_empty_with_fixture(empty_explanation: Explanation):
+    """Test cloning an empty Explanation using a fixture."""
+    exp_orig = empty_explanation
+    exp_cloned = exp_orig.clone()
+
+    assert exp_cloned is not exp_orig
+    assert exp_cloned.steps == [], "Cloned empty Explanation should also have an empty steps list"
+    assert exp_cloned.steps is not exp_orig.steps
+
+def test_explanation_clone_with_one_step(explanation_with_one_step: Explanation, sample_detailed_step: DetailedExplanationStep):
+    """Test cloning an Explanation with one step."""
+    exp_orig = explanation_with_one_step
+    exp_cloned = exp_orig.clone()
+
+    assert exp_cloned is not exp_orig
+    assert exp_cloned.steps is not exp_orig.steps
+    assert len(exp_cloned.steps) == 1
+    assert exp_cloned.steps[0] == sample_detailed_step
+
+    # Add a step to original, clone should not change
+    exp_orig.add_step(formal_rule_applied="New Original Step", observation="Original changed")
+    assert len(exp_orig.steps) == 2
+    assert len(exp_cloned.steps) == 1
+
+def test_explanation_clone_with_multiple_steps(explanation_with_multiple_steps: Explanation):
+    """Test cloning an Explanation with multiple steps, ensuring deep enough copy."""
+    exp_orig = explanation_with_multiple_steps
+    original_steps_copy = copy.deepcopy(exp_orig.steps)
+
+    exp_cloned = exp_orig.clone()
+
+    assert exp_cloned is not exp_orig
+    assert exp_cloned.steps is not exp_orig.steps
+    assert len(exp_cloned.steps) == len(original_steps_copy)
+    for i in range(len(original_steps_copy)):
+        assert exp_cloned.steps[i] == original_steps_copy[i]
+        assert exp_cloned.steps[i] is not original_steps_copy[i]
+
+    # Modify the original's steps list
+    exp_orig.add_step(
+        processed_chord=Chord("G"),
+        formal_rule_applied="Rule Added to Original",
+        observation="Original Only"
+    )
+    assert len(exp_orig.steps) == len(original_steps_copy) + 1
+    assert len(exp_cloned.steps) == len(original_steps_copy), "Clone should not be affected by adding to original's steps list"
+
+    # Modify the clone's steps list
+    exp_cloned.add_step(
+        processed_chord=Chord("F"),
+        formal_rule_applied="Rule Added to Clone",
+        observation="Clone Only"
+    )
+    assert len(exp_cloned.steps) == len(original_steps_copy) + 1
+    assert len(exp_orig.steps) == len(original_steps_copy) + 1
+    assert exp_orig.steps[-1].observation == "Original Only"
+    assert exp_cloned.steps[-1].observation == "Clone Only"
