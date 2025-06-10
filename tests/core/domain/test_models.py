@@ -6,6 +6,8 @@ from core.domain.models import (
     KripkeState,
     TonalFunction,
     KripkeStructureConfig,
+    Chord,
+    Tonality,
 )
 
 # --- Test Fixtures ---
@@ -40,6 +42,29 @@ def kripke_config_populated(sample_states: Dict) -> KripkeStructureConfig:
         (s_d, s_sd),  # Dominant -> Subdominant
     }
     return KripkeStructureConfig(states=states, accessibility_relation=relations)
+
+@pytest.fixture
+def c_major_key() -> Tonality:
+    """Provides a sample C Major Key object."""
+    return Tonality(
+        key_name="C Major",
+        function_to_chords_map={
+            TonalFunction.TONIC: {Chord("C"), Chord("Am")},
+            TonalFunction.DOMINANT: {Chord("G"), Chord("G7"), Chord("Bdim")},
+            TonalFunction.SUBDOMINANT: {Chord("F"), Chord("Dm")}
+        }
+    )
+
+@pytest.fixture
+def g_major_key_partial() -> Tonality:
+    """Provides a sample G Major Key with only Tonic and Dominant defined."""
+    return Tonality(
+        key_name="G Major Partial",
+        function_to_chords_map={
+            TonalFunction.TONIC: {Chord("G"), Chord("Em")},
+            TonalFunction.DOMINANT: {Chord("D"), Chord("D7")}
+        }
+    )
 
 # --- Tests for get_state_by_tonal_function ---
 
