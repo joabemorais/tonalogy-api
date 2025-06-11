@@ -9,7 +9,7 @@ class ProgressionAnalysisRequest(BaseModel):
         ...,
         min_length=1,
         description="A list of chords to be analyzed.",
-        json_schema_extra={"example": ["C", "G", "Dm", "A7", "Em"]}
+        json_schema_extra={"example": ["Em", "A7", "Dm", "G", "C"]}
     )
     tonalities_to_test: Optional[List[str]] = Field(
         None,
