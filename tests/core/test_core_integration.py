@@ -1,5 +1,3 @@
-# tonalogy-api/tests/core/test_core_integration.py
-
 import pytest
 from typing import List
 
