@@ -185,7 +185,7 @@ def generate_tonal_data_json(filepath: str):
     output_path_obj.parent.mkdir(parents=True, exist_ok=True)
 
     all_tonalities = []
-    root_notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+    root_notes = TonalityGenerator.NOTE_NAMES
     
     for note in root_notes:
         try:
@@ -198,7 +198,7 @@ def generate_tonal_data_json(filepath: str):
             print(f"Error generating tonality for {note}: {e}")
             
     # Use the Path object to open the file.
-    with open(output_path_obj, 'w', encoding='utf-8') as f:
+    with output_path_obj.open('w', encoding='utf-8') as f:
         json.dump(all_tonalities, f, indent=2, ensure_ascii=False)
         
     print(f"File '{filepath}' generated successfully with {len(all_tonalities)} tonalities.")
