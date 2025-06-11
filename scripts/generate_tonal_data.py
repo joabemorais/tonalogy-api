@@ -1,5 +1,34 @@
-# Run this script in the terminal, in the "tonalogy-api" directory:
-# python scripts/generate_tonal_data.py 
+"""
+Tonality Data Generator for Tonalogy API
+
+This module generates comprehensive tonal data for all 24 major and minor tonalities,
+including their harmonic fields and chord-function mappings. The generated data is
+used by the Tonalogy API for music theory analysis and chord progression suggestions.
+
+Classes:
+    TonalityGenerator: Abstract base class for generating tonality data
+    MajorTonality: Generates harmonic field data for major tonalities
+    MinorTonality: Generates harmonic field data for minor tonalities using 
+                   natural, harmonic, and melodic minor scales
+
+Usage:
+    Run this script from the tonalogy-api directory:
+    $ python scripts/generate_tonal_data.py
+    
+    This will generate a tonalities.json file containing all tonality data.
+
+Example:
+    from scripts.generate_tonal_data import MajorTonality, MinorTonality
+    
+    # Generate C Major tonality data
+    c_major = MajorTonality("C")
+    print(c_major.to_dict())
+    
+    # Generate A minor tonality data
+    a_minor = MinorTonality("A")
+    print(a_minor.to_dict())
+"""
+
 
 import json
 from typing import Dict, List, Set, Any
