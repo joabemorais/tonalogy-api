@@ -11,9 +11,9 @@ class ProgressionAnalysisRequest(BaseModel):
         description="A list of chords to be analyzed.",
         json_schema_extra={"example": ["C", "G", "Dm", "A7", "Em"]}
     )
-    keys_to_test: Optional[List[str]] = Field(
+    tonalities_to_test: Optional[List[str]] = Field(
         None,
-        description="Optional. A list of keys to be tested. If omitted, the system may test against a default set.",
+        description="Optional. A list of tonalities to be tested. If omitted, the system may test against a default set.",
         json_schema_extra={"example": ["C Major", "G Major", "A minor"]}
     )
 

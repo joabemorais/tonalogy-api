@@ -25,7 +25,7 @@ def mock_knowledge_base() -> MagicMock:
     kb.kripke_config = MagicMock()
     return kb
 
-def test_analyze_progression_success_with_all_keys(mock_knowledge_base: MagicMock) -> None:
+def test_analyze_progression_success_with_all_tonalities(mock_knowledge_base: MagicMock) -> None:
     """
     Tests the success flow when no specific tonality is requested,
     and the analyzer finds a result by testing against all known tonalities.
@@ -60,8 +60,8 @@ def test_analyze_progression_success_with_all_keys(mock_knowledge_base: MagicMoc
         
         # Verify that the analyzer was called with the correct arguments
         expected_chords: List[Chord] = [Chord("C"), Chord("G"), Chord("C")]
-        expected_keys = mock_knowledge_base.all_tonalities # All, since we didn't specify any
-        mock_analyzer_instance.check_tonal_progression.assert_called_once_with(expected_chords, expected_keys)
+        expected_tonalities = mock_knowledge_base.all_tonalities # All, since we didn't specify any
+        mock_analyzer_instance.check_tonal_progression.assert_called_once_with(expected_chords, expected_tonalities)
 
 def test_analyze_progression_failure(mock_knowledge_base: MagicMock) -> None:
     """
@@ -84,7 +84,7 @@ def test_analyze_progression_failure(mock_knowledge_base: MagicMock) -> None:
         assert response.identified_key is None
         assert response.error is None
 
-def test_analyze_with_specific_keys_to_test(mock_knowledge_base: MagicMock) -> None:
+def test_analyze_with_specific_tonalities_to_test(mock_knowledge_base: MagicMock) -> None:
     """
     Tests if the service correctly filters tonalities when specified in the request.
     """
@@ -95,7 +95,7 @@ def test_analyze_with_specific_keys_to_test(mock_knowledge_base: MagicMock) -> N
     with patch('api.services.analysis_service.ProgressionAnalyzer', return_value=mock_analyzer_instance):
         service: TonalAnalysisService = TonalAnalysisService(mock_knowledge_base)
         # Request to test only in G Major
-        request: ProgressionAnalysisRequest = ProgressionAnalysisRequest(chords=["G", "D", "G"], keys_to_test=["G Major"])
+        request: ProgressionAnalysisRequest = ProgressionAnalysisRequest(chords=["G", "D", "G"], tonalities_to_test=["G Major"])
         
         # WHEN
         service.analyze_progression(request)
@@ -103,10 +103,10 @@ def test_analyze_with_specific_keys_to_test(mock_knowledge_base: MagicMock) -> N
         # THEN
         # Verify that the analyzer was called only with G Major tonality
         call_args, _ = mock_analyzer_instance.check_tonal_progression.call_args
-        passed_chords, passed_keys = call_args
+        passed_chords, passed_tonalities = call_args
         
-        assert len(passed_keys) == 1
-        assert passed_keys[0].tonality_name == "G Major"
+        assert len(passed_tonalities) == 1
+        assert passed_tonalities[0].tonality_name == "G Major"
 
 def test_analyze_with_unknown_key_to_test(mock_knowledge_base: MagicMock) -> None:
     """
@@ -114,7 +114,7 @@ def test_analyze_with_unknown_key_to_test(mock_knowledge_base: MagicMock) -> Non
     """
     # GIVEN
     service: TonalAnalysisService = TonalAnalysisService(mock_knowledge_base)
-    request: ProgressionAnalysisRequest = ProgressionAnalysisRequest(chords=["C", "G", "C"], keys_to_test=["D Major"]) # Tonality not mocked
+    request: ProgressionAnalysisRequest = ProgressionAnalysisRequest(chords=["C", "G", "C"], tonalities_to_test=["D Major"]) # Tonality not mocked
     
     # WHEN
     response: ProgressionAnalysisResponse = service.analyze_progression(request)

@@ -41,23 +41,23 @@ class TonalAnalysisService:
             input_chords: List[Chord] = [Chord(c) for c in request.chords]
 
             # 2. Determine which tonalities to test
-            keys_to_test: List[Tonality]
-            if request.keys_to_test:
+            tonalities_to_test: List[Tonality]
+            if request.tonalities_to_test:
                 # If the user specified tonalities, use them
-                keys_to_test = [self.tonalities_map[name] for name in request.keys_to_test if name in self.tonalities_map]
-                if not keys_to_test:
+                tonalities_to_test = [self.tonalities_map[name] for name in request.tonalities_to_test if name in self.tonalities_map]
+                if not tonalities_to_test:
                     return ProgressionAnalysisResponse(
                         is_tonal_progression=False,
                         error="None of the specified tonalities are known by the system."
                     )
             else:
                 # Otherwise, test against all known tonalities
-                keys_to_test = self.knowledge_base.all_tonalities
+                tonalities_to_test = self.knowledge_base.all_tonalities
 
             # 3. Call the core analysis engine
             success: bool
             explanation: Explanation
-            success, explanation = self.analyzer.check_tonal_progression(input_chords, keys_to_test)
+            success, explanation = self.analyzer.check_tonal_progression(input_chords, tonalities_to_test)
             
             # 4. Format the response
             identified_key: Optional[str] = None

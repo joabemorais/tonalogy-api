@@ -69,7 +69,7 @@ def test_analyze_endpoint_bad_request_known_error() -> None:
     mock_service.analyze_progression.return_value = ProgressionAnalysisResponse(**mock_response_data)
     app.dependency_overrides[get_analysis_service_override] = lambda: mock_service
     
-    request_payload: Dict[str, Any] = {"chords": ["C"], "keys_to_test": ["D Major"]}
+    request_payload: Dict[str, Any] = {"chords": ["C"], "tonalities_to_test": ["D Major"]}
     
     # WHEN
     response = client.post("/v1/analyze", json=request_payload)

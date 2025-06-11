@@ -1,11 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
-from typing import Dict
 
 from api.schemas.analysis_schemas import ProgressionAnalysisRequest, ProgressionAnalysisResponse
 from api.services.analysis_service import TonalAnalysisService
 
-# A função get_analysis_service será fornecida pelo main.py através de injeção de dependência.
-# Esta abordagem permite que a configuração e a inicialização do serviço sejam centralizadas.
+# The get_analysis_service function will be provided by main.py through dependency injection.
+# This approach allows service configuration and initialization to be centralized.
 def get_analysis_service() -> TonalAnalysisService:
     raise NotImplementedError("Dependency not implemented. This will be overridden by the main app.")
 
@@ -14,28 +13,28 @@ router = APIRouter()
 @router.post(
     "/analyze",
     response_model=ProgressionAnalysisResponse,
-    summary="Analisa uma Progressão Harmónica Tonal",
+    summary="Analyzes a Tonal Harmonic Progression",
     tags=["Analysis"]
 )
 async def analyze_progression(
     request: ProgressionAnalysisRequest,
     service: TonalAnalysisService = Depends(get_analysis_service)
-):
+) -> ProgressionAnalysisResponse:
     """
-    Recebe uma lista de acordes e opcionalmente uma lista de tonalidades para testar.
+    Receives a list of chords and optionally a list of tonalities to test.
     
-    - **chords**: Uma lista de strings, onde cada string é um acorde (e.g., "C", "G7", "Am").
-    - **keys_to_test**: (Opcional) Uma lista de nomes de tonalidades (e.g., "C Major") para limitar a análise.
+    - **chords**: A list of strings, where each string is a chord (e.g., "C", "G7", "Am").
+    - **tonalities_to_test**: (Optional) A list of tonality names (e.g., "C Major") to limit the analysis.
     
-    Retorna uma análise detalhada indicando se a progressão é tonal, em qual
-    tonalidade foi identificada, e os passos formais da análise.
+    Returns a detailed analysis indicating whether the progression is tonal, in which
+    tonality it was identified, and the formal steps of the analysis.
     """
     try:
-        result = service.analyze_progression(request)
+        result: ProgressionAnalysisResponse = service.analyze_progression(request)
         if result.error:
             raise HTTPException(status_code=400, detail=result.error)
         return result
     except Exception as e:
-        # Tratamento de erros inesperados no servidor
+        # Handle unexpected server errors
         raise HTTPException(status_code=500, detail=f"An internal server error occurred: {str(e)}")
 
