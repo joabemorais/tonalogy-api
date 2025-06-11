@@ -33,6 +33,7 @@ Example:
 import json
 from typing import Dict, List, Set, Any
 from pathlib import Path # Import the Path class for path manipulation
+import logging
 
 class TonalityGenerator:
     """
