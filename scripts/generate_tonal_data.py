@@ -195,22 +195,23 @@ def generate_tonal_data_json(filepath: str):
             minor_tonality = MinorTonality(note)
             all_tonalities.append(minor_tonality.to_dict())
         except ValueError as e:
-            print(f"Error generating tonality for {note}: {e}")
+            logging.error(f"Error generating tonality for {note}: {e}")
             
     # Use the Path object to open the file.
     with output_path_obj.open('w', encoding='utf-8') as f:
         json.dump(all_tonalities, f, indent=2, ensure_ascii=False)
         
-    print(f"File '{filepath}' generated successfully with {len(all_tonalities)} tonalities.")
+    logging.info(f"File '{filepath}' generated successfully with {len(all_tonalities)} tonalities.")
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
     output_path = "core/config/data/tonalities.json"
     generate_tonal_data_json(output_path)
 
-    print("\nExample for C Major (Triads):")
+    logging.info("\nExample for C Major (Triads):")
     c_major = MajorTonality("C")
-    print(json.dumps(c_major.to_dict(), indent=2))
+    logging.info(json.dumps(c_major.to_dict(), indent=2))
     
-    print("\nExample for A minor (with chords from all scales):")
+    logging.info("\nExample for A minor (with chords from all scales):")
     a_minor = MinorTonality("A")
-    print(json.dumps(a_minor.to_dict(), indent=2))
+    logging.info(json.dumps(a_minor.to_dict(), indent=2))
