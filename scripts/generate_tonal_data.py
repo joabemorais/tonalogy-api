@@ -1,5 +1,9 @@
+# tonalogy-api/scripts/generate_tonal_data.py
+# (Este arquivo pode ficar em um novo diretório 'scripts' na raiz do projeto)
+
 import json
 from typing import Dict, List, Set, Any
+from pathlib import Path # Importar a classe Path para manipulação de caminhos
 
 class TonalityGenerator:
     """
@@ -33,7 +37,7 @@ class TonalityGenerator:
             for func_name, chords in self.harmonic_field.items()
         }
         return {
-            "key_name": self.tonality_name,
+            "tonality_name": self.tonality_name,
             "function_to_chords_map": serializable_map
         }
 
@@ -143,6 +147,16 @@ def generate_tonal_data_json(filepath: str):
     """
     Gera o arquivo tonalities.json com todas as 24 tonalidades maiores e menores.
     """
+    # *** INÍCIO DA CORREÇÃO ***
+    # Converte o caminho do arquivo de string para um objeto Path para um manuseio mais robusto.
+    output_path_obj = Path(filepath)
+
+    # Garante que o diretório pai exista antes de tentar escrever o arquivo.
+    # parents=True cria quaisquer diretórios pais necessários.
+    # exist_ok=True não gera um erro se o diretório já existir.
+    output_path_obj.parent.mkdir(parents=True, exist_ok=True)
+    # *** FIM DA CORREÇÃO ***
+
     all_tonalities = []
     root_notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
     
@@ -156,7 +170,8 @@ def generate_tonal_data_json(filepath: str):
         except ValueError as e:
             print(f"Erro ao gerar tonalidade para {note}: {e}")
             
-    with open(filepath, 'w', encoding='utf-8') as f:
+    # Usa o objeto Path para abrir o arquivo.
+    with open(output_path_obj, 'w', encoding='utf-8') as f:
         json.dump(all_tonalities, f, indent=2, ensure_ascii=False)
         
     print(f"Arquivo '{filepath}' gerado com sucesso com {len(all_tonalities)} tonalidades.")
