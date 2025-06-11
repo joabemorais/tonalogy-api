@@ -7,8 +7,8 @@ from core.logic.progression_analyzer import ProgressionAnalyzer
 from core.config.knowledge_base import TonalKnowledgeBase
 import logging
 
-# logging.basicConfig(level=logging.INFO)
-# logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class TonalAnalysisService:
     """
