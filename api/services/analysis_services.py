@@ -1,75 +1,76 @@
-from typing import List, Dict, Optional
+from typing import List, Dict
 
-# Import API and domain models
+# Importar os modelos da API e do domínio
 from api.schemas.analysis_schemas import ProgressionAnalysisRequest, ExplanationStepAPI, ProgressionAnalysisResponse
 from core.domain.models import Chord, Tonality, Explanation
 from core.logic.progression_analyzer import ProgressionAnalyzer
 from core.config.knowledge_base import TonalKnowledgeBase
+import logging
+
+# logging.basicConfig(level=logging.INFO)
+# logger = logging.getLogger(__name__)
 
 class TonalAnalysisService:
     """
-    The service layer that handles high-level business logic,
-    connecting the API to the analysis core.
+    A camada de serviço que lida com a lógica de negócio de alto nível,
+    conectando a API ao core de análise.
     """
-    def __init__(self, knowledge_base: TonalKnowledgeBase) -> None:
-        # The service is initialized with access to our tonal knowledge base.
+    def __init__(self, knowledge_base: TonalKnowledgeBase):
+        # O serviço é inicializado com acesso à nossa base de conhecimento tonal.
         self.knowledge_base = knowledge_base
         self.analyzer = ProgressionAnalyzer(
             kripke_config=self.knowledge_base.kripke_config,
             all_available_tonalities=self.knowledge_base.all_tonalities
         )
         self.tonalities_map: Dict[str, Tonality] = {
-            t.tonality_name: t for t in self.knowledge_base.all_tonalities
+            t.key_name: t for t in self.knowledge_base.all_tonalities
         }
 
     def analyze_progression(self, request: ProgressionAnalysisRequest) -> ProgressionAnalysisResponse:
         """
-        Executes the analysis of a chord progression.
+        Executa a análise de uma progressão de acordes.
 
         Args:
-            request: The API request object validated by Pydantic.
+            request: O objeto de requisição da API validado pelo Pydantic.
 
         Returns:
-            An API response object ready to be serialized as JSON.
+            Um objeto de resposta da API pronto para ser serializado como JSON.
         """
         try:
-            # 1. Convert chord strings to Chord objects
-            input_chords: List[Chord] = [Chord(c) for c in request.chords]
+            # 1. Converter strings de acordes para objetos Chord
+            input_chords = [Chord(c) for c in request.chords]
 
-            # 2. Determine which tonalities to test
-            keys_to_test: List[Tonality]
+            # 2. Determinar quais tonalidades testar
             if request.keys_to_test:
-                # If the user specified tonalities, use them
+                # Se o utilizador especificou tonalidades, use-as
                 keys_to_test = [self.tonalities_map[name] for name in request.keys_to_test if name in self.tonalities_map]
                 if not keys_to_test:
                     return ProgressionAnalysisResponse(
                         is_tonal_progression=False,
-                        error="None of the specified tonalities are known by the system."
+                        error="Nenhuma das tonalidades especificadas é conhecida pelo sistema."
                     )
             else:
-                # Otherwise, test against all known tonalities
+                # Caso contrário, teste contra todas as tonalidades conhecidas
                 keys_to_test = self.knowledge_base.all_tonalities
 
-            # 3. Call the core analysis engine
-            success: bool
-            explanation: Explanation
+            # 3. Chamar o motor de análise do core
             success, explanation = self.analyzer.check_tonal_progression(input_chords, keys_to_test)
             
-            # 4. Format the response
-            identified_key: Optional[str] = None
+            # 4. Formatar a resposta
+            identified_key = None
             if success and explanation.steps:
-                 # Get the tonality from the last significant step, which usually contains the final result
+                 # Pega a tonalidade do último passo significativo, que geralmente contém o resultado final
                  final_step_with_key = next((step for step in reversed(explanation.steps) if step.key_used_in_step), None)
                  if final_step_with_key:
-                     identified_key = final_step_with_key.key_used_in_step.tonality_name
+                     identified_key = final_step_with_key.key_used_in_step.key_name
 
-            # Convert explanation steps to API format
-            explanation_steps_api: List[ExplanationStepAPI] = [
+            # Converter os passos da explicação para o formato da API
+            explanation_steps_api = [
                 ExplanationStepAPI(
                     formal_rule_applied=step.formal_rule_applied,
                     observation=step.observation,
                     processed_chord=step.processed_chord.name if step.processed_chord else None,
-                    key_used_in_step=step.key_used_in_step.tonality_name if step.key_used_in_step else None,
+                    key_used_in_step=step.key_used_in_step.key_name if step.key_used_in_step else None,
                     evaluated_functional_state=f"{step.evaluated_functional_state.associated_tonal_function.name} ({step.evaluated_functional_state.state_id})" if step.evaluated_functional_state else None
                 )
                 for step in explanation.steps
@@ -81,9 +82,22 @@ class TonalAnalysisService:
                 explanation_details=explanation_steps_api
             )
 
-        except Exception as e:
-            # Generic error handling
+        except KeyError as e:
+            # Handle specific KeyError (e.g., missing tonalities in the map)
             return ProgressionAnalysisResponse(
                 is_tonal_progression=False,
-                error=f"An unexpected error occurred during analysis: {e}"
+                error=f"Key error occurred: {e}"
+            )
+        except ValueError as e:
+            # Handle specific ValueError (e.g., invalid chord format)
+            return ProgressionAnalysisResponse(
+                is_tonal_progression=False,
+                error=f"Value error occurred: {e}"
+            )
+        except Exception as e:
+            # Log the full traceback for unexpected errors
+            logging.error("Unexpected error during progression analysis", exc_info=True)
+            return ProgressionAnalysisResponse(
+                is_tonal_progression=False,
+                error="An unexpected error occurred during analysis."
             )
