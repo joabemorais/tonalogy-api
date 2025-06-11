@@ -1,5 +1,5 @@
 from typing import List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 class ProgressionAnalysisRequest(BaseModel):
     """
@@ -7,14 +7,14 @@ class ProgressionAnalysisRequest(BaseModel):
     """
     chords: List[str] = Field(
         ...,
-        min_items=1,
-        example=["C", "G", "Dm", "A7", "Em"],
-        description="A list of chords to be analyzed."
+        min_length=1,
+        description="A list of chords to be analyzed.",
+        json_schema_extra={"example": ["C", "G", "Dm", "A7", "Em"]}
     )
     keys_to_test: Optional[List[str]] = Field(
         None,
-        example=["C Major", "G Major", "A minor"],
-        description="Optional. A list of keys to be tested. If omitted, the system may test against a default set."
+        description="Optional. A list of keys to be tested. If omitted, the system may test against a default set.",
+        json_schema_extra={"example": ["C Major", "G Major", "A minor"]}
     )
 
 class ExplanationStepAPI(BaseModel):
@@ -27,9 +27,7 @@ class ExplanationStepAPI(BaseModel):
     key_used_in_step: Optional[str] = Field(None, description="The key that was in use during this step.")
     evaluated_functional_state: Optional[str] = Field(None, description="The functional state (e.g., 'TONIC (s_t)') that was evaluated.")
     
-    class Config:
-        # Pydantic V2 uses `from_attributes` instead of `orm_mode`
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class ProgressionAnalysisResponse(BaseModel):
     """
