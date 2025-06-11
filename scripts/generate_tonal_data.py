@@ -1,27 +1,27 @@
-# tonalogy-api/scripts/generate_tonal_data.py
-# (Este arquivo pode ficar em um novo diretório 'scripts' na raiz do projeto)
+# Run this script in the terminal, in the "tonalogy-api" directory:
+# python scripts/generate_tonal_data.py 
 
 import json
 from typing import Dict, List, Set, Any
-from pathlib import Path # Importar a classe Path para manipulação de caminhos
+from pathlib import Path # Import the Path class for path manipulation
 
 class TonalityGenerator:
     """
-    Classe base abstrata para gerar dados de tonalidades.
+    Abstract base class for generating tonality data.
     """
     NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
     def __init__(self, root_note: str):
         if root_note not in self.NOTE_NAMES:
-            raise ValueError(f"Tonalidade inválida: {root_note}")
+            raise ValueError(f"Invalid tonality: {root_note}")
         self.root_note = root_note
         self.tonality_name: str = ""
-        # Dicionário para armazenar as diferentes escalas (natural, harmônica, etc.)
+        # Dictionary to store different scales (natural, harmonic, etc.)
         self.scales: Dict[str, List[str]] = {}
         self.harmonic_field: Dict[str, Set[str]] = {}
 
     def _build_scale(self, steps: List[int]) -> List[str]:
-        """Constrói uma escala com base nos passos fornecidos."""
+        """Builds a scale based on the provided steps."""
         start_index = self.NOTE_NAMES.index(self.root_note)
         scale = [self.NOTE_NAMES[start_index]]
         current_index = start_index
@@ -31,7 +31,7 @@ class TonalityGenerator:
         return scale
     
     def to_dict(self) -> Dict[str, Any]:
-        """Converte os dados da tonalidade para um dicionário serializável em JSON."""
+        """Converts the tonality data to a JSON-serializable dictionary."""
         serializable_map = {
             func_name: sorted(list(chords))
             for func_name, chords in self.harmonic_field.items()
@@ -42,7 +42,7 @@ class TonalityGenerator:
         }
 
 class MajorTonality(TonalityGenerator):
-    """Gera o campo harmônico e as funções para uma tonalidade maior."""
+    """Generates the harmonic field and functions for a major tonality."""
     MAJOR_SCALE_STEPS = [2, 2, 1, 2, 2, 2, 1]
     
     DEGREE_LABELS = ["I", "ii", "iii", "IV", "V", "vi", "viidim"]
@@ -60,7 +60,7 @@ class MajorTonality(TonalityGenerator):
     def __init__(self, root_note: str):
         super().__init__(root_note)
         self.tonality_name = f"{self.root_note} Major"
-        self.scales['natural'] = self._build_scale(self.MAJOR_SCALE_STEPS) # A escala maior é a "natural" para este modo
+        self.scales['natural'] = self._build_scale(self.MAJOR_SCALE_STEPS) # The major scale is the "natural" scale for this mode
         self.harmonic_field = self._build_harmonic_field()
 
     def _build_harmonic_field(self) -> Dict[str, Set[str]]:
@@ -79,25 +79,25 @@ class MajorTonality(TonalityGenerator):
 
 class MinorTonality(TonalityGenerator):
     """
-    Gera o campo harmônico e as funções para uma tonalidade menor, utilizando
-    acordes das escalas natural, harmônica e melódica.
+    Generates the harmonic field and functions for a minor tonality, using
+    chords from the natural, harmonic, and melodic scales.
     """
     NATURAL_MINOR_STEPS = [2, 1, 2, 2, 1, 2, 2]
     
-    # Mapeamento completo dos graus comuns e suas origens
+    # Complete mapping of common degrees and their origins
     DEGREE_INFO = {
-        # Grau: (Qualidade, Função, Fonte da Escala, Índice na Escala Fonte)
+        # Degree: (Quality, Function, Scale Source, Index in Source Scale)
         "i":      {"quality": "m",   "function": "TONIC",       "source": "natural",  "index": 0},
         "iidim":  {"quality": "dim", "function": "SUBDOMINANT", "source": "natural",  "index": 1},
         "ii":     {"quality": "m",   "function": "SUBDOMINANT", "source": "melodic",  "index": 1},
         "bIII":   {"quality": "",    "function": "TONIC",       "source": "natural",  "index": 2},
-        "bIII+":  {"quality": "aug", "function": "TONIC",       "source": "melodic",  "index": 2}, # Novo: 3º grau aumentado da melódica
+        "bIII+":  {"quality": "aug", "function": "TONIC",       "source": "melodic",  "index": 2}, # New: augmented 3rd degree from melodic
         "iv":     {"quality": "m",   "function": "SUBDOMINANT", "source": "natural",  "index": 3},
         "IV":     {"quality": "",    "function": "SUBDOMINANT", "source": "melodic",  "index": 3},
         "v":      {"quality": "m",   "function": "DOMINANT",    "source": "natural",  "index": 4},
         "V":      {"quality": "",    "function": "DOMINANT",    "source": "harmonic", "index": 4},
         "bVI":    {"quality": "",    "function": "TONIC",       "source": "natural",  "index": 5},
-        "vidim":  {"quality": "dim", "function": "SUBDOMINANT", "source": "melodic",  "index": 5}, # Novo: 6º grau diminuto da melódica
+        "vidim":  {"quality": "dim", "function": "SUBDOMINANT", "source": "melodic",  "index": 5}, # New: diminished 6th degree from melodic
         "bVII":   {"quality": "",    "function": "DOMINANT",    "source": "natural",  "index": 6},
         "viidim": {"quality": "dim", "function": "DOMINANT",    "source": "harmonic", "index": 6},
     }
@@ -107,16 +107,16 @@ class MinorTonality(TonalityGenerator):
         super().__init__(root_note)
         self.tonality_name = f"{self.root_note} minor"
         
-        # 1. Construir a escala menor natural como base
+        # 1. Build the natural minor scale as base
         self.scales['natural'] = self._build_scale(self.NATURAL_MINOR_STEPS)
         
-        # 2. Construir a escala menor harmônica (7ª elevada) a partir da natural
+        # 2. Build the harmonic minor scale (raised 7th) from the natural
         harmonic_scale = self.scales['natural'][:]
         h_7th_idx = (self.NOTE_NAMES.index(harmonic_scale[6]) + 1) % len(self.NOTE_NAMES)
         harmonic_scale[6] = self.NOTE_NAMES[h_7th_idx]
         self.scales['harmonic'] = harmonic_scale
 
-        # 3. Construir a escala menor melódica (6ª e 7ª elevadas) a partir da natural
+        # 3. Build the melodic minor scale (raised 6th and 7th) from the natural
         melodic_scale = self.scales['natural'][:]
         m_6th_idx = (self.NOTE_NAMES.index(melodic_scale[5]) + 1) % len(self.NOTE_NAMES)
         m_7th_idx = (self.NOTE_NAMES.index(melodic_scale[6]) + 1) % len(self.NOTE_NAMES)
@@ -130,9 +130,9 @@ class MinorTonality(TonalityGenerator):
         field: Dict[str, Set[str]] = {"TONIC": set(), "SUBDOMINANT": set(), "DOMINANT": set()}
 
         for degree_label, info in self.DEGREE_INFO.items():
-            # Seleciona a escala correta (natural, harmônica ou melódica)
+            # Select the correct scale (natural, harmonic or melodic)
             source_scale = self.scales[info["source"]]
-            # Pega a nota fundamental do acorde a partir do grau correto naquela escala
+            # Get the root note of the chord from the correct degree in that scale
             note = source_scale[info["index"]]
             
             quality = info["quality"]
@@ -145,17 +145,15 @@ class MinorTonality(TonalityGenerator):
 
 def generate_tonal_data_json(filepath: str):
     """
-    Gera o arquivo tonalities.json com todas as 24 tonalidades maiores e menores.
+    Generates the tonalities.json file with all 24 major and minor tonalities.
     """
-    # *** INÍCIO DA CORREÇÃO ***
-    # Converte o caminho do arquivo de string para um objeto Path para um manuseio mais robusto.
+    # Convert the file path from string to a Path object for more robust handling.
     output_path_obj = Path(filepath)
 
-    # Garante que o diretório pai exista antes de tentar escrever o arquivo.
-    # parents=True cria quaisquer diretórios pais necessários.
-    # exist_ok=True não gera um erro se o diretório já existir.
+    # Ensure the parent directory exists before trying to write the file.
+    # parents=True creates any necessary parent directories.
+    # exist_ok=True doesn't raise an error if the directory already exists.
     output_path_obj.parent.mkdir(parents=True, exist_ok=True)
-    # *** FIM DA CORREÇÃO ***
 
     all_tonalities = []
     root_notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
@@ -168,22 +166,22 @@ def generate_tonal_data_json(filepath: str):
             minor_tonality = MinorTonality(note)
             all_tonalities.append(minor_tonality.to_dict())
         except ValueError as e:
-            print(f"Erro ao gerar tonalidade para {note}: {e}")
+            print(f"Error generating tonality for {note}: {e}")
             
-    # Usa o objeto Path para abrir o arquivo.
+    # Use the Path object to open the file.
     with open(output_path_obj, 'w', encoding='utf-8') as f:
         json.dump(all_tonalities, f, indent=2, ensure_ascii=False)
         
-    print(f"Arquivo '{filepath}' gerado com sucesso com {len(all_tonalities)} tonalidades.")
+    print(f"File '{filepath}' generated successfully with {len(all_tonalities)} tonalities.")
 
 if __name__ == "__main__":
     output_path = "core/config/data/tonalities.json"
     generate_tonal_data_json(output_path)
 
-    print("\nExemplo para C Major (Tríades):")
+    print("\nExample for C Major (Triads):")
     c_major = MajorTonality("C")
     print(json.dumps(c_major.to_dict(), indent=2))
     
-    print("\nExemplo para A minor (com acordes de todas as escalas):")
+    print("\nExample for A minor (with chords from all scales):")
     a_minor = MinorTonality("A")
     print(json.dumps(a_minor.to_dict(), indent=2))
