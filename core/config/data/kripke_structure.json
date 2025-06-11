@@ -14,7 +14,7 @@
     }
   ],
   "initial_states": ["s_t"],
-  "final_states": ["s_t"],
+  "final_states": ["s_d", "s_sd"],
   "accessibility_relation": [
     { "from": "s_t", "to": "s_d" },
     { "from": "s_t", "to": "s_sd" },

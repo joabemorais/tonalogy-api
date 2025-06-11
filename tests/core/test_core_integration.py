@@ -55,7 +55,7 @@ def aragao_kripke_config(tonic_state, dominant_state, subdominant_state) -> Krip
         states={tonic_state, dominant_state, subdominant_state},
         # In real analysis, the initial state is always the Tonic.
         initial_states={tonic_state},
-        final_states={tonic_state},
+        final_states={dominant_state, subdominant_state},
         accessibility_relation={
             (tonic_state, dominant_state),      # s_t -> s_d
             (tonic_state, subdominant_state),   # s_t -> s_sd
