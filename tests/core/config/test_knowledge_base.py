@@ -21,9 +21,9 @@ def temp_kripke_config_file(tmp_path: Path) -> Path:
             {"state_id": "s_d", "associated_tonal_function": "DOMINANT"},
             {"state_id": "s_sd", "associated_tonal_function": "SUBDOMINANT"}
         ],
-        "initial_states_S0": ["s_t"],
-        "final_states_SF": ["s_t"],
-        "accessibility_relation_R": [
+        "initial_states": ["s_t"],
+        "final_states": ["s_t"],
+        "accessibility_relation": [
             {"from": "s_t", "to": "s_d"},
             {"from": "s_d", "to": "s_sd"}
         ]

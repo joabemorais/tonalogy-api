@@ -4,9 +4,10 @@ import pytest
 from typing import Dict, Any
 
 # Import our FastAPI application and the dependencies we'll replace
-from api.main import app, get_analysis_service_override
+from api.main import app
+from api.endpoints.analysis import get_analysis_service
 from api.services.analysis_service import TonalAnalysisService
-from api.schemas.analysis_schemas import ProgressionAnalysisResponse, ExplanationStepAPI
+from api.schemas.analysis_schemas import ProgressionAnalysisResponse
 
 # --- Test Setup ---
 
@@ -38,13 +39,13 @@ def test_analyze_endpoint_success() -> None:
     mock_service.analyze_progression.return_value = ProgressionAnalysisResponse(**mock_response_data)
     
     # Replace the real dependency with our mock using FastAPI's mechanism
-    app.dependency_overrides[get_analysis_service_override] = lambda: mock_service
+    app.dependency_overrides[get_analysis_service] = lambda: mock_service
     
     # The request body we'll send
     request_payload: Dict[str, Any] = {"chords": ["C", "G", "C"]}
 
     # WHEN
-    response = client.post("/v1/analyze", json=request_payload)
+    response = client.post("/analyze", json=request_payload)
 
     # THEN
     assert response.status_code == 200
@@ -62,15 +63,17 @@ def test_analyze_endpoint_bad_request_known_error() -> None:
     mock_service = MagicMock(spec=TonalAnalysisService)
     mock_response_data: Dict[str, Any] = {
         "is_tonal_progression": False,
+        "identified_key": None,
+        "explanation_details": [],
         "error": "Tonality 'D Major' is not known."
     }
     mock_service.analyze_progression.return_value = ProgressionAnalysisResponse(**mock_response_data)
-    app.dependency_overrides[get_analysis_service_override] = lambda: mock_service
+    app.dependency_overrides[get_analysis_service] = lambda: mock_service
     
     request_payload: Dict[str, Any] = {"chords": ["C"], "tonalities_to_test": ["D Major"]}
     
     # WHEN
-    response = client.post("/v1/analyze", json=request_payload)
+    response = client.post("/analyze", json=request_payload)
     
     # THEN
     assert response.status_code == 400
@@ -82,10 +85,14 @@ def test_analyze_endpoint_invalid_payload() -> None:
     such as an empty chord list.
     """
     # GIVEN: a payload that violates Pydantic rules (chords cannot be empty)
+    # Set up a mock service so the dependency is properly overridden
+    mock_service = MagicMock(spec=TonalAnalysisService)
+    app.dependency_overrides[get_analysis_service] = lambda: mock_service
+    
     request_payload: Dict[str, Any] = {"chords": []} # min_items=1 is violated
 
     # WHEN
-    response = client.post("/v1/analyze", json=request_payload)
+    response = client.post("/analyze", json=request_payload)
     
     # THEN
     assert response.status_code == 422 # FastAPI handles this automatically
@@ -98,16 +105,31 @@ def test_analyze_endpoint_internal_server_error() -> None:
     # Simulate an unexpected exception being raised by the service
     mock_service = MagicMock(spec=TonalAnalysisService)
     mock_service.analyze_progression.side_effect = ValueError("Something unexpected happened!")
-    app.dependency_overrides[get_analysis_service_override] = lambda: mock_service
+    app.dependency_overrides[get_analysis_service] = lambda: mock_service
     
     request_payload: Dict[str, Any] = {"chords": ["C"]}
 
     # WHEN
-    response = client.post("/v1/analyze", json=request_payload)
+    response = client.post("/analyze", json=request_payload)
     
     # THEN
     assert response.status_code == 500
     assert "internal server error" in response.json()["detail"]
+
+def test_root_endpoint():
+    """
+    Test the root endpoint to ensure the API is responding correctly.
+    """
+    # GIVEN: The test client
+
+    # WHEN: A GET request is made to the root "/"
+    response = client.get("/")
+
+    # THEN: The response should be 200 OK and contain the welcome message
+    assert response.status_code == 200
+    assert response.json() == {
+        "message": "Welcome to Tonalogy API. Visit /docs to see the API documentation."
+    }
 
 # --- Dependency Cleanup ---
 

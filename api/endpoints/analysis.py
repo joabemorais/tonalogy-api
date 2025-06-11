@@ -30,11 +30,15 @@ async def analyze_progression(
     tonality it was identified, and the formal steps of the analysis.
     """
     try:
+        # Only catch service-level exceptions, not HTTPExceptions
         result: ProgressionAnalysisResponse = service.analyze_progression(request)
-        if result.error:
-            raise HTTPException(status_code=400, detail=result.error)
-        return result
     except Exception as e:
         # Handle unexpected server errors
         raise HTTPException(status_code=500, detail=f"An internal server error occurred: {str(e)}")
+    
+    # Check for error outside the try block so HTTPException isn't caught
+    if result.error:
+        raise HTTPException(status_code=400, detail=result.error)
+        
+    return result
 
