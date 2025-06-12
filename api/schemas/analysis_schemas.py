@@ -14,7 +14,7 @@ class ProgressionAnalysisRequest(BaseModel):
     tonalities_to_test: Optional[List[str]] = Field(
         None,
         description="Optional. A list of tonalities to be tested. If omitted, the system may test against a default set.",
-        json_schema_extra={"example": ["C Major", "G Major", "A minor"]}
+        json_schema_extra={"example": []}
     )
 
 class ExplanationStepAPI(BaseModel):
