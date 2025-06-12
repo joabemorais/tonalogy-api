@@ -49,7 +49,7 @@ def kripke_config_populated(sample_states: Dict) -> KripkeStructureConfig:
 
 # Tonality-related fixtures
 @pytest.fixture
-def c_major_key() -> Tonality:
+def c_major_tonality() -> Tonality:
     """Provides a sample C Major Tonality object."""
     return Tonality(
         tonality_name="C Major",
@@ -61,7 +61,7 @@ def c_major_key() -> Tonality:
     )
 
 @pytest.fixture
-def g_major_key_partial() -> Tonality:
+def g_major_tonality_partial() -> Tonality:
     """Provides a sample G Major Tonality with only Tonic and Dominant defined."""
     return Tonality(
         tonality_name="G Major Partial",
@@ -73,12 +73,12 @@ def g_major_key_partial() -> Tonality:
 
 # Explanation-related fixtures
 @pytest.fixture
-def sample_detailed_step(sample_states: Dict, c_major_key: Tonality) -> DetailedExplanationStep:
+def sample_detailed_step(sample_states: Dict, c_major_tonality: Tonality) -> DetailedExplanationStep:
     """A sample DetailedExplanationStep with all fields populated."""
     return DetailedExplanationStep(
         evaluated_functional_state=sample_states["s_t"],
         processed_chord=Chord("C"),
-        tonality_used_in_step=c_major_key,
+        tonality_used_in_step=c_major_tonality,
         formal_rule_applied="Eq.3 (P in L)",
         observation="Chord C fulfills Tonic in C Major."
     )
@@ -105,7 +105,7 @@ def explanation_with_one_step(sample_detailed_step: DetailedExplanationStep) -> 
     return Explanation(steps=[sample_detailed_step])
 
 @pytest.fixture
-def explanation_with_multiple_steps(sample_detailed_step: DetailedExplanationStep, sample_detailed_step_minimal: DetailedExplanationStep, sample_states: Dict, c_major_key: Tonality) -> Explanation:
+def explanation_with_multiple_steps(sample_detailed_step: DetailedExplanationStep, sample_detailed_step_minimal: DetailedExplanationStep, sample_states: Dict, c_major_tonality: Tonality) -> Explanation:
     """An Explanation object with multiple diverse steps."""
     exp = Explanation()
     exp.add_step( # Using add_step to ensure it's tested implicitly
@@ -123,7 +123,7 @@ def explanation_with_multiple_steps(sample_detailed_step: DetailedExplanationSte
     exp.add_step(
         evaluated_functional_state=sample_states["s_d"],
         processed_chord=Chord("G7"),
-        tonality_used_in_step=c_major_key,
+        tonality_used_in_step=c_major_tonality,
         formal_rule_applied="Eq.4/5 (P in L, φ in L)",
         observation="Chord G7 fulfills Dominant in C Major. Trying next state..."
     )
@@ -196,54 +196,54 @@ def test_get_successors_empty_config_overall(kripke_config_empty: KripkeStructur
 
 # --- Tests for Tonality Helper Methods ---
 
-def test_key_get_chords_for_function_exists(c_major_key: Tonality):
-    """Test getting chords for a function that exists in the key map."""
-    tonic_chords = c_major_key.get_chords_for_function(TonalFunction.TONIC)
+def test_tonality_get_chords_for_function_exists(c_major_tonality: Tonality):
+    """Test getting chords for a function that exists in the tonality map."""
+    tonic_chords = c_major_tonality.get_chords_for_function(TonalFunction.TONIC)
     expected_tonic_chords = {Chord("C"), Chord("Am")}
     assert tonic_chords == expected_tonic_chords, "Incorrect tonic chords for C Major"
 
-    dominant_chords = c_major_key.get_chords_for_function(TonalFunction.DOMINANT)
+    dominant_chords = c_major_tonality.get_chords_for_function(TonalFunction.DOMINANT)
     expected_dominant_chords = {Chord("G"), Chord("G7"), Chord("Bdim")}
     assert dominant_chords == expected_dominant_chords, "Incorrect dominant chords for C Major"
 
-def test_key_get_chords_for_function_not_exists(g_major_key_partial: Tonality):
-    """Test getting chords for a function that is not defined in the key map."""
-    # g_major_key_partial does not have SUBDOMINANT defined
-    subdominant_chords = g_major_key_partial.get_chords_for_function(TonalFunction.SUBDOMINANT)
+def test_tonality_get_chords_for_function_not_exists(g_major_tonality_partial: Tonality):
+    """Test getting chords for a function that is not defined in the tonality map."""
+    # g_major_tonality_partial does not have SUBDOMINANT defined
+    subdominant_chords = g_major_tonality_partial.get_chords_for_function(TonalFunction.SUBDOMINANT)
     assert subdominant_chords == set(), "Should return an empty set for an undefined function"
 
-def test_key_chord_fulfills_function_true(c_major_key: Tonality):
+def test_tonality_chord_fulfills_function_true(c_major_tonality: Tonality):
     """Test when a chord correctly fulfills a function."""
-    assert c_major_key.chord_fulfills_function(Chord("C"), TonalFunction.TONIC) is True, "C should be Tonic in C Major"
-    assert c_major_key.chord_fulfills_function(Chord("G7"), TonalFunction.DOMINANT) is True, "G7 should be Dominant in C Major"
-    assert c_major_key.chord_fulfills_function(Chord("Dm"), TonalFunction.SUBDOMINANT) is True, "Dm should be Subdominant in C Major"
+    assert c_major_tonality.chord_fulfills_function(Chord("C"), TonalFunction.TONIC) is True, "C should be Tonic in C Major"
+    assert c_major_tonality.chord_fulfills_function(Chord("G7"), TonalFunction.DOMINANT) is True, "G7 should be Dominant in C Major"
+    assert c_major_tonality.chord_fulfills_function(Chord("Dm"), TonalFunction.SUBDOMINANT) is True, "Dm should be Subdominant in C Major"
 
-def test_key_chord_fulfills_function_false_wrong_chord(c_major_key: Tonality):
+def test_tonality_chord_fulfills_function_false_wrong_chord(c_major_tonality: Tonality):
     """Test when a chord does not fulfill the specified function (wrong chord for function)."""
-    assert c_major_key.chord_fulfills_function(Chord("G"), TonalFunction.TONIC) is False, "G should not be Tonic in C Major"
-    assert c_major_key.chord_fulfills_function(Chord("C"), TonalFunction.DOMINANT) is False, "C should not be Dominant in C Major"
+    assert c_major_tonality.chord_fulfills_function(Chord("G"), TonalFunction.TONIC) is False, "G should not be Tonic in C Major"
+    assert c_major_tonality.chord_fulfills_function(Chord("C"), TonalFunction.DOMINANT) is False, "C should not be Dominant in C Major"
 
-def test_key_chord_fulfills_function_false_function_not_in_key(g_major_key_partial: Tonality):
-    """Test when the function itself is not defined for the key."""
-    # SUBDOMINANT is not in g_major_key_partial
-    assert g_major_key_partial.chord_fulfills_function(Chord("C"), TonalFunction.SUBDOMINANT) is False, "C cannot be Subdominant if Subdominant is not defined for the key"
+def test_tonality_chord_fulfills_function_false_function_not_in_tonality(g_major_tonality_partial: Tonality):
+    """Test when the function itself is not defined for the tonality."""
+    # SUBDOMINANT is not in g_major_tonality_partial
+    assert g_major_tonality_partial.chord_fulfills_function(Chord("C"), TonalFunction.SUBDOMINANT) is False, "C cannot be Subdominant if Subdominant is not defined for the tonality"
 
-def test_key_chord_fulfills_function_empty_chord_set_for_function():
+def test_tonality_chord_fulfills_function_empty_chord_set_for_function():
     """Test a scenario where a function might exist but have an empty set of chords (edge case)."""
-    empty_tonic_key = Tonality(
+    empty_tonic_tonality = Tonality(
         tonality_name="Test Tonality",
         function_to_chords_map={TonalFunction.TONIC: set()}
     )
-    assert empty_tonic_key.chord_fulfills_function(Chord("C"), TonalFunction.TONIC) is False, "C cannot be Tonic if Tonic set is empty"
+    assert empty_tonic_tonality.chord_fulfills_function(Chord("C"), TonalFunction.TONIC) is False, "C cannot be Tonic if Tonic set is empty"
 
 # --- Tests for Explanation and DetailedExplanationStep ---
 
-def test_detailed_explanation_step_creation_with_fixture(sample_detailed_step: DetailedExplanationStep, sample_states: Dict, c_major_key: Tonality):
+def test_detailed_explanation_step_creation_with_fixture(sample_detailed_step: DetailedExplanationStep, sample_states: Dict, c_major_tonality: Tonality):
     """Test basic creation of a DetailedExplanationStep using a fixture."""
     step = sample_detailed_step
     assert step.evaluated_functional_state == sample_states["s_t"]
     assert step.processed_chord == Chord("C")
-    assert step.tonality_used_in_step == c_major_key
+    assert step.tonality_used_in_step == c_major_tonality
     assert step.formal_rule_applied == "Eq.3 (P in L)"
     assert step.observation == "Chord C fulfills Tonic in C Major."
 
@@ -262,7 +262,7 @@ def test_explanation_creation_empty_with_fixture(empty_explanation: Explanation)
     exp = empty_explanation
     assert exp.steps == [], "New Explanation should start with an empty steps list"
 
-def test_explanation_add_step_with_fixtures(empty_explanation: Explanation, sample_states: Dict, c_major_key: Tonality):
+def test_explanation_add_step_with_fixtures(empty_explanation: Explanation, sample_states: Dict, c_major_tonality: Tonality):
     """Test the add_step method of the Explanation class using fixtures."""
     exp = empty_explanation
     s_t = sample_states["s_t"]
@@ -271,7 +271,7 @@ def test_explanation_add_step_with_fixtures(empty_explanation: Explanation, samp
     exp.add_step(
         evaluated_functional_state=s_t,
         processed_chord=c_chord,
-        tonality_used_in_step=c_major_key,
+        tonality_used_in_step=c_major_tonality,
         formal_rule_applied="Test Rule",
         observation="Test observation."
     )
@@ -279,13 +279,13 @@ def test_explanation_add_step_with_fixtures(empty_explanation: Explanation, samp
     step1 = exp.steps[0]
     assert step1.evaluated_functional_state == s_t
     assert step1.processed_chord == c_chord
-    assert step1.tonality_used_in_step == c_major_key
+    assert step1.tonality_used_in_step == c_major_tonality
     assert step1.formal_rule_applied == "Test Rule"
     assert step1.observation == "Test observation."
 
     exp.add_step(
         formal_rule_applied="Another Rule",
-        observation="Another observation, no specific state/chord/key."
+        observation="Another observation, no specific state/chord/tonality."
     )
     assert len(exp.steps) == 2
     step2 = exp.steps[1]

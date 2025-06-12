@@ -60,12 +60,12 @@ class TonalAnalysisService:
             success, explanation = self.analyzer.check_tonal_progression(input_chords, tonalities_to_test)
             
             # 4. Format the response
-            identified_key: Optional[str] = None
+            identified_tonality: Optional[str] = None
             if success and explanation.steps:
                  # Get the tonality from the last significant step, which usually contains the final result
-                 final_step_with_key = next((step for step in reversed(explanation.steps) if step.tonality_used_in_step), None)
-                 if final_step_with_key:
-                     identified_key = final_step_with_key.tonality_used_in_step.tonality_name
+                 final_step_with_tonality = next((step for step in reversed(explanation.steps) if step.tonality_used_in_step), None)
+                 if final_step_with_tonality:
+                     identified_tonality = final_step_with_tonality.tonality_used_in_step.tonality_name
 
             # Convert explanation steps to API format
             explanation_steps_api: List[ExplanationStepAPI] = [
@@ -73,7 +73,7 @@ class TonalAnalysisService:
                     formal_rule_applied=step.formal_rule_applied,
                     observation=step.observation,
                     processed_chord=step.processed_chord.name if step.processed_chord else None,
-                    key_used_in_step=step.tonality_used_in_step.tonality_name if step.tonality_used_in_step else None,
+                    tonality_used_in_step=step.tonality_used_in_step.tonality_name if step.tonality_used_in_step else None,
                     evaluated_functional_state=f"{step.evaluated_functional_state.associated_tonal_function.name} ({step.evaluated_functional_state.state_id})" if step.evaluated_functional_state else None
                 )
                 for step in explanation.steps
@@ -81,7 +81,7 @@ class TonalAnalysisService:
 
             return ProgressionAnalysisResponse(
                 is_tonal_progression=success,
-                identified_key=identified_key,
+                identified_tonality=identified_tonality,
                 explanation_details=explanation_steps_api
             )
 

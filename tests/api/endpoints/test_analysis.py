@@ -25,11 +25,11 @@ def test_analyze_endpoint_success() -> None:
     mock_service = MagicMock(spec=TonalAnalysisService)
     mock_response_data: Dict[str, Any] = {
         "is_tonal_progression": True,
-        "identified_key": "C Major",
+        "identified_tonality": "C Major",
         "explanation_details": [{
             "formal_rule_applied": "Overall Success",
             "observation": "Progression identified as tonal.",
-            "key_used_in_step": "C Major",
+            "tonality_used_in_step": "C Major",
             "processed_chord": "C",
             "evaluated_functional_state": "TONIC (s_t)"
         }],
@@ -51,7 +51,7 @@ def test_analyze_endpoint_success() -> None:
     assert response.status_code == 200
     response_data: Dict[str, Any] = response.json()
     assert response_data["is_tonal_progression"] is True
-    assert response_data["identified_key"] == "C Major"
+    assert response_data["identified_tonality"] == "C Major"
     assert "explanation_details" in response_data
 
 def test_analyze_endpoint_bad_request_known_error() -> None:
@@ -63,7 +63,7 @@ def test_analyze_endpoint_bad_request_known_error() -> None:
     mock_service = MagicMock(spec=TonalAnalysisService)
     mock_response_data: Dict[str, Any] = {
         "is_tonal_progression": False,
-        "identified_key": None,
+        "identified_tonality": None,
         "explanation_details": [],
         "error": "Tonality 'D Major' is not known."
     }
