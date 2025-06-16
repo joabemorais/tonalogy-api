@@ -6,24 +6,12 @@ import copy
 
 @dataclass(frozen=True)
 class Chord:
-    """
-    Represents an individual chord symbol (e.g., "Am", "G").
-    'dataclass' automatically generates methods like __init__, __repr__, etc.
-    'frozen=True' makes objects of this class immutable. Once created, a
-    chord cannot be changed. This is good for data consistency.
-    Since it's 'frozen', Python automatically generates __eq__ and __hash__ methods,
-    which allows us to use Chord objects in sets and as dictionary keys.
-    """
-
+    """Represents an individual chord symbol. Immutable and hashable."""
     name: str
 
 
 class TonalFunction(Enum):
-    """
-    Represents the abstract functional categories (Tonic, Dominant, Subdominant).
-    Using an Enum ensures we can only use these defined values, avoiding errors.
-    """
-
+    """Represents the abstract functional categories."""
     TONIC = auto()
     DOMINANT = auto()
     SUBDOMINANT = auto()
@@ -31,14 +19,7 @@ class TonalFunction(Enum):
 
 @dataclass(frozen=True)
 class KripkeState:
-    """
-    Represents a state in the Kripke structure.
-    Associates a state ID with a tonal function.
-    'frozen=True' also generates __eq__ and __hash__ for us, allowing
-    KripkeState to be used in sets and as dictionary keys, which is
-    essential for representing the accessibility relation.
-    """
-
+    """Represents a state in the Kripke structure. Immutable and hashable."""
     state_id: str
     associated_tonal_function: TonalFunction
 
@@ -46,91 +27,62 @@ class KripkeState:
 @dataclass
 class Tonality:
     """
-    Represents a Tonality, which is a labeling function L_i in the formalism.
-    Maps tonal functions to sets of chords that can fulfill them.
-    We don't use 'frozen=True' here, as we might want to add or
-    modify chord mappings in the future, although it's unlikely.
+    Represents a Tonality (a labeling function L_i).
+    Maps tonal functions to chords and their scale origins.
     """
-
     tonality_name: str
-    function_to_chords_map: Dict[TonalFunction, Set[Chord]]
+    # The map now holds Chord objects as keys and their scale origin (e.g., "natural", "melodic") as values.
+    function_to_chords_map: Dict[TonalFunction, Dict[Chord, str]]
 
     def get_chords_for_function(self, func: TonalFunction) -> Set[Chord]:
         """Returns the set of chords for a given tonal function."""
-        return self.function_to_chords_map.get(func, set())
+        return set(self.function_to_chords_map.get(func, {}).keys())
 
-    def chord_fulfills_function(
-        self, test_chord: Chord, target_function: TonalFunction
-    ) -> bool:
+    def chord_fulfills_function(self, test_chord: Chord, target_function: TonalFunction) -> bool:
         """Checks if a chord fulfills a specific function in this tonality."""
-        return test_chord in self.get_chords_for_function(target_function)
+        return test_chord in self.function_to_chords_map.get(target_function, {})
+
+    def get_chord_origin_for_function(self, test_chord: Chord, target_function: TonalFunction) -> Optional[str]:
+        """Gets the scale origin (e.g., 'melodic') for a chord fulfilling a function."""
+        return self.function_to_chords_map.get(target_function, {}).get(test_chord)
 
 
 @dataclass
 class KripkeStructureConfig:
-    """
-    Defines the static part of the Kripke structure: <S, S0, SF, R>.
-    This configuration is the foundation upon which different Tonalities (L_i) operate.
-    'field(default_factory=set)' is used to ensure that a new empty set
-    is created for each instance if no value is provided, avoiding
-    issues with mutable objects as defaults in classes.
-    """
-
+    """Defines the static part of the Kripke structure: <S, S0, SF, R>."""
     states: Set[KripkeState] = field(default_factory=set)
     initial_states: Set[KripkeState] = field(default_factory=set)
     final_states: Set[KripkeState] = field(default_factory=set)
-    # The Accessibility Relation is a set of tuples, where each tuple
-    # represents an allowed transition from one state to another.
-    accessibility_relation: Set[Tuple[KripkeState, KripkeState]] = field(
-        default_factory=set
-    )
+    accessibility_relation: Set[Tuple[KripkeState, KripkeState]] = field(default_factory=set)
 
     def get_state_by_tonal_function(self, func: TonalFunction) -> Optional[KripkeState]:
-        """
-        Finds and returns the first KripkeState in this configuration
-        that is associated with the given TonalFunction.
-        Returns None if no such state is found.
-        This is used, for example, to find the 'Tonic' state to start an analysis.
-        """
+        """Finds the KripkeState associated with a given TonalFunction."""
         for state in self.states:
             if state.associated_tonal_function == func:
                 return state
-        return None # No state found for the given function
+        return None
 
     def get_successors_of_state(self, source_state: KripkeState) -> List[KripkeState]:
-        """
-        Returns a list of KripkeStates that are directly accessible
-        from the given source_state, according to the accessibility_relation.
-        This is crucial for traversing the Kripke structure during analysis.
-        """
-        successors: List[KripkeState] = [
+        """Returns a list of KripkeStates accessible from a source state."""
+        return [
             r_target for r_source, r_target in self.accessibility_relation
             if r_source == source_state
         ]
-        return successors
 
 
 @dataclass
 class DetailedExplanationStep:
-    """
-    Represents a single detailed step in the analysis explanation.
-    Using Optional for some fields as they might not be relevant for all step types
-    (e.g., an "Analysis Start" step might not have a specific KripkeState or Chord).
-    """
-    # Using Optional since some steps (like 'Analysis Start' or 'Overall Failure')
-    # might not have all these fields populated.
+    """Represents a single detailed step in the analysis explanation."""
     evaluated_functional_state: Optional[KripkeState]
     processed_chord: Optional[Chord]
     tonality_used_in_step: Optional[Tonality]
-    formal_rule_applied: str  # e.g., "Eq.3 (L)", "Analysis Start", "Base (Empty Seq)"
-    observation: str          # Human-readable message for this step
+    formal_rule_applied: str
+    observation: str
+
 
 @dataclass
 class Explanation:
-    """
-    Collects a sequence of DetailedExplanationStep objects to trace the
-    derivation of a tonal progression analysis.
-    """
+    """Collects a sequence of DetailedExplanationStep objects."""
     steps: List[DetailedExplanationStep] = field(default_factory=list)
 
     def add_step(
@@ -141,35 +93,16 @@ class Explanation:
         processed_chord: Optional[Chord] = None,
         tonality_used_in_step: Optional[Tonality] = None,
     ):
-        """
-        Adds a new detailed step to the explanation.
-        The order of parameters is slightly changed for convenience,
-        making rule and observation mandatory.
-        """
+        """Adds a new detailed step to the explanation."""
         step = DetailedExplanationStep(
-            evaluated_functional_state=evaluated_functional_state,
-            processed_chord=processed_chord,
-            tonality_used_in_step=tonality_used_in_step,
-            formal_rule_applied=formal_rule_applied,
-            observation=observation
+            evaluated_functional_state,
+            processed_chord,
+            tonality_used_in_step,
+            formal_rule_applied,
+            observation
         )
         self.steps.append(step)
 
     def clone(self) -> 'Explanation':
-        """
-        Creates a deep enough copy of this Explanation object.
-        This is crucial for the recursive evaluation, allowing different
-        analysis paths to have independent explanation trails.
-        The list of steps is deep copied, but the objects within the steps
-        (KripkeState, Chord, Tonality) are immutable or treated as such (Tonality might not be frozen),
-        so a shallow copy of those is sufficient if they are not modified after creation.
-        However, DetailedExplanationStep itself is a dataclass and will be copied.
-        Using copy.deepcopy for the list of steps ensures that new DetailedExplanationStep
-        objects are created for the clone.
-        """
-        # `copy.deepcopy` will create new DetailedExplanationStep objects
-        # and a new list to hold them.
-        # Since Chord and KripkeState are frozen (immutable), and Tonality is typically
-        # treated as immutable once configured for an analysis branch,
-        # deepcopying the steps list itself is the main concern.
+        """Creates a deep copy of the Explanation object."""
         return Explanation(steps=copy.deepcopy(self.steps))
