@@ -58,11 +58,11 @@ class SatisfactionEvaluator:
         # Base case: If P was the last chord, continuation is a success.
         if not phi_sub_sequence:
             explanation_after_P.add_step(
-                formal_rule_applied="P in L",
+                formal_rule_applied=None,
                 observation=f"End of sequence. All chords have been successfully processed.",
-                evaluated_functional_state=current_state,
-                processed_chord=p_chord,
-                tonality_used_in_step=current_tonality
+                evaluated_functional_state=None,
+                processed_chord=None,
+                tonality_used_in_step=None
             )
             return True, explanation_after_P
 
