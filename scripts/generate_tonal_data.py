@@ -132,7 +132,7 @@ class MinorTonality(TonalityGenerator):
         "v":      {"quality": "m",   "function": "DOMINANT",    "source": "natural",  "index": 4},
         "V":      {"quality": "",    "function": "DOMINANT",    "source": "harmonic", "index": 4},
         "bVI":    {"quality": "",    "function": "TONIC",       "source": "natural",  "index": 5},
-        "vidim":  {"quality": "dim", "function": "SUBDOMINANT", "source": "melodic",  "index": 5}, # New: diminished 6th degree from melodic
+        "vidim":  {"quality": "dim", "function": "SUBDOMINANT", "source": "melodic",  "index": 5},
         "bVII":   {"quality": "",    "function": "DOMINANT",    "source": "natural",  "index": 6},
         "viidim": {"quality": "dim", "function": "DOMINANT",    "source": "harmonic", "index": 6},
     }
