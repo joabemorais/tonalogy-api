@@ -2,505 +2,505 @@
   {
     "tonality_name": "C Major",
     "function_to_chords_map": {
-      "TONIC": [
-        "Am",
-        "C",
-        "Em"
-      ],
-      "SUBDOMINANT": [
-        "Dm",
-        "F"
-      ],
-      "DOMINANT": [
-        "Bdim",
-        "G"
-      ]
+      "TONIC": {
+        "C": "natural",
+        "Em": "natural",
+        "Am": "natural"
+      },
+      "SUBDOMINANT": {
+        "Dm": "natural",
+        "F": "natural"
+      },
+      "DOMINANT": {
+        "G": "natural",
+        "Bdim": "natural"
+      }
     }
   },
   {
     "tonality_name": "C minor",
     "function_to_chords_map": {
-      "TONIC": [
-        "Cm",
-        "D#",
-        "D#aug",
-        "G#"
-      ],
-      "SUBDOMINANT": [
-        "Adim",
-        "Ddim",
-        "Dm",
-        "F",
-        "Fm"
-      ],
-      "DOMINANT": [
-        "A#",
-        "Bdim",
-        "G",
-        "Gm"
-      ]
+      "TONIC": {
+        "Cm": "natural",
+        "D#": "natural",
+        "D#aug": "melodic",
+        "G#": "natural"
+      },
+      "SUBDOMINANT": {
+        "Ddim": "natural",
+        "Dm": "melodic",
+        "Fm": "natural",
+        "F": "melodic",
+        "Adim": "melodic"
+      },
+      "DOMINANT": {
+        "Gm": "natural",
+        "G": "harmonic",
+        "A#": "natural",
+        "Bdim": "harmonic"
+      }
     }
   },
   {
     "tonality_name": "C# Major",
     "function_to_chords_map": {
-      "TONIC": [
-        "A#m",
-        "C#",
-        "Fm"
-      ],
-      "SUBDOMINANT": [
-        "D#m",
-        "F#"
-      ],
-      "DOMINANT": [
-        "Cdim",
-        "G#"
-      ]
+      "TONIC": {
+        "C#": "natural",
+        "Fm": "natural",
+        "A#m": "natural"
+      },
+      "SUBDOMINANT": {
+        "D#m": "natural",
+        "F#": "natural"
+      },
+      "DOMINANT": {
+        "G#": "natural",
+        "Cdim": "natural"
+      }
     }
   },
   {
     "tonality_name": "C# minor",
     "function_to_chords_map": {
-      "TONIC": [
-        "A",
-        "C#m",
-        "E",
-        "Eaug"
-      ],
-      "SUBDOMINANT": [
-        "A#dim",
-        "D#dim",
-        "D#m",
-        "F#",
-        "F#m"
-      ],
-      "DOMINANT": [
-        "B",
-        "Cdim",
-        "G#",
-        "G#m"
-      ]
+      "TONIC": {
+        "C#m": "natural",
+        "E": "natural",
+        "Eaug": "melodic",
+        "A": "natural"
+      },
+      "SUBDOMINANT": {
+        "D#dim": "natural",
+        "D#m": "melodic",
+        "F#m": "natural",
+        "F#": "melodic",
+        "A#dim": "melodic"
+      },
+      "DOMINANT": {
+        "G#m": "natural",
+        "G#": "harmonic",
+        "B": "natural",
+        "Cdim": "harmonic"
+      }
     }
   },
   {
     "tonality_name": "D Major",
     "function_to_chords_map": {
-      "TONIC": [
-        "Bm",
-        "D",
-        "F#m"
-      ],
-      "SUBDOMINANT": [
-        "Em",
-        "G"
-      ],
-      "DOMINANT": [
-        "A",
-        "C#dim"
-      ]
+      "TONIC": {
+        "D": "natural",
+        "F#m": "natural",
+        "Bm": "natural"
+      },
+      "SUBDOMINANT": {
+        "Em": "natural",
+        "G": "natural"
+      },
+      "DOMINANT": {
+        "A": "natural",
+        "C#dim": "natural"
+      }
     }
   },
   {
     "tonality_name": "D minor",
     "function_to_chords_map": {
-      "TONIC": [
-        "A#",
-        "Dm",
-        "F",
-        "Faug"
-      ],
-      "SUBDOMINANT": [
-        "Bdim",
-        "Edim",
-        "Em",
-        "G",
-        "Gm"
-      ],
-      "DOMINANT": [
-        "A",
-        "Am",
-        "C",
-        "C#dim"
-      ]
+      "TONIC": {
+        "Dm": "natural",
+        "F": "natural",
+        "Faug": "melodic",
+        "A#": "natural"
+      },
+      "SUBDOMINANT": {
+        "Edim": "natural",
+        "Em": "melodic",
+        "Gm": "natural",
+        "G": "melodic",
+        "Bdim": "melodic"
+      },
+      "DOMINANT": {
+        "Am": "natural",
+        "A": "harmonic",
+        "C": "natural",
+        "C#dim": "harmonic"
+      }
     }
   },
   {
     "tonality_name": "D# Major",
     "function_to_chords_map": {
-      "TONIC": [
-        "Cm",
-        "D#",
-        "Gm"
-      ],
-      "SUBDOMINANT": [
-        "Fm",
-        "G#"
-      ],
-      "DOMINANT": [
-        "A#",
-        "Ddim"
-      ]
+      "TONIC": {
+        "D#": "natural",
+        "Gm": "natural",
+        "Cm": "natural"
+      },
+      "SUBDOMINANT": {
+        "Fm": "natural",
+        "G#": "natural"
+      },
+      "DOMINANT": {
+        "A#": "natural",
+        "Ddim": "natural"
+      }
     }
   },
   {
     "tonality_name": "D# minor",
     "function_to_chords_map": {
-      "TONIC": [
-        "B",
-        "D#m",
-        "F#",
-        "F#aug"
-      ],
-      "SUBDOMINANT": [
-        "Cdim",
-        "Fdim",
-        "Fm",
-        "G#",
-        "G#m"
-      ],
-      "DOMINANT": [
-        "A#",
-        "A#m",
-        "C#",
-        "Ddim"
-      ]
+      "TONIC": {
+        "D#m": "natural",
+        "F#": "natural",
+        "F#aug": "melodic",
+        "B": "natural"
+      },
+      "SUBDOMINANT": {
+        "Fdim": "natural",
+        "Fm": "melodic",
+        "G#m": "natural",
+        "G#": "melodic",
+        "Cdim": "melodic"
+      },
+      "DOMINANT": {
+        "A#m": "natural",
+        "A#": "harmonic",
+        "C#": "natural",
+        "Ddim": "harmonic"
+      }
     }
   },
   {
     "tonality_name": "E Major",
     "function_to_chords_map": {
-      "TONIC": [
-        "C#m",
-        "E",
-        "G#m"
-      ],
-      "SUBDOMINANT": [
-        "A",
-        "F#m"
-      ],
-      "DOMINANT": [
-        "B",
-        "D#dim"
-      ]
+      "TONIC": {
+        "E": "natural",
+        "G#m": "natural",
+        "C#m": "natural"
+      },
+      "SUBDOMINANT": {
+        "F#m": "natural",
+        "A": "natural"
+      },
+      "DOMINANT": {
+        "B": "natural",
+        "D#dim": "natural"
+      }
     }
   },
   {
     "tonality_name": "E minor",
     "function_to_chords_map": {
-      "TONIC": [
-        "C",
-        "Em",
-        "G",
-        "Gaug"
-      ],
-      "SUBDOMINANT": [
-        "A",
-        "Am",
-        "C#dim",
-        "F#dim",
-        "F#m"
-      ],
-      "DOMINANT": [
-        "B",
-        "Bm",
-        "D",
-        "D#dim"
-      ]
+      "TONIC": {
+        "Em": "natural",
+        "G": "natural",
+        "Gaug": "melodic",
+        "C": "natural"
+      },
+      "SUBDOMINANT": {
+        "F#dim": "natural",
+        "F#m": "melodic",
+        "Am": "natural",
+        "A": "melodic",
+        "C#dim": "melodic"
+      },
+      "DOMINANT": {
+        "Bm": "natural",
+        "B": "harmonic",
+        "D": "natural",
+        "D#dim": "harmonic"
+      }
     }
   },
   {
     "tonality_name": "F Major",
     "function_to_chords_map": {
-      "TONIC": [
-        "Am",
-        "Dm",
-        "F"
-      ],
-      "SUBDOMINANT": [
-        "A#",
-        "Gm"
-      ],
-      "DOMINANT": [
-        "C",
-        "Edim"
-      ]
+      "TONIC": {
+        "F": "natural",
+        "Am": "natural",
+        "Dm": "natural"
+      },
+      "SUBDOMINANT": {
+        "Gm": "natural",
+        "A#": "natural"
+      },
+      "DOMINANT": {
+        "C": "natural",
+        "Edim": "natural"
+      }
     }
   },
   {
     "tonality_name": "F minor",
     "function_to_chords_map": {
-      "TONIC": [
-        "C#",
-        "Fm",
-        "G#",
-        "G#aug"
-      ],
-      "SUBDOMINANT": [
-        "A#",
-        "A#m",
-        "Ddim",
-        "Gdim",
-        "Gm"
-      ],
-      "DOMINANT": [
-        "C",
-        "Cm",
-        "D#",
-        "Edim"
-      ]
+      "TONIC": {
+        "Fm": "natural",
+        "G#": "natural",
+        "G#aug": "melodic",
+        "C#": "natural"
+      },
+      "SUBDOMINANT": {
+        "Gdim": "natural",
+        "Gm": "melodic",
+        "A#m": "natural",
+        "A#": "melodic",
+        "Ddim": "melodic"
+      },
+      "DOMINANT": {
+        "Cm": "natural",
+        "C": "harmonic",
+        "D#": "natural",
+        "Edim": "harmonic"
+      }
     }
   },
   {
     "tonality_name": "F# Major",
     "function_to_chords_map": {
-      "TONIC": [
-        "A#m",
-        "D#m",
-        "F#"
-      ],
-      "SUBDOMINANT": [
-        "B",
-        "G#m"
-      ],
-      "DOMINANT": [
-        "C#",
-        "Fdim"
-      ]
+      "TONIC": {
+        "F#": "natural",
+        "A#m": "natural",
+        "D#m": "natural"
+      },
+      "SUBDOMINANT": {
+        "G#m": "natural",
+        "B": "natural"
+      },
+      "DOMINANT": {
+        "C#": "natural",
+        "Fdim": "natural"
+      }
     }
   },
   {
     "tonality_name": "F# minor",
     "function_to_chords_map": {
-      "TONIC": [
-        "A",
-        "Aaug",
-        "D",
-        "F#m"
-      ],
-      "SUBDOMINANT": [
-        "B",
-        "Bm",
-        "D#dim",
-        "G#dim",
-        "G#m"
-      ],
-      "DOMINANT": [
-        "C#",
-        "C#m",
-        "E",
-        "Fdim"
-      ]
+      "TONIC": {
+        "F#m": "natural",
+        "A": "natural",
+        "Aaug": "melodic",
+        "D": "natural"
+      },
+      "SUBDOMINANT": {
+        "G#dim": "natural",
+        "G#m": "melodic",
+        "Bm": "natural",
+        "B": "melodic",
+        "D#dim": "melodic"
+      },
+      "DOMINANT": {
+        "C#m": "natural",
+        "C#": "harmonic",
+        "E": "natural",
+        "Fdim": "harmonic"
+      }
     }
   },
   {
     "tonality_name": "G Major",
     "function_to_chords_map": {
-      "TONIC": [
-        "Bm",
-        "Em",
-        "G"
-      ],
-      "SUBDOMINANT": [
-        "Am",
-        "C"
-      ],
-      "DOMINANT": [
-        "D",
-        "F#dim"
-      ]
+      "TONIC": {
+        "G": "natural",
+        "Bm": "natural",
+        "Em": "natural"
+      },
+      "SUBDOMINANT": {
+        "Am": "natural",
+        "C": "natural"
+      },
+      "DOMINANT": {
+        "D": "natural",
+        "F#dim": "natural"
+      }
     }
   },
   {
     "tonality_name": "G minor",
     "function_to_chords_map": {
-      "TONIC": [
-        "A#",
-        "A#aug",
-        "D#",
-        "Gm"
-      ],
-      "SUBDOMINANT": [
-        "Adim",
-        "Am",
-        "C",
-        "Cm",
-        "Edim"
-      ],
-      "DOMINANT": [
-        "D",
-        "Dm",
-        "F",
-        "F#dim"
-      ]
+      "TONIC": {
+        "Gm": "natural",
+        "A#": "natural",
+        "A#aug": "melodic",
+        "D#": "natural"
+      },
+      "SUBDOMINANT": {
+        "Adim": "natural",
+        "Am": "melodic",
+        "Cm": "natural",
+        "C": "melodic",
+        "Edim": "melodic"
+      },
+      "DOMINANT": {
+        "Dm": "natural",
+        "D": "harmonic",
+        "F": "natural",
+        "F#dim": "harmonic"
+      }
     }
   },
   {
     "tonality_name": "G# Major",
     "function_to_chords_map": {
-      "TONIC": [
-        "Cm",
-        "Fm",
-        "G#"
-      ],
-      "SUBDOMINANT": [
-        "A#m",
-        "C#"
-      ],
-      "DOMINANT": [
-        "D#",
-        "Gdim"
-      ]
+      "TONIC": {
+        "G#": "natural",
+        "Cm": "natural",
+        "Fm": "natural"
+      },
+      "SUBDOMINANT": {
+        "A#m": "natural",
+        "C#": "natural"
+      },
+      "DOMINANT": {
+        "D#": "natural",
+        "Gdim": "natural"
+      }
     }
   },
   {
     "tonality_name": "G# minor",
     "function_to_chords_map": {
-      "TONIC": [
-        "B",
-        "Baug",
-        "E",
-        "G#m"
-      ],
-      "SUBDOMINANT": [
-        "A#dim",
-        "A#m",
-        "C#",
-        "C#m",
-        "Fdim"
-      ],
-      "DOMINANT": [
-        "D#",
-        "D#m",
-        "F#",
-        "Gdim"
-      ]
+      "TONIC": {
+        "G#m": "natural",
+        "B": "natural",
+        "Baug": "melodic",
+        "E": "natural"
+      },
+      "SUBDOMINANT": {
+        "A#dim": "natural",
+        "A#m": "melodic",
+        "C#m": "natural",
+        "C#": "melodic",
+        "Fdim": "melodic"
+      },
+      "DOMINANT": {
+        "D#m": "natural",
+        "D#": "harmonic",
+        "F#": "natural",
+        "Gdim": "harmonic"
+      }
     }
   },
   {
     "tonality_name": "A Major",
     "function_to_chords_map": {
-      "TONIC": [
-        "A",
-        "C#m",
-        "F#m"
-      ],
-      "SUBDOMINANT": [
-        "Bm",
-        "D"
-      ],
-      "DOMINANT": [
-        "E",
-        "G#dim"
-      ]
+      "TONIC": {
+        "A": "natural",
+        "C#m": "natural",
+        "F#m": "natural"
+      },
+      "SUBDOMINANT": {
+        "Bm": "natural",
+        "D": "natural"
+      },
+      "DOMINANT": {
+        "E": "natural",
+        "G#dim": "natural"
+      }
     }
   },
   {
     "tonality_name": "A minor",
     "function_to_chords_map": {
-      "TONIC": [
-        "Am",
-        "C",
-        "Caug",
-        "F"
-      ],
-      "SUBDOMINANT": [
-        "Bdim",
-        "Bm",
-        "D",
-        "Dm",
-        "F#dim"
-      ],
-      "DOMINANT": [
-        "E",
-        "Em",
-        "G",
-        "G#dim"
-      ]
+      "TONIC": {
+        "Am": "natural",
+        "C": "natural",
+        "Caug": "melodic",
+        "F": "natural"
+      },
+      "SUBDOMINANT": {
+        "Bdim": "natural",
+        "Bm": "melodic",
+        "Dm": "natural",
+        "D": "melodic",
+        "F#dim": "melodic"
+      },
+      "DOMINANT": {
+        "Em": "natural",
+        "E": "harmonic",
+        "G": "natural",
+        "G#dim": "harmonic"
+      }
     }
   },
   {
     "tonality_name": "A# Major",
     "function_to_chords_map": {
-      "TONIC": [
-        "A#",
-        "Dm",
-        "Gm"
-      ],
-      "SUBDOMINANT": [
-        "Cm",
-        "D#"
-      ],
-      "DOMINANT": [
-        "Adim",
-        "F"
-      ]
+      "TONIC": {
+        "A#": "natural",
+        "Dm": "natural",
+        "Gm": "natural"
+      },
+      "SUBDOMINANT": {
+        "Cm": "natural",
+        "D#": "natural"
+      },
+      "DOMINANT": {
+        "F": "natural",
+        "Adim": "natural"
+      }
     }
   },
   {
     "tonality_name": "A# minor",
     "function_to_chords_map": {
-      "TONIC": [
-        "A#m",
-        "C#",
-        "C#aug",
-        "F#"
-      ],
-      "SUBDOMINANT": [
-        "Cdim",
-        "Cm",
-        "D#",
-        "D#m",
-        "Gdim"
-      ],
-      "DOMINANT": [
-        "Adim",
-        "F",
-        "Fm",
-        "G#"
-      ]
+      "TONIC": {
+        "A#m": "natural",
+        "C#": "natural",
+        "C#aug": "melodic",
+        "F#": "natural"
+      },
+      "SUBDOMINANT": {
+        "Cdim": "natural",
+        "Cm": "melodic",
+        "D#m": "natural",
+        "D#": "melodic",
+        "Gdim": "melodic"
+      },
+      "DOMINANT": {
+        "Fm": "natural",
+        "F": "harmonic",
+        "G#": "natural",
+        "Adim": "harmonic"
+      }
     }
   },
   {
     "tonality_name": "B Major",
     "function_to_chords_map": {
-      "TONIC": [
-        "B",
-        "D#m",
-        "G#m"
-      ],
-      "SUBDOMINANT": [
-        "C#m",
-        "E"
-      ],
-      "DOMINANT": [
-        "A#dim",
-        "F#"
-      ]
+      "TONIC": {
+        "B": "natural",
+        "D#m": "natural",
+        "G#m": "natural"
+      },
+      "SUBDOMINANT": {
+        "C#m": "natural",
+        "E": "natural"
+      },
+      "DOMINANT": {
+        "F#": "natural",
+        "A#dim": "natural"
+      }
     }
   },
   {
     "tonality_name": "B minor",
     "function_to_chords_map": {
-      "TONIC": [
-        "Bm",
-        "D",
-        "Daug",
-        "G"
-      ],
-      "SUBDOMINANT": [
-        "C#dim",
-        "C#m",
-        "E",
-        "Em",
-        "G#dim"
-      ],
-      "DOMINANT": [
-        "A",
-        "A#dim",
-        "F#",
-        "F#m"
-      ]
+      "TONIC": {
+        "Bm": "natural",
+        "D": "natural",
+        "Daug": "melodic",
+        "G": "natural"
+      },
+      "SUBDOMINANT": {
+        "C#dim": "natural",
+        "C#m": "melodic",
+        "Em": "natural",
+        "E": "melodic",
+        "G#dim": "melodic"
+      },
+      "DOMINANT": {
+        "F#m": "natural",
+        "F#": "harmonic",
+        "A": "natural",
+        "A#dim": "harmonic"
+      }
     }
   }
 ]
