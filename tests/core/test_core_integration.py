@@ -133,3 +133,4 @@ def test_full_analysis_of_complex_progression(
     assert step_em.processed_chord == Chord("Em")
     assert step_em.tonality_used_in_step.tonality_name == "C Major"
     assert step_em.evaluated_functional_state.associated_tonal_function == TonalFunction.TONIC
+    assert step_em.formal_rule_applied == "Attempt Eq.4B (Re-anchor Tail)"
