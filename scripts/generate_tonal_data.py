@@ -35,6 +35,11 @@ from typing import Dict, List, Set, Any
 from pathlib import Path # Import the Path class for path manipulation
 import logging
 
+# TODO: Differentiate between chords from different scales in minor tonality. e.g.:
+# - i, ii°, bIII, iv, v, bVI, bVII from natural minor
+# - ii, bIII+, IV, vi° from melodic minor
+# - V, viidim from harmonic minor
+
 class TonalityGenerator:
     """
     Abstract base class for generating tonality data.

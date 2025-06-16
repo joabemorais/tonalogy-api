@@ -9,6 +9,8 @@ from core.domain.models import (
 # Constant to avoid infinite recursion in complex cases
 MAX_RECURSION_DEPTH = 20
 
+# TODO: add "path" logic, as is described by Aragão in Definition 4. In the structure of Example 3 (modified for our purposes), we have the following paths: π_a = [s_t, s_d, s_sd], π_b = [s_t, s_sd] and π_c = [s_t, s_d]. Note that the paths are already inverted due to the same reasons the accessibility relations are. 
+
 class SatisfactionEvaluator:
     """
     Implements the recursive logic of Aragão's Definition 5, refactored to
