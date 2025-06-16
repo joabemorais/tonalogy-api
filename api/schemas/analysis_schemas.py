@@ -21,7 +21,7 @@ class ExplanationStepAPI(BaseModel):
     """
     Represents a single step in the explanation derivation process.
     """
-    formal_rule_applied: str = Field(..., description="The formal rule from Aragão's model that was applied.")
+    formal_rule_applied: Optional[str] = Field(..., description="The formal rule from Aragão's model that was applied.")
     observation: str = Field(..., description="A human-readable description of what happened in this step.")
     processed_chord: Optional[str] = Field(None, description="The chord that was processed in this step.")
     tonality_used_in_step: Optional[str] = Field(None, description="The tonality that was in use during this step.")
