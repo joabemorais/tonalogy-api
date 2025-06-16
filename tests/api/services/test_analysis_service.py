@@ -54,7 +54,7 @@ def test_analyze_progression_success_with_all_tonalities(mock_knowledge_base: Ma
         
         # THEN
         assert response.is_tonal_progression is True
-        assert response.identified_key == "C Major"
+        assert response.identified_tonality == "C Major"
         assert response.error is None
         assert len(response.explanation_details) == 1
         
@@ -81,7 +81,7 @@ def test_analyze_progression_failure(mock_knowledge_base: MagicMock) -> None:
         
         # THEN
         assert response.is_tonal_progression is False
-        assert response.identified_key is None
+        assert response.identified_tonality is None
         assert response.error is None
 
 def test_analyze_with_specific_tonalities_to_test(mock_knowledge_base: MagicMock) -> None:
@@ -108,7 +108,7 @@ def test_analyze_with_specific_tonalities_to_test(mock_knowledge_base: MagicMock
         assert len(passed_tonalities) == 1
         assert passed_tonalities[0].tonality_name == "G Major"
 
-def test_analyze_with_unknown_key_to_test(mock_knowledge_base: MagicMock) -> None:
+def test_analyze_with_unknown_tonality_to_test(mock_knowledge_base: MagicMock) -> None:
     """
     Tests if the service returns an error when an unknown tonality is requested.
     """

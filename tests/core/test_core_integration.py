@@ -55,7 +55,7 @@ def aragao_kripke_config(tonic_state, dominant_state, subdominant_state) -> Krip
         states={tonic_state, dominant_state, subdominant_state},
         # In real analysis, the initial state is always the Tonic.
         initial_states={tonic_state},
-        final_states={tonic_state},
+        final_states={dominant_state, subdominant_state},
         accessibility_relation={
             (tonic_state, dominant_state),      # s_t -> s_d
             (tonic_state, subdominant_state),   # s_t -> s_sd
@@ -108,6 +108,9 @@ def test_full_analysis_of_complex_progression(
     step_g = next(s for s in explanation.steps if s.processed_chord == Chord("G"))
     assert step_g.tonality_used_in_step.tonality_name == "C Major"
     assert step_g.evaluated_functional_state.associated_tonal_function == TonalFunction.DOMINANT
+    assert (
+        "Tonicization Pivot" not in step_g.formal_rule_applied
+    ), "The G chord should not trigger a pivot since it is a direct continuation in C Major."
 
     # 2. Verify Tonicization Pivot with 'Dm'
     # There should be a "Tonicization Pivot" step for the Dm chord
@@ -131,3 +134,4 @@ def test_full_analysis_of_complex_progression(
     assert step_em.processed_chord == Chord("Em")
     assert step_em.tonality_used_in_step.tonality_name == "C Major"
     assert step_em.evaluated_functional_state.associated_tonal_function == TonalFunction.TONIC
+    assert step_em.formal_rule_applied == "Attempt Eq.4B (Re-anchor Tail)"

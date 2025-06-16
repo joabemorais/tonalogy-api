@@ -35,6 +35,11 @@ from typing import Dict, List, Set, Any
 from pathlib import Path # Import the Path class for path manipulation
 import logging
 
+# TODO: Differentiate between chords from different scales in minor tonality. e.g.:
+# - i, ii°, bIII, iv, v, bVI, bVII from natural minor
+# - ii, bIII+, IV, vi° from melodic minor
+# - V, viidim from harmonic minor
+
 class TonalityGenerator:
     """
     Abstract base class for generating tonality data.
@@ -121,13 +126,13 @@ class MinorTonality(TonalityGenerator):
         "iidim":  {"quality": "dim", "function": "SUBDOMINANT", "source": "natural",  "index": 1},
         "ii":     {"quality": "m",   "function": "SUBDOMINANT", "source": "melodic",  "index": 1},
         "bIII":   {"quality": "",    "function": "TONIC",       "source": "natural",  "index": 2},
-        "bIII+":  {"quality": "aug", "function": "TONIC",       "source": "melodic",  "index": 2}, # New: augmented 3rd degree from melodic
+        "bIII+":  {"quality": "aug", "function": "TONIC",       "source": "melodic",  "index": 2},
         "iv":     {"quality": "m",   "function": "SUBDOMINANT", "source": "natural",  "index": 3},
         "IV":     {"quality": "",    "function": "SUBDOMINANT", "source": "melodic",  "index": 3},
         "v":      {"quality": "m",   "function": "DOMINANT",    "source": "natural",  "index": 4},
         "V":      {"quality": "",    "function": "DOMINANT",    "source": "harmonic", "index": 4},
         "bVI":    {"quality": "",    "function": "TONIC",       "source": "natural",  "index": 5},
-        "vidim":  {"quality": "dim", "function": "SUBDOMINANT", "source": "melodic",  "index": 5}, # New: diminished 6th degree from melodic
+        "vidim":  {"quality": "dim", "function": "SUBDOMINANT", "source": "melodic",  "index": 5},
         "bVII":   {"quality": "",    "function": "DOMINANT",    "source": "natural",  "index": 6},
         "viidim": {"quality": "dim", "function": "DOMINANT",    "source": "harmonic", "index": 6},
     }

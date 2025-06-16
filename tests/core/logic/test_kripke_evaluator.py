@@ -59,12 +59,12 @@ def aragao_kripke_config(
     """
     return KripkeStructureConfig(
         states={tonic_state, dominant_state, subdominant_state},
-        initial_states={tonic_state}, # Analysis always starts at the tonic
-        final_states={tonic_state},
+        initial_states={tonic_state},
+        final_states={dominant_state, subdominant_state},
         accessibility_relation={
-            (tonic_state, dominant_state),      # s_t -> s_d
-            (tonic_state, subdominant_state),   # s_t -> s_sd
-            (dominant_state, subdominant_state) # s_d -> s_sd
+            (tonic_state, dominant_state),
+            (tonic_state, subdominant_state),
+            (dominant_state, subdominant_state)
         }
     )
 
@@ -178,9 +178,9 @@ def test_direct_continuation_failure_no_path(
     assert success is False
 
 def test_tonicization_pivot_success_complex_progression(
-    aragao_kripke_config: KripkeStructureConfig, 
-    c_major_tonality: Tonality, 
-    d_minor_tonality: Tonality, 
+    aragao_kripke_config: KripkeStructureConfig,
+    c_major_tonality: Tonality,
+    d_minor_tonality: Tonality,
     tonic_state: KripkeState
 ) -> None:
     """
@@ -191,7 +191,7 @@ def test_tonicization_pivot_success_complex_progression(
     all_tonalities: List[Tonality] = [c_major_tonality, d_minor_tonality]
     # Analysis starts in C Major
     evaluator = SatisfactionEvaluator(aragao_kripke_config, all_tonalities, c_major_tonality)
-    
+
     # The original progression is Em A7 Dm G C. The inverted is C G Dm A7 Em.
     progression: List[Chord] = [Chord("C"), Chord("G"), Chord("Dm"), Chord("A7"), Chord("Em")]
     

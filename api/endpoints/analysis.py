@@ -37,4 +37,3 @@ async def analyze_progression(
     except Exception as e:
         # Handle unexpected server errors
         raise HTTPException(status_code=500, detail=f"An internal server error occurred: {str(e)}")
-

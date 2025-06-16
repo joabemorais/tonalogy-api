@@ -16,21 +16,21 @@ def test_major_tonality_scale_generation():
     Verifies if the major scale is generated correctly.
     """
     # GIVEN: A C Major tonality
-    key = MajorTonality("C")
+    tonality = MajorTonality("C")
     
     # THEN: The scale should correspond to the C Major scale
     expected_scale = ["C", "D", "E", "F", "G", "A", "B"]
-    assert key.scales['natural'] == expected_scale
-    assert key.tonality_name == "C Major"
+    assert tonality.scales['natural'] == expected_scale
+    assert tonality.tonality_name == "C Major"
 
 def test_major_tonality_harmonic_field():
     """
     Verifies if the major harmonic field assigns chords to the correct functions.
     """
     # GIVEN: A C Major tonality
-    key = MajorTonality("C")
-    harmonic_field = key.harmonic_field
-    
+    tonality = MajorTonality("C")
+    harmonic_field = tonality.harmonic_field
+
     # THEN: The main chords should be in their correct functions
     assert "C" in harmonic_field["TONIC"]
     assert "Am" in harmonic_field["TONIC"]
@@ -45,25 +45,25 @@ def test_minor_tonality_scales_generation():
     Verifies if the three minor scales (natural, harmonic, melodic) are generated correctly.
     """
     # GIVEN: An A minor tonality
-    key = MinorTonality("A")
-    
+    tonality = MinorTonality("A")
+
     # THEN: The scales should be generated correctly
     expected_natural = ["A", "B", "C", "D", "E", "F", "G"]
     expected_harmonic = ["A", "B", "C", "D", "E", "F", "G#"]
     expected_melodic = ["A", "B", "C", "D", "E", "F#", "G#"]
-    
-    assert key.scales['natural'] == expected_natural
-    assert key.scales['harmonic'] == expected_harmonic
-    assert key.scales['melodic'] == expected_melodic
-    assert key.tonality_name == "A minor"
+
+    assert tonality.scales['natural'] == expected_natural
+    assert tonality.scales['harmonic'] == expected_harmonic
+    assert tonality.scales['melodic'] == expected_melodic
+    assert tonality.tonality_name == "A minor"
 
 def test_minor_tonality_harmonic_field_contains_all_modes():
     """
     Verifies if the minor harmonic field includes triads from all three scales.
     """
     # GIVEN: An A minor tonality
-    key = MinorTonality("A")
-    harmonic_field = key.harmonic_field
+    tonality = MinorTonality("A")
+    harmonic_field = tonality.harmonic_field
 
     # THEN: Representative chords from each mode should be present in their functions
     # From the natural scale
