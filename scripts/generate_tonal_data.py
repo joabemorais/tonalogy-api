@@ -126,7 +126,7 @@ class MinorTonality(TonalityGenerator):
         "iidim":  {"quality": "dim", "function": "SUBDOMINANT", "source": "natural",  "index": 1},
         "ii":     {"quality": "m",   "function": "SUBDOMINANT", "source": "melodic",  "index": 1},
         "bIII":   {"quality": "",    "function": "TONIC",       "source": "natural",  "index": 2},
-        "bIII+":  {"quality": "aug", "function": "TONIC",       "source": "melodic",  "index": 2}, # New: augmented 3rd degree from melodic
+        "bIII+":  {"quality": "aug", "function": "TONIC",       "source": "melodic",  "index": 2},
         "iv":     {"quality": "m",   "function": "SUBDOMINANT", "source": "natural",  "index": 3},
         "IV":     {"quality": "",    "function": "SUBDOMINANT", "source": "melodic",  "index": 3},
         "v":      {"quality": "m",   "function": "DOMINANT",    "source": "natural",  "index": 4},
