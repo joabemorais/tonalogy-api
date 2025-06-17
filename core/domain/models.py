@@ -31,6 +31,7 @@ class Tonality:
     Maps tonal functions to chords and their scale origins.
     """
     tonality_name: str
+    # The map now holds Chord objects as keys and their scale origin (e.g., "natural", "melodic") as values.
     function_to_chords_map: Dict[TonalFunction, Dict[Chord, str]]
 
     def get_chords_for_function(self, func: TonalFunction) -> Set[Chord]:

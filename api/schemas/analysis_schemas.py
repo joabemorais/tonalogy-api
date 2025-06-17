@@ -29,13 +29,11 @@ class ExplanationStepAPI(BaseModel):
     
     model_config = ConfigDict(from_attributes=True)
 
-class InterpretationResult(BaseModel):
-    """Represents a single valid interpretation of the progression."""
-    identified_key: str = Field(..., description="The initial key for this interpretation.")
-    explanation_details: List[ExplanationStepAPI] = Field([], description="The detailed analysis steps for this interpretation.")
-
 class ProgressionAnalysisResponse(BaseModel):
-    """Defines the API response, which can contain multiple interpretations."""
-    is_tonal_progression: bool = Field(..., description="True if at least one tonal interpretation was found.")
-    possible_interpretations: List[InterpretationResult] = Field([], description="A list of all valid tonal interpretations found.")
+    """
+    Defines the structure of the API response.
+    """
+    is_tonal_progression: bool = Field(..., description="True if the progression is tonal, False otherwise.")
+    identified_tonality: Optional[str] = Field(None, description="The tonality in which the progression was identified as tonal.")
+    explanation_details: List[ExplanationStepAPI] = Field([], description="A detailed list of analysis steps.")
     error: Optional[str] = Field(None, description="An error message, if any.")
