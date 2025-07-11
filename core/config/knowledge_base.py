@@ -86,9 +86,12 @@ class TonalKnowledgeBase:
 
         loaded_tonalities = []
         for t_data in data:
-            function_map: Dict[TonalFunction, Set[Chord]] = {
-                TonalFunction[func_name]: {Chord(chord_name) for chord_name in chords}
-                for func_name, chords in t_data['function_to_chords_map'].items()
+            function_map: Dict[TonalFunction, Dict[Chord, str]] = {
+                TonalFunction[func_name]: {
+                    Chord(chord_name): origin
+                    for chord_name, origin in chords_data.items()
+                }
+                for func_name, chords_data in t_data['function_to_chords_map'].items()
             }
             loaded_tonalities.append(
                 Tonality(
