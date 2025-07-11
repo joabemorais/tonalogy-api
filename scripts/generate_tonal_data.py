@@ -9,7 +9,7 @@ Classes:
     TonalityGenerator: Abstract base class for generating tonality data
     MajorTonality: Generates harmonic field data for major tonalities
     MinorTonality: Generates harmonic field data for minor tonalities using 
-                   natural, harmonic, and melodic minor scales
+                   natural and harmonic minor scales
 
 Usage:
     Run this script from the tonalogy-api directory:
@@ -107,24 +107,20 @@ class MajorTonality(TonalityGenerator):
 class MinorTonality(TonalityGenerator):
     """
     Generates the harmonic field for a minor tonality, tracking the origin
-    of each chord (natural, harmonic, melodic).
+    of each chord (natural, harmonic).
     """
     NATURAL_MINOR_STEPS = [2, 1, 2, 2, 1, 2, 2]
     
     DEGREE_INFO = {
         "i":      {"quality": "m",   "function": "TONIC",       "source": "natural",  "index": 0},
         "iidim":  {"quality": "dim", "function": "SUBDOMINANT", "source": "natural",  "index": 1},
-        "ii":     {"quality": "m",   "function": "SUBDOMINANT", "source": "melodic",  "index": 1},
         "bIII":   {"quality": "",    "function": "TONIC",       "source": "natural",  "index": 2},
-        "bIII+":  {"quality": "aug", "function": "TONIC",       "source": "melodic",  "index": 2},
         "iv":     {"quality": "m",   "function": "SUBDOMINANT", "source": "natural",  "index": 3},
-        "IV":     {"quality": "",    "function": "SUBDOMINANT", "source": "melodic",  "index": 3},
         "v":      {"quality": "m",   "function": "DOMINANT",    "source": "natural",  "index": 4},
         "V":      {"quality": "",    "function": "DOMINANT",    "source": "harmonic", "index": 4},
         "bVI":    {"quality": "",    "function": "TONIC",       "source": "natural",  "index": 5},
-        "vidim":  {"quality": "dim", "function": "SUBDOMINANT", "source": "melodic",  "index": 5},
         "bVII":   {"quality": "",    "function": "DOMINANT",    "source": "natural",  "index": 6},
-        "viidim": {"quality": "dim", "function": "DOMINANT",    "source": "harmonic", "index": 6},
+        "viidim": {"quality": "dim", "function": "DOMINANT",    "source": "harmonic", "index": 6}
     }
 
     def __init__(self, root_note: str):
@@ -138,13 +134,6 @@ class MinorTonality(TonalityGenerator):
         harmonic_scale[6] = self.NOTE_NAMES[h_7th_idx]
         self.scales['harmonic'] = harmonic_scale
 
-        melodic_scale = self.scales['natural'][:]
-        m_6th_idx = (self.NOTE_NAMES.index(melodic_scale[5]) + 1) % len(self.NOTE_NAMES)
-        m_7th_idx = (self.NOTE_NAMES.index(melodic_scale[6]) + 1) % len(self.NOTE_NAMES)
-        melodic_scale[5] = self.NOTE_NAMES[m_6th_idx]
-        melodic_scale[6] = self.NOTE_NAMES[m_7th_idx]
-        self.scales['melodic'] = melodic_scale
-        
         self.harmonic_field = self._build_harmonic_field()
 
     def _build_harmonic_field(self) -> Dict[str, Dict[str, str]]:

@@ -23,15 +23,11 @@
       "TONIC": {
         "Cm": "natural",
         "D#": "natural",
-        "D#aug": "melodic",
         "G#": "natural"
       },
       "SUBDOMINANT": {
         "Ddim": "natural",
-        "Dm": "melodic",
-        "Fm": "natural",
-        "F": "melodic",
-        "Adim": "melodic"
+        "Fm": "natural"
       },
       "DOMINANT": {
         "Gm": "natural",
@@ -65,15 +61,11 @@
       "TONIC": {
         "C#m": "natural",
         "E": "natural",
-        "Eaug": "melodic",
         "A": "natural"
       },
       "SUBDOMINANT": {
         "D#dim": "natural",
-        "D#m": "melodic",
-        "F#m": "natural",
-        "F#": "melodic",
-        "A#dim": "melodic"
+        "F#m": "natural"
       },
       "DOMINANT": {
         "G#m": "natural",
@@ -107,15 +99,11 @@
       "TONIC": {
         "Dm": "natural",
         "F": "natural",
-        "Faug": "melodic",
         "A#": "natural"
       },
       "SUBDOMINANT": {
         "Edim": "natural",
-        "Em": "melodic",
-        "Gm": "natural",
-        "G": "melodic",
-        "Bdim": "melodic"
+        "Gm": "natural"
       },
       "DOMINANT": {
         "Am": "natural",
@@ -149,15 +137,11 @@
       "TONIC": {
         "D#m": "natural",
         "F#": "natural",
-        "F#aug": "melodic",
         "B": "natural"
       },
       "SUBDOMINANT": {
         "Fdim": "natural",
-        "Fm": "melodic",
-        "G#m": "natural",
-        "G#": "melodic",
-        "Cdim": "melodic"
+        "G#m": "natural"
       },
       "DOMINANT": {
         "A#m": "natural",
@@ -191,15 +175,11 @@
       "TONIC": {
         "Em": "natural",
         "G": "natural",
-        "Gaug": "melodic",
         "C": "natural"
       },
       "SUBDOMINANT": {
         "F#dim": "natural",
-        "F#m": "melodic",
-        "Am": "natural",
-        "A": "melodic",
-        "C#dim": "melodic"
+        "Am": "natural"
       },
       "DOMINANT": {
         "Bm": "natural",
@@ -233,15 +213,11 @@
       "TONIC": {
         "Fm": "natural",
         "G#": "natural",
-        "G#aug": "melodic",
         "C#": "natural"
       },
       "SUBDOMINANT": {
         "Gdim": "natural",
-        "Gm": "melodic",
-        "A#m": "natural",
-        "A#": "melodic",
-        "Ddim": "melodic"
+        "A#m": "natural"
       },
       "DOMINANT": {
         "Cm": "natural",
@@ -275,15 +251,11 @@
       "TONIC": {
         "F#m": "natural",
         "A": "natural",
-        "Aaug": "melodic",
         "D": "natural"
       },
       "SUBDOMINANT": {
         "G#dim": "natural",
-        "G#m": "melodic",
-        "Bm": "natural",
-        "B": "melodic",
-        "D#dim": "melodic"
+        "Bm": "natural"
       },
       "DOMINANT": {
         "C#m": "natural",
@@ -317,15 +289,11 @@
       "TONIC": {
         "Gm": "natural",
         "A#": "natural",
-        "A#aug": "melodic",
         "D#": "natural"
       },
       "SUBDOMINANT": {
         "Adim": "natural",
-        "Am": "melodic",
-        "Cm": "natural",
-        "C": "melodic",
-        "Edim": "melodic"
+        "Cm": "natural"
       },
       "DOMINANT": {
         "Dm": "natural",
@@ -359,15 +327,11 @@
       "TONIC": {
         "G#m": "natural",
         "B": "natural",
-        "Baug": "melodic",
         "E": "natural"
       },
       "SUBDOMINANT": {
         "A#dim": "natural",
-        "A#m": "melodic",
-        "C#m": "natural",
-        "C#": "melodic",
-        "Fdim": "melodic"
+        "C#m": "natural"
       },
       "DOMINANT": {
         "D#m": "natural",
@@ -401,15 +365,11 @@
       "TONIC": {
         "Am": "natural",
         "C": "natural",
-        "Caug": "melodic",
         "F": "natural"
       },
       "SUBDOMINANT": {
         "Bdim": "natural",
-        "Bm": "melodic",
-        "Dm": "natural",
-        "D": "melodic",
-        "F#dim": "melodic"
+        "Dm": "natural"
       },
       "DOMINANT": {
         "Em": "natural",
@@ -443,15 +403,11 @@
       "TONIC": {
         "A#m": "natural",
         "C#": "natural",
-        "C#aug": "melodic",
         "F#": "natural"
       },
       "SUBDOMINANT": {
         "Cdim": "natural",
-        "Cm": "melodic",
-        "D#m": "natural",
-        "D#": "melodic",
-        "Gdim": "melodic"
+        "D#m": "natural"
       },
       "DOMINANT": {
         "Fm": "natural",
@@ -485,15 +441,11 @@
       "TONIC": {
         "Bm": "natural",
         "D": "natural",
-        "Daug": "melodic",
         "G": "natural"
       },
       "SUBDOMINANT": {
         "C#dim": "natural",
-        "C#m": "melodic",
-        "Em": "natural",
-        "E": "melodic",
-        "G#dim": "melodic"
+        "Em": "natural"
       },
       "DOMINANT": {
         "F#m": "natural",
