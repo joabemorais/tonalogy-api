@@ -24,6 +24,7 @@ class KripkeState:
     associated_tonal_function: TonalFunction
 
 
+
 @dataclass
 class Tonality:
     """
@@ -43,7 +44,7 @@ class Tonality:
         return test_chord in self.function_to_chords_map.get(target_function, {})
 
     def get_chord_origin_for_function(self, test_chord: Chord, target_function: TonalFunction) -> Optional[str]:
-        """Gets the scale origin (e.g., 'melodic') for a chord fulfilling a function."""
+        """Gets the scale origin (e.g., 'harmonic') for a chord fulfilling a function."""
         return self.function_to_chords_map.get(target_function, {}).get(test_chord)
 
 
@@ -69,6 +70,62 @@ class KripkeStructureConfig:
             if r_source == source_state
         ]
 
+
+@dataclass
+class KripkePath:
+    """
+    Represents a path π through the Kripke structure.
+    As noted in Aragão's work, paths are inverted due to the accessibility relations.
+    
+    This class tracks the sequence of states and tonalities traversed during 
+    the analysis of a chord progression, providing a formal representation
+    of the analytical path taken.
+    """
+    states: List[KripkeState] = field(default_factory=list)
+    tonalities: List[Tonality] = field(default_factory=list)
+    explanations: List[str] = field(default_factory=list)
+    
+    def add_step(self, state: KripkeState, tonality: Tonality, explanation: str) -> None:
+        """Add a step to the path."""
+        self.states.append(state)
+        self.tonalities.append(tonality)
+        self.explanations.append(explanation)
+    
+    def clone(self) -> 'KripkePath':
+        """Create a deep copy of the path."""
+        return KripkePath(
+            states=self.states.copy(),
+            tonalities=self.tonalities.copy(),
+            explanations=self.explanations.copy()
+        )
+    
+    def get_current_state(self) -> Optional[KripkeState]:
+        """Get the current (last) state in the path."""
+        return self.states[-1] if self.states else None
+    
+    def get_current_tonality(self) -> Optional[Tonality]:
+        """Get the current (last) tonality in the path."""
+        return self.tonalities[-1] if self.tonalities else None
+    
+    def to_readable_format(self) -> str:
+        """Convert path to readable format for debugging/logging."""
+        if not self.states:
+            return "Empty path"
+        
+        path_str = "Path: "
+        for i, (state, tonality) in enumerate(zip(self.states, self.tonalities)):
+            path_str += f"[{state.associated_tonal_function.name} in {tonality.tonality_name}]"
+            if i < len(self.states) - 1:
+                path_str += " → "
+        return path_str
+    
+    def get_length(self) -> int:
+        """Returns the length of the path (number of states)."""
+        return len(self.states)
+    
+    def is_empty(self) -> bool:
+        """Checks if the path is empty."""
+        return len(self.states) == 0
 
 @dataclass
 class DetailedExplanationStep:
