@@ -90,7 +90,9 @@ class TonalAnalysisService:
                     )
             else:
                 # Otherwise, test against all known tonalities
-                tonalities_to_test = self.knowledge_base.all_tonalities
+                initial_tonalities_to_test = self.knowledge_base.all_tonalities
+
+            tonalities_to_test = self._rank_tonalities_by_probability(input_chords, initial_tonalities_to_test)
 
             # 3. Call the core analysis engine
             success: bool

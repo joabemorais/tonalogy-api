@@ -96,7 +96,8 @@ class TonalKnowledgeBase:
             loaded_tonalities.append(
                 Tonality(
                     tonality_name=t_data['tonality_name'],
-                    function_to_chords_map=function_map
+                    function_to_chords_map=function_map,
+                    primary_scale_notes=set(t_data.get('primary_scale_notes', []))
                 )
             )
         return loaded_tonalities

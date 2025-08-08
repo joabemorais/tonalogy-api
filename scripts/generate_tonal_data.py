@@ -65,7 +65,8 @@ class TonalityGenerator:
         """Converts the tonality data to a JSON-serializable dictionary."""
         return {
             "tonality_name": self.tonality_name,
-            "function_to_chords_map": self.harmonic_field
+            "function_to_chords_map": self.harmonic_field,
+            "primary_scale_notes": list(self.scales.get('natural', []))
         }
 
 class MajorTonality(TonalityGenerator):

@@ -15,7 +15,16 @@
         "G": "natural",
         "Bdim": "natural"
       }
-    }
+    },
+    "primary_scale_notes": [
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "A",
+      "B"
+    ]
   },
   {
     "tonality_name": "C minor",
@@ -35,7 +44,16 @@
         "A#": "natural",
         "Bdim": "harmonic"
       }
-    }
+    },
+    "primary_scale_notes": [
+      "C",
+      "D",
+      "D#",
+      "F",
+      "G",
+      "G#",
+      "A#"
+    ]
   },
   {
     "tonality_name": "C# Major",
@@ -53,7 +71,16 @@
         "G#": "natural",
         "Cdim": "natural"
       }
-    }
+    },
+    "primary_scale_notes": [
+      "C#",
+      "D#",
+      "F",
+      "F#",
+      "G#",
+      "A#",
+      "C"
+    ]
   },
   {
     "tonality_name": "C# minor",
@@ -73,7 +100,16 @@
         "B": "natural",
         "Cdim": "harmonic"
       }
-    }
+    },
+    "primary_scale_notes": [
+      "C#",
+      "D#",
+      "E",
+      "F#",
+      "G#",
+      "A",
+      "B"
+    ]
   },
   {
     "tonality_name": "D Major",
@@ -91,7 +127,16 @@
         "A": "natural",
         "C#dim": "natural"
       }
-    }
+    },
+    "primary_scale_notes": [
+      "D",
+      "E",
+      "F#",
+      "G",
+      "A",
+      "B",
+      "C#"
+    ]
   },
   {
     "tonality_name": "D minor",
@@ -111,7 +156,16 @@
         "C": "natural",
         "C#dim": "harmonic"
       }
-    }
+    },
+    "primary_scale_notes": [
+      "D",
+      "E",
+      "F",
+      "G",
+      "A",
+      "A#",
+      "C"
+    ]
   },
   {
     "tonality_name": "D# Major",
@@ -129,7 +183,16 @@
         "A#": "natural",
         "Ddim": "natural"
       }
-    }
+    },
+    "primary_scale_notes": [
+      "D#",
+      "F",
+      "G",
+      "G#",
+      "A#",
+      "C",
+      "D"
+    ]
   },
   {
     "tonality_name": "D# minor",
@@ -149,7 +212,16 @@
         "C#": "natural",
         "Ddim": "harmonic"
       }
-    }
+    },
+    "primary_scale_notes": [
+      "D#",
+      "F",
+      "F#",
+      "G#",
+      "A#",
+      "B",
+      "C#"
+    ]
   },
   {
     "tonality_name": "E Major",
@@ -167,7 +239,16 @@
         "B": "natural",
         "D#dim": "natural"
       }
-    }
+    },
+    "primary_scale_notes": [
+      "E",
+      "F#",
+      "G#",
+      "A",
+      "B",
+      "C#",
+      "D#"
+    ]
   },
   {
     "tonality_name": "E minor",
@@ -187,7 +268,16 @@
         "D": "natural",
         "D#dim": "harmonic"
       }
-    }
+    },
+    "primary_scale_notes": [
+      "E",
+      "F#",
+      "G",
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
   },
   {
     "tonality_name": "F Major",
@@ -205,7 +295,16 @@
         "C": "natural",
         "Edim": "natural"
       }
-    }
+    },
+    "primary_scale_notes": [
+      "F",
+      "G",
+      "A",
+      "A#",
+      "C",
+      "D",
+      "E"
+    ]
   },
   {
     "tonality_name": "F minor",
@@ -225,7 +324,16 @@
         "D#": "natural",
         "Edim": "harmonic"
       }
-    }
+    },
+    "primary_scale_notes": [
+      "F",
+      "G",
+      "G#",
+      "A#",
+      "C",
+      "C#",
+      "D#"
+    ]
   },
   {
     "tonality_name": "F# Major",
@@ -243,7 +351,16 @@
         "C#": "natural",
         "Fdim": "natural"
       }
-    }
+    },
+    "primary_scale_notes": [
+      "F#",
+      "G#",
+      "A#",
+      "B",
+      "C#",
+      "D#",
+      "F"
+    ]
   },
   {
     "tonality_name": "F# minor",
@@ -263,7 +380,16 @@
         "E": "natural",
         "Fdim": "harmonic"
       }
-    }
+    },
+    "primary_scale_notes": [
+      "F#",
+      "G#",
+      "A",
+      "B",
+      "C#",
+      "D",
+      "E"
+    ]
   },
   {
     "tonality_name": "G Major",
@@ -281,7 +407,16 @@
         "D": "natural",
         "F#dim": "natural"
       }
-    }
+    },
+    "primary_scale_notes": [
+      "G",
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F#"
+    ]
   },
   {
     "tonality_name": "G minor",
@@ -301,7 +436,16 @@
         "F": "natural",
         "F#dim": "harmonic"
       }
-    }
+    },
+    "primary_scale_notes": [
+      "G",
+      "A",
+      "A#",
+      "C",
+      "D",
+      "D#",
+      "F"
+    ]
   },
   {
     "tonality_name": "G# Major",
@@ -319,7 +463,16 @@
         "D#": "natural",
         "Gdim": "natural"
       }
-    }
+    },
+    "primary_scale_notes": [
+      "G#",
+      "A#",
+      "C",
+      "C#",
+      "D#",
+      "F",
+      "G"
+    ]
   },
   {
     "tonality_name": "G# minor",
@@ -339,7 +492,16 @@
         "F#": "natural",
         "Gdim": "harmonic"
       }
-    }
+    },
+    "primary_scale_notes": [
+      "G#",
+      "A#",
+      "B",
+      "C#",
+      "D#",
+      "E",
+      "F#"
+    ]
   },
   {
     "tonality_name": "A Major",
@@ -357,7 +519,16 @@
         "E": "natural",
         "G#dim": "natural"
       }
-    }
+    },
+    "primary_scale_notes": [
+      "A",
+      "B",
+      "C#",
+      "D",
+      "E",
+      "F#",
+      "G#"
+    ]
   },
   {
     "tonality_name": "A minor",
@@ -377,7 +548,16 @@
         "G": "natural",
         "G#dim": "harmonic"
       }
-    }
+    },
+    "primary_scale_notes": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G"
+    ]
   },
   {
     "tonality_name": "A# Major",
@@ -395,7 +575,16 @@
         "F": "natural",
         "Adim": "natural"
       }
-    }
+    },
+    "primary_scale_notes": [
+      "A#",
+      "C",
+      "D",
+      "D#",
+      "F",
+      "G",
+      "A"
+    ]
   },
   {
     "tonality_name": "A# minor",
@@ -415,7 +604,16 @@
         "G#": "natural",
         "Adim": "harmonic"
       }
-    }
+    },
+    "primary_scale_notes": [
+      "A#",
+      "C",
+      "C#",
+      "D#",
+      "F",
+      "F#",
+      "G#"
+    ]
   },
   {
     "tonality_name": "B Major",
@@ -433,7 +631,16 @@
         "F#": "natural",
         "A#dim": "natural"
       }
-    }
+    },
+    "primary_scale_notes": [
+      "B",
+      "C#",
+      "D#",
+      "E",
+      "F#",
+      "G#",
+      "A#"
+    ]
   },
   {
     "tonality_name": "B minor",
@@ -453,6 +660,15 @@
         "A": "natural",
         "A#dim": "harmonic"
       }
-    }
+    },
+    "primary_scale_notes": [
+      "B",
+      "C#",
+      "D",
+      "E",
+      "F#",
+      "G",
+      "A"
+    ]
   }
 ]
