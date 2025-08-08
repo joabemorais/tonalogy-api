@@ -277,7 +277,7 @@ class SatisfactionEvaluator:
 
         return False, parent_explanation, None
 
-    # Manter o método original para compatibilidade
+    # Keep the original method for compatibility
     def evaluate_satisfaction_recursive(
         self,
         current_tonality: Tonality,
