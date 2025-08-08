@@ -58,10 +58,10 @@ class TonalKnowledgeBase:
         }
         
         # Build the accessibility relation using the KripkeState objects
-        relation: Set[Tuple[KripkeState, KripkeState]] = {
+        relation: List[Tuple[KripkeState, KripkeState]] = [
             (states_map[r['from']], states_map[r['to']])
             for r in data['accessibility_relation']
-        }
+        ]
 
         # Build the final configuration object
         return KripkeStructureConfig(

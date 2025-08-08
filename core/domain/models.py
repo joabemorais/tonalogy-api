@@ -98,7 +98,7 @@ class KripkeStructureConfig:
     states: Set[KripkeState] = field(default_factory=set)
     initial_states: Set[KripkeState] = field(default_factory=set)
     final_states: Set[KripkeState] = field(default_factory=set)
-    accessibility_relation: Set[Tuple[KripkeState, KripkeState]] = field(default_factory=set)
+    accessibility_relation: List[Tuple[KripkeState, KripkeState]] = field(default_factory=list)
 
     def get_state_by_tonal_function(self, func: TonalFunction) -> Optional[KripkeState]:
         """Finds the KripkeState associated with a given TonalFunction."""
