@@ -101,7 +101,9 @@ class KripkePath:
     
     def get_current_state(self) -> Optional[KripkeState]:
         """Get the current (last) state in the path."""
-        return self.states[-1] if self.states else None
+        if not self.states:
+            return None
+        return self.states[-1]
     
     def get_current_tonality(self) -> Optional[Tonality]:
         """Get the current (last) tonality in the path."""
