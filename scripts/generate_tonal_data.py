@@ -34,12 +34,13 @@ import json
 from typing import Dict, List, Any
 from pathlib import Path
 import logging
+from core.domain.models import NOTE_NAMES
 
 class TonalityGenerator:
     """
     Abstract base class for generating tonality data.
     """
-    NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+    NOTE_NAMES = NOTE_NAMES
 
     def __init__(self, root_note: str):
         if root_note not in self.NOTE_NAMES:
