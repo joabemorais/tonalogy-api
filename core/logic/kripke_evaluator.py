@@ -3,13 +3,11 @@ from typing import List, Tuple, Optional
 # Import the domain models we created previously
 from core.domain.models import (
     Chord, KripkeState, Tonality, KripkeStructureConfig,
-    Explanation, TonalFunction
+    Explanation, TonalFunction, KripkePath
 )
 
 # Constant to avoid infinite recursion in complex cases
 MAX_RECURSION_DEPTH = 20
-
-# TODO: add "path" logic, as is described by Aragão in Definition 4. In the structure of Example 3 (modified for our purposes), we have the following paths: π_a = [s_t, s_d, s_sd], π_b = [s_t, s_sd] and π_c = [s_t, s_d]. Note that the paths are already inverted due to the same reasons the accessibility relations are. 
 
 class SatisfactionEvaluator:
     """
@@ -33,19 +31,27 @@ class SatisfactionEvaluator:
         self,
         p_chord: Chord,
         phi_sub_sequence: List[Chord],
-        current_tonality: Tonality,
-        current_state: KripkeState,
+        current_path: KripkePath,
         parent_explanation: Explanation,
         recursion_depth: int
-    ) -> Tuple[bool, Optional[Explanation]]:
+    ) -> Tuple[bool, Optional[Explanation], Optional[KripkePath]]:
         """
         ATTEMPT 1: Implements direct continuation (Aragão's Eq. 4A).
         Checks if P fits and, if so, tries to satisfy the tail (phi) in successor states.
         """
-        if not current_tonality.chord_fulfills_function(p_chord, current_state.associated_tonal_function):
-            return False, None # P doesn't fit the current function in this tonality.
+        # Check that current_path is not empty to avoid IndexError
+        if not current_path or current_path.is_empty():
+            return False, None, None
+        current_state = current_path.get_current_state()
+        # Ensure the path is not empty before accessing the current tonality
+        if current_path.is_empty():
+            return False, None, None
+        current_tonality = current_path.get_current_tonality()
 
-        # P is satisfied. Log this fact.
+        if not current_tonality.chord_fulfills_function(p_chord, current_state.associated_tonal_function):
+            return False, None, None # P doesn't fit the current function in this tonality.
+
+        updated_path = current_path.clone()
         explanation_after_P = parent_explanation.clone()
         explanation_after_P.add_step(
             formal_rule_applied="P in L",
@@ -64,33 +70,41 @@ class SatisfactionEvaluator:
                 processed_chord=None,
                 tonality_used_in_step=None
             )
-            return True, explanation_after_P
+            return True, explanation_after_P, updated_path
 
         # Recursive case: Try to satisfy the tail from successors.
         for next_state in self.kripke_config.get_successors_of_state(current_state):
-            success, final_explanation = self.evaluate_satisfaction_recursive(
-                current_tonality, next_state, phi_sub_sequence, recursion_depth + 1, explanation_after_P
+            next_path = updated_path.clone()
+            next_path.add_step(
+                next_state,
+                current_tonality,
+                f"Direct transition to {next_state.associated_tonal_function.name}"
+            )
+            success, final_explanation, final_path = self.evaluate_satisfaction_with_path(
+                next_path, phi_sub_sequence, recursion_depth + 1, explanation_after_P
             )
             if success:
-                return True, final_explanation
+                return True, final_explanation, final_path
 
-        return False, None # Direct continuation from this state didn't lead to a solution.
+        return False, None, None
 
     def _try_tonicization_pivot(
         self,
         p_chord: Chord,
         phi_sub_sequence: List[Chord],
-        current_tonality: Tonality,
-        current_state: KripkeState,
+        current_path: KripkePath,
         parent_explanation: Explanation,
         recursion_depth: int
-    ) -> Tuple[bool, Optional[Explanation]]:
+    ) -> Tuple[bool, Optional[Explanation], Optional[KripkePath]]:
         """
         ATTEMPT 2: Implements tonicization with enhanced pivot detection logic.
         """
+        current_state = current_path.get_current_state()
+        current_tonality = current_path.get_current_tonality()
+
         new_tonic_state: Optional[KripkeState] = self.kripke_config.get_state_by_tonal_function(TonalFunction.TONIC)
         if not new_tonic_state:
-            return False, None
+            return False, None, None
 
         for l_prime_tonality in self.all_available_tonalities:
             if l_prime_tonality.tonality_name == current_tonality.tonality_name:
@@ -114,6 +128,13 @@ class SatisfactionEvaluator:
             if not pivot_valid:
                 continue
 
+            pivot_path = current_path.clone()
+            pivot_path.add_step(
+                new_tonic_state,
+                l_prime_tonality,
+                f"Pivot: {p_chord.name} from {current_tonality.tonality_name} to {l_prime_tonality.tonality_name}"
+            )
+
             # --- Continuation of Analysis After Finding a Valid Pivot ---
             
             explanation_for_pivot = parent_explanation.clone()
@@ -133,35 +154,40 @@ class SatisfactionEvaluator:
 
             # Base Case: If the pivot was the last chord, success.
             if not phi_sub_sequence:
-                return True, explanation_for_pivot
+                return True, explanation_for_pivot, pivot_path
 
             # Recursive Case: Try to satisfy the tail (phi) from SUCCESSORS of the new tonic.
             # This is the correct continuation logic.
             for next_state in self.kripke_config.get_successors_of_state(new_tonic_state):
-                success, final_explanation = self.evaluate_satisfaction_recursive(
-                    current_tonality=l_prime_tonality,  # The tonality is now L'
-                    current_state=next_state,           # The state is the successor of the new tonic
-                    remaining_chords=phi_sub_sequence,  # The tail of the progression
-                    recursion_depth=recursion_depth + 1,
-                    parent_explanation=explanation_for_pivot
+                next_path = pivot_path.clone()
+                next_path.add_step(
+                    next_state,
+                    l_prime_tonality,
+                    f"Transition to {next_state.associated_tonal_function.name} in {l_prime_tonality.tonality_name}"
+                )
+                success, final_explanation, final_path = self.evaluate_satisfaction_with_path(
+                    next_path,
+                    phi_sub_sequence,
+                    recursion_depth + 1,
+                    explanation_for_pivot
                 )
                 if success:
-                    return True, final_explanation
+                    return True, final_explanation, final_path
         
-        return False, None # No pivot opportunity was found or successful.
+        return False, None, None # No pivot opportunity was found or successful.
 
     def _try_reanchor_tail(
         self,
         phi_sub_sequence: List[Chord],
         parent_explanation: Explanation,
         recursion_depth: int
-    ) -> Tuple[bool, Optional[Explanation]]:
+    ) -> Tuple[bool, Optional[Explanation], Optional[KripkePath]]:
         """
         ATTEMPT 3: General tail re-anchoring (Aragão's Eq. 4B).
         Tries to satisfy the tail as a new problem, prioritizing the original tonality.
         """
         if not phi_sub_sequence:
-            return False, None # There's no tail to re-anchor.
+            return False, None, None # There's no tail to re-anchor.
 
         explanation_before_reanchor = parent_explanation.clone()
         explanation_before_reanchor.add_step(
@@ -175,17 +201,89 @@ class SatisfactionEvaluator:
         # The initial state for a re-anchoring is always the tonic.
         tonic_start_state: Optional[KripkeState] = self.kripke_config.get_state_by_tonal_function(TonalFunction.TONIC)
         if not tonic_start_state: 
-            return False, None
+            return False, None, None
 
         for l_star_tonality in tonalities_to_try:
-            success, final_explanation = self.evaluate_satisfaction_recursive(
-                l_star_tonality, tonic_start_state, phi_sub_sequence, recursion_depth + 1, explanation_before_reanchor
+            reanchor_path = KripkePath()
+            reanchor_path.add_step(
+                tonic_start_state,
+                l_star_tonality,
+                f"Re-anchor in {l_star_tonality.tonality_name}"
+            )
+
+            success, final_explanation, final_path = self.evaluate_satisfaction_with_path(
+                reanchor_path,
+                phi_sub_sequence,
+                recursion_depth + 1,
+                explanation_before_reanchor
             )
             if success:
-                return True, final_explanation
+                return True, final_explanation, final_path
 
-        return False, None # Re-anchoring failed in all tonalities.
+        return False, None, None # Re-anchoring failed in all tonalities.
 
+    def evaluate_satisfaction_with_path(
+        self,
+        current_path: KripkePath,
+        remaining_chords: List[Chord],
+        recursion_depth: int,
+        parent_explanation: Explanation
+    ) -> Tuple[bool, Explanation, Optional[KripkePath]]:
+        """
+        Main method that orchestrates the search for a solution using path-aware strategies.
+        Implements Aragão's Definition 5 with path tracking from Definition 4.
+        """
+        # Initial Checks
+        if recursion_depth > MAX_RECURSION_DEPTH:
+            explanation_failure = parent_explanation.clone()
+            explanation_failure.add_step(formal_rule_applied="Recursion Limit", observation="Exceeded maximum recursion depth.")
+            return False, explanation_failure, None
+
+        if not remaining_chords:
+            return True, parent_explanation, current_path
+
+        p_chord: Chord = remaining_chords[0]
+        phi_sub_sequence: List[Chord] = remaining_chords[1:]
+
+        # ATTEMPT 1: Direct Continuation
+        success, explanation, path = self._try_direct_continuation(
+            p_chord, phi_sub_sequence, current_path, parent_explanation, recursion_depth
+        )
+        if success:
+            return True, explanation, path
+
+        # ATTEMPT 2: Tonicization/Pivot
+        success, explanation, path = self._try_tonicization_pivot(
+            p_chord, phi_sub_sequence, current_path, parent_explanation, recursion_depth
+        )
+        if success:
+            return True, explanation, path
+
+        # ATTEMPT 3: Re-anchoring (with path tracking)
+        current_state = current_path.get_current_state()
+        current_tonality = current_path.get_current_tonality()
+        
+        p_is_valid_in_current_context: bool = current_tonality.chord_fulfills_function(p_chord, current_state.associated_tonal_function)
+
+        if p_is_valid_in_current_context:
+            explanation_before_reanchor = parent_explanation.clone()
+            explanation_before_reanchor.add_step(
+                formal_rule_applied="P in L (prior to re-anchor)",
+                observation=f"Chord '{p_chord.name}' is valid in '{current_tonality.tonality_name}', but direct continuation failed. Attempting to re-anchor tail. Current path: {current_path.to_readable_format()}",
+                evaluated_functional_state=current_state,
+                processed_chord=p_chord,
+                tonality_used_in_step=current_tonality
+            )
+
+            success, explanation, path = self._try_reanchor_tail(
+                phi_sub_sequence, explanation_before_reanchor, recursion_depth
+            )
+            if success:
+                return True, explanation, path
+
+        return False, parent_explanation, None
+
+    # Keep the original method for compatibility
     def evaluate_satisfaction_recursive(
         self,
         current_tonality: Tonality,
@@ -195,59 +293,13 @@ class SatisfactionEvaluator:
         parent_explanation: Explanation
     ) -> Tuple[bool, Explanation]:
         """
-        Main method that orchestrates the search for a solution using strategies
-        in order of priority.
+        Wrapper method for backward compatibility. Creates initial path and calls path-aware version.
         """
-        # --- Initial Checks ---
-        if recursion_depth > MAX_RECURSION_DEPTH:
-            explanation_failure = parent_explanation.clone()
-            explanation_failure.add_step(formal_rule_applied="Recursion Limit", observation="Exceeded maximum recursion depth.")
-            return False, explanation_failure
-
-        if not remaining_chords:
-            return True, parent_explanation # Success, empty sequence.
-
-        p_chord: Chord = remaining_chords[0]
-        phi_sub_sequence: List[Chord] = remaining_chords[1:]
-
-        # --- SEARCH STRATEGY ---
-
-        # ATTEMPT 1: Direct Continuation
-        success, explanation = self._try_direct_continuation(
-            p_chord, phi_sub_sequence, current_tonality, current_state, parent_explanation, recursion_depth
+        initial_path = KripkePath()
+        initial_path.add_step(current_state, current_tonality, f"Starting analysis in {current_tonality.tonality_name}")
+        
+        success, explanation, final_path = self.evaluate_satisfaction_with_path(
+            initial_path, remaining_chords, recursion_depth, parent_explanation
         )
-        if success:
-            return True, explanation
-
-        # ATTEMPT 2: Tonicization/Pivot
-        success, explanation = self._try_tonicization_pivot(
-            p_chord, phi_sub_sequence, current_tonality, current_state, parent_explanation, recursion_depth
-        )
-        if success:
-            return True, explanation
-
-        # ATTEMPT 3: General Tail Re-anchoring
-
-        p_is_valid_in_current_context: bool = current_tonality.chord_fulfills_function(p_chord, current_state.associated_tonal_function)
-
-        if p_is_valid_in_current_context:
-            # P is valid, but direct continuation failed. Now it's time to log P
-            # and try re-anchoring for its tail.
-            explanation_before_reanchor = parent_explanation.clone()
-            explanation_before_reanchor.add_step(
-                formal_rule_applied="P in L (prior to re-anchor)",
-                observation=f"Chord '{p_chord.name}' is valid in '{current_tonality.tonality_name}', but direct continuation failed. Attempting to re-anchor tail.",
-                evaluated_functional_state=current_state,
-                processed_chord=p_chord,
-                tonality_used_in_step=current_tonality
-            )
-
-            # Try to re-anchor the tail (phi) from the current state.
-            success, explanation = self._try_reanchor_tail(
-                phi_sub_sequence, explanation_before_reanchor, recursion_depth
-            )
-            if success:
-                return True, explanation
-
-        # If no strategy worked.
-        return False, parent_explanation
+        
+        return success, explanation
