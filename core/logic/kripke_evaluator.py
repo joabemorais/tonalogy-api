@@ -178,7 +178,7 @@ class SatisfactionEvaluator:
 
     def _try_reanchor_tail(
         self,
-        phi_sub_sequence: List[Chord],
+        chords_to_reanchor: List[Chord],
         parent_explanation: Explanation,
         recursion_depth: int
     ) -> Tuple[bool, Optional[Explanation], Optional[KripkePath]]:
@@ -186,13 +186,13 @@ class SatisfactionEvaluator:
         ATTEMPT 3: General tail re-anchoring (Aragão's Eq. 4B).
         Tries to satisfy the tail as a new problem, prioritizing the original tonality.
         """
-        if not phi_sub_sequence:
+        if not chords_to_reanchor:
             return False, None, None # There's no tail to re-anchor.
 
         explanation_before_reanchor = parent_explanation.clone()
         explanation_before_reanchor.add_step(
             formal_rule_applied="Attempt Eq.4B (Re-anchor Tail)",
-            observation=f"Direct continuation/pivot failed. Attempting to re-evaluate tail '{[c.name for c in phi_sub_sequence]}' from a new context."
+            observation=f"Direct continuation/pivot failed. Attempting to re-evaluate tail '{[c.name for c in chords_to_reanchor]}' from a new context."
         )
 
         # List of tonalities to try, with the original first.
@@ -213,7 +213,7 @@ class SatisfactionEvaluator:
 
             success, final_explanation, final_path = self.evaluate_satisfaction_with_path(
                 reanchor_path,
-                phi_sub_sequence,
+                chords_to_reanchor,
                 recursion_depth + 1,
                 explanation_before_reanchor
             )
@@ -260,26 +260,19 @@ class SatisfactionEvaluator:
             return True, explanation, path
 
         # ATTEMPT 3: Re-anchoring (with path tracking)
-        current_state = current_path.get_current_state()
-        current_tonality = current_path.get_current_tonality()
-        
-        p_is_valid_in_current_context: bool = current_tonality.chord_fulfills_function(p_chord, current_state.associated_tonal_function)
+        explanation_before_reanchor = parent_explanation.clone()
+        explanation_before_reanchor.add_step(
+            formal_rule_applied="Attempt General Re-anchor (Eq.4B/Eq.5)",
+            observation=f"Direct/Pivot explanations failed. Attempting to analyze remaining sequence '{[c.name for c in remaining_chords]}' from a new context."
+        )
 
-        if p_is_valid_in_current_context:
-            explanation_before_reanchor = parent_explanation.clone()
-            explanation_before_reanchor.add_step(
-                formal_rule_applied="P in L (prior to re-anchor)",
-                observation=f"Chord '{p_chord.name}' is valid in '{current_tonality.tonality_name}', but direct continuation failed. Attempting to re-anchor tail. Current path: {current_path.to_readable_format()}",
-                evaluated_functional_state=current_state,
-                processed_chord=p_chord,
-                tonality_used_in_step=current_tonality
-            )
-
-            success, explanation, path = self._try_reanchor_tail(
-                phi_sub_sequence, explanation_before_reanchor, recursion_depth
-            )
-            if success:
-                return True, explanation, path
+        success, explanation, path = self._try_reanchor_tail(
+            chords_to_reanchor=remaining_chords,
+            parent_explanation=explanation_before_reanchor,
+            recursion_depth=recursion_depth
+        )
+        if success:
+            return True, explanation, path
 
         return False, parent_explanation, None
 
