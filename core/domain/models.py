@@ -1,13 +1,54 @@
 from enum import Enum, auto
 from typing import Set, Dict, Tuple, List, Optional
 from dataclasses import dataclass, field
+import re
 import copy
 
+NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+NOTE_MAP = {name: i for i, name in enumerate(NOTE_NAMES)}
 
 @dataclass(frozen=True)
 class Chord:
     """Represents an individual chord symbol. Immutable and hashable."""
     name: str
+
+    @property
+    def notes(self) -> Set[str]:
+        if not hasattr(self, '_notes_cache'):
+            object.__setattr__(self, '_notes_cache', self._parse_notes())
+        return object.__getattr__(self, '_notes_cache')
+
+    def _parse_notes(self) -> Set[str]:
+        """
+        Parses the chord name to return the set of notes it contains.
+        This initial implementation supports major, minor, and diminished triads.
+        """
+        match = re.match(r"([A-G]#?)", self.name)
+        if not match:
+            return set()
+        
+        root_note_name = match.group(1)
+        root_note_index = NOTE_MAP.get(root_note_name)
+        
+        if root_note_index is None:
+            return set()
+
+        if self.name.endswith("dim"):
+            # Diminished: T + 3st + 6st
+            intervals = [0, 3, 6]
+        elif self.name.endswith("m"):
+            # Minor: T + 3st + 7st
+            intervals = [0, 3, 7]
+        else:
+            # Major: T + 4st + 7st
+            intervals = [0, 4, 7]
+
+        chord_notes = set()
+        for interval in intervals:
+            note_index = (root_note_index + interval) % 12
+            chord_notes.add(NOTE_NAMES[note_index])
+
+        return chord_notes
 
 
 class TonalFunction(Enum):
@@ -24,7 +65,6 @@ class KripkeState:
     associated_tonal_function: TonalFunction
 
 
-
 @dataclass
 class Tonality:
     """
@@ -32,8 +72,8 @@ class Tonality:
     Maps tonal functions to chords and their scale origins.
     """
     tonality_name: str
-    # The map now holds Chord objects as keys and their scale origin (e.g., "natural", "melodic") as values.
     function_to_chords_map: Dict[TonalFunction, Dict[Chord, str]]
+    primary_scale_notes: Set[str] = field(default_factory=set)
 
     def get_chords_for_function(self, func: TonalFunction) -> Set[Chord]:
         """Returns the set of chords for a given tonal function."""
@@ -46,6 +86,10 @@ class Tonality:
     def get_chord_origin_for_function(self, test_chord: Chord, target_function: TonalFunction) -> Optional[str]:
         """Gets the scale origin (e.g., 'harmonic') for a chord fulfilling a function."""
         return self.function_to_chords_map.get(target_function, {}).get(test_chord)
+
+    def get_scale_notes(self) -> Set[str]:
+        """Returns the set of primary scale notes for this tonality."""
+        return self.primary_scale_notes
 
 
 @dataclass
@@ -128,6 +172,7 @@ class KripkePath:
     def is_empty(self) -> bool:
         """Checks if the path is empty."""
         return len(self.states) == 0
+
 
 @dataclass
 class DetailedExplanationStep:
