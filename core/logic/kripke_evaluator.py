@@ -40,7 +40,7 @@ class SatisfactionEvaluator:
         Checks if P fits and, if so, tries to satisfy the tail (phi) in successor states.
         """
         # Check that current_path is not empty to avoid IndexError
-        if not current_path or len(current_path) == 0:
+        if not current_path or current_path.is_empty():
             return False, None, None
         current_state = current_path.get_current_state()
         # Ensure the path is not empty before accessing the current tonality
