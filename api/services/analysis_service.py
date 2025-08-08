@@ -1,6 +1,5 @@
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Set
 
-# Import API and domain models
 from api.schemas.analysis_schemas import ProgressionAnalysisRequest, ExplanationStepAPI, ProgressionAnalysisResponse
 from core.domain.models import Chord, Tonality, Explanation
 from core.logic.progression_analyzer import ProgressionAnalyzer
@@ -25,6 +24,45 @@ class TonalAnalysisService:
         self.tonalities_map: Dict[str, Tonality] = {
             t.tonality_name: t for t in self.knowledge_base.all_tonalities
         }
+
+
+    def _rank_tonalities_by_probability(
+        self,
+        progression_chords: List[Chord],
+        candidate_tonalities: List[Tonality]
+    ) -> List[Tonality]:
+        """
+        Orders a list of candidate tonalities based on their similarity
+        to the notes in the input progression.
+
+        Args:
+            progression_chords: The list of chords in the progression.
+            candidate_tonalities: The list of tonalities to be ranked.
+
+        Returns:
+            A new list of tonalities, ordered from most to least likely.
+        """
+
+        progression_notes: Set[str] = set()
+        for chord in progression_chords:
+            progression_notes.update(chord.notes)
+
+        if not progression_notes:
+            return candidate_tonalities
+
+        scored_tonalities = []
+        for tonality in candidate_tonalities:
+            scale_notes = tonality.get_scale_notes()
+            common_notes = progression_notes.intersection(scale_notes)
+            score = len(common_notes)
+            scored_tonalities.append((tonality, score))
+
+        scored_tonalities.sort(key=lambda item: item[1], reverse=True)
+        
+        logger.info(f"Tonality ranking: {[ (t.tonality_name, s) for t, s in scored_tonalities ]}")
+
+        return [tonality for tonality, score in scored_tonalities]
+
 
     def analyze_progression(self, request: ProgressionAnalysisRequest) -> ProgressionAnalysisResponse:
         """
