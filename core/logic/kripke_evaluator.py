@@ -44,7 +44,7 @@ class SatisfactionEvaluator:
             return False, None, None
         current_state = current_path.get_current_state()
         # Ensure the path is not empty before accessing the current tonality
-        if current_state is None or current_path.is_empty():
+        if current_path.is_empty():
             return False, None, None
         current_tonality = current_path.get_current_tonality()
 
