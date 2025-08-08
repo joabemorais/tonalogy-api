@@ -39,6 +39,9 @@ class SatisfactionEvaluator:
         ATTEMPT 1: Implements direct continuation (Aragão's Eq. 4A).
         Checks if P fits and, if so, tries to satisfy the tail (phi) in successor states.
         """
+        # Check that current_path is not empty to avoid IndexError
+        if not current_path or len(current_path) == 0:
+            return False, None, None
         current_state = current_path.get_current_state()
         # Ensure the path is not empty before accessing the current tonality
         if current_state is None or current_path.is_empty():
