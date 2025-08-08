@@ -88,7 +88,7 @@ class SatisfactionEvaluator:
 
         return False, None, None
 
-    def _try_tonicization_pivot(
+    def _try_pivot_modulation(
         self,
         p_chord: Chord,
         phi_sub_sequence: List[Chord],
@@ -252,8 +252,8 @@ class SatisfactionEvaluator:
         if success:
             return True, explanation, path
 
-        # ATTEMPT 2: Tonicization/Pivot
-        success, explanation, path = self._try_tonicization_pivot(
+        # ATTEMPT 2: Modulation/Tonicization Pivot
+        success, explanation, path = self._try_pivot_modulation(
             p_chord, phi_sub_sequence, current_path, parent_explanation, recursion_depth
         )
         if success:
