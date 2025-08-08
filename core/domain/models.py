@@ -16,7 +16,7 @@ class Chord:
     def notes(self) -> Set[str]:
         if not hasattr(self, '_notes_cache'):
             object.__setattr__(self, '_notes_cache', self._parse_notes())
-        return object.__getattr__(self, '_notes_cache')
+        return self._notes_cache
 
     def _parse_notes(self) -> Set[str]:
         """
