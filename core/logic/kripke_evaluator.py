@@ -1,16 +1,35 @@
 from typing import List, Tuple, Optional, Dict
+
+# Import the domain models we created previously
 from core.domain.models import (
     Chord, KripkeState, Tonality, KripkeStructureConfig,
     Explanation, TonalFunction, KripkePath
 )
 
+# A constant to prevent infinite recursion in edge cases or complex progressions.
 MAX_RECURSION_DEPTH = 25
 
 class SatisfactionEvaluator:
+    """
+    Implements the recursive satisfaction logic from Aragão's 5th Definition.
+
+    This class uses a backtracking algorithm to search for a valid analytical path
+    through the state space of possible harmonic interpretations. It explores hypotheses
+    incrementally and backtracks when a path leads to a dead end.
+    """
     def __init__(self, kripke_config: KripkeStructureConfig, all_available_tonalities: List[Tonality], original_tonality: Tonality) -> None:
+        """
+        Initializes the SatisfactionEvaluator.
+
+        Args:
+            kripke_config: The base Kripke structure configuration (S, S0, SF, R).
+            all_available_tonalities: A list of all tonalities known to the system.
+            original_tonality: The main tonality of the analysis, used to prioritize re-anchoring.
+        """
         self.kripke_config: KripkeStructureConfig = kripke_config
         self.all_available_tonalities: List[Tonality] = all_available_tonalities
         self.original_tonality: Tonality = original_tonality
+        # Cache for memoization to store results of subproblems and avoid re-computation.
         self.cache: Dict[Tuple, Tuple[bool, Explanation, Optional[KripkePath]]] = {}
 
     def _get_possible_continuations(
@@ -20,7 +39,8 @@ class SatisfactionEvaluator:
         parent_explanation: Explanation
     ) -> List[Tuple[KripkePath, Explanation]]:
         """
-        Gera uma lista de todos os caminhos e explicações possíveis para a continuação direta.
+        Generates a list of all possible valid paths and explanations for a direct continuation.
+        This corresponds to the first part of the disjunction in Aragão's Equation 4.
         """
         continuations = []
         current_state = current_path.get_current_state()
@@ -29,21 +49,23 @@ class SatisfactionEvaluator:
         if not current_tonality or not current_state:
             return []
 
+        # Check if the current chord (P) fulfills the function of the current state.
         if current_tonality.chord_fulfills_function(p_chord, current_state.associated_tonal_function):
             explanation_for_P = parent_explanation.clone()
             explanation_for_P.add_step(
                 formal_rule_applied="P in L",
-                observation=f"Acorde '{p_chord.name}' cumpre a função '{current_state.associated_tonal_function.name}' em '{current_tonality.tonality_name}'.",
+                observation=f"Chord '{p_chord.name}' fulfills function '{current_state.associated_tonal_function.name}' in '{current_tonality.tonality_name}'.",
                 evaluated_functional_state=current_state,
                 processed_chord=p_chord,
                 tonality_used_in_step=current_tonality
             )
+            # If it fits, generate a new potential path for each successor state.
             for next_state in self.kripke_config.get_successors_of_state(current_state):
                 path_copy = current_path.clone()
                 path_copy.add_step(
                     next_state,
                     current_tonality,
-                    f"Transição direta para {next_state.associated_tonal_function.name}"
+                    f"Direct transition to {next_state.associated_tonal_function.name}"
                 )
                 continuations.append((path_copy, explanation_for_P.clone()))
         
@@ -57,7 +79,8 @@ class SatisfactionEvaluator:
         parent_explanation: Explanation
     ) -> List[Tuple[KripkePath, Explanation]]:
         """
-        Gera uma lista de todos os caminhos e explicações possíveis para modulações por pivô.
+        Generates a list of all possible valid paths and explanations for pivot modulations.
+        This corresponds to Aragão's Equation 5.
         """
         pivots = []
         current_state = current_path.get_current_state()
@@ -67,6 +90,7 @@ class SatisfactionEvaluator:
         if not current_tonality or not current_state or not new_tonic_state:
             return []
 
+        # Optimization: Use the ranked list of tonalities from the heuristic if available.
         tonalities_to_check = self.all_available_tonalities
         if hasattr(self, 'ranked_tonalities'):
              tonalities_to_check = self.ranked_tonalities
@@ -75,11 +99,15 @@ class SatisfactionEvaluator:
             if l_prime_tonality.tonality_name == current_tonality.tonality_name:
                 continue
 
+            # Check if the current chord can function as a tonic in the new tonality (L').
             p_is_tonic_in_L_prime = l_prime_tonality.chord_fulfills_function(p_chord, TonalFunction.TONIC)
             if not p_is_tonic_in_L_prime:
                 continue
 
+            # A pivot is stronger if it also has a function in the original tonality...
             p_functions_in_L = [func for func in TonalFunction if current_tonality.chord_fulfills_function(p_chord, func)]
+            
+            # ...or if the modulation is reinforced by the next chord (which should be the dominant of L').
             tonicization_reinforced = False
             if phi_sub_sequence:
                 next_chord = phi_sub_sequence[0]
@@ -90,24 +118,25 @@ class SatisfactionEvaluator:
             
             if pivot_valid:
                 explanation_for_pivot = parent_explanation.clone()
-                functions_str = ", ".join([f.name for f in p_functions_in_L]) if p_functions_in_L else "um papel de transição"
+                functions_str = ", ".join([f.name for f in p_functions_in_L]) if p_functions_in_L else "a transitional role"
                 explanation_for_pivot.add_step(
-                    formal_rule_applied="Modulação por Pivô (Eq.5)",
+                    formal_rule_applied="Pivot Modulation (Eq.5)",
                     observation=(
-                        f"Acorde '{p_chord.name}' atua como pivô. Ele tem a função '{functions_str}' em '{current_tonality.tonality_name}' "
-                        f"e se torna a nova TÔNICA em '{l_prime_tonality.tonality_name}'. "
-                        f"(Reforçado pelo próximo acorde: {tonicization_reinforced})"
+                        f"Chord '{p_chord.name}' acts as pivot. It has function '{functions_str}' in '{current_tonality.tonality_name}' "
+                        f"and becomes the new TONIC in '{l_prime_tonality.tonality_name}'. "
+                        f"(Reinforced by next chord: {tonicization_reinforced})"
                     ),
                     evaluated_functional_state=current_state,
                     processed_chord=p_chord,
                     tonality_used_in_step=current_tonality
                 )
+                # Generate a new potential path for each successor of the new tonic state.
                 for next_state in self.kripke_config.get_successors_of_state(new_tonic_state):
                     path_copy = current_path.clone()
                     path_copy.add_step(
                         next_state,
                         l_prime_tonality,
-                        f"Transição para {next_state.associated_tonal_function.name} em {l_prime_tonality.tonality_name}"
+                        f"Transition to {next_state.associated_tonal_function.name} in {l_prime_tonality.tonality_name}"
                     )
                     pivots.append((path_copy, explanation_for_pivot.clone()))
         
@@ -120,12 +149,14 @@ class SatisfactionEvaluator:
         recursion_depth: int
     ) -> Tuple[bool, Explanation, Optional[KripkePath]]:
         """
-        Tenta satisfazer a sequência restante como um novo problema.
+        Attempts to satisfy the remaining sequence as a completely new problem.
+        This is the "safety net" of the algorithm, corresponding to the second part
+        of the disjunction in Aragão's Equation 4 (K,L ⊧π' φ).
         """
         explanation_before_reanchor = parent_explanation.clone()
         explanation_before_reanchor.add_step(
-            formal_rule_applied="Tentativa de Reancoragem (Eq.4B)",
-            observation=f"Extensão de caminho falhou. Tentando reavaliar a sequência restante '{[c.name for c in remaining_chords]}' a partir de um novo contexto."
+            formal_rule_applied="Re-anchor Attempt (Eq.4B)",
+            observation=f"Path extension failed. Attempting to re-evaluate remaining sequence '{[c.name for c in remaining_chords]}' from a new context."
         )
         
         tonalities_to_try = [self.original_tonality] + [k for k in self.all_available_tonalities if k.tonality_name != self.original_tonality.tonality_name]
@@ -139,9 +170,10 @@ class SatisfactionEvaluator:
             reanchor_path.add_step(
                 tonic_start_state,
                 l_star_tonality,
-                f"Reancoragem em {l_star_tonality.tonality_name}"
+                f"Re-anchoring in {l_star_tonality.tonality_name}"
             )
             
+            # Recursive call to solve the subproblem.
             success, final_explanation, final_path = self.evaluate_satisfaction_with_path(
                 reanchor_path,
                 remaining_chords,
@@ -162,49 +194,60 @@ class SatisfactionEvaluator:
         parent_explanation: Explanation
     ) -> Tuple[bool, Explanation, Optional[KripkePath]]:
         """
-        Método principal que orquestra a busca por uma solução.
+        The main backtracking engine. It orchestrates the search for a valid solution.
         """
+        # --- Memoization ---
+        # Create a hashable key for the current subproblem.
         current_tonality_obj = current_path.get_current_tonality()
         cache_key = (
             current_path.get_current_state(), 
             current_tonality_obj.tonality_name if current_tonality_obj else None, 
             tuple(c.name for c in remaining_chords)
         )
+        # If this subproblem has been solved before, return the cached result.
         if cache_key in self.cache:
-            return self.cache[cache_key]
+            success, cached_exp, cached_path = self.cache[cache_key]
+            return success, cached_exp.clone(), cached_path.clone() if cached_path else None
 
+        # --- Base Cases ---
         if recursion_depth > MAX_RECURSION_DEPTH:
             return False, parent_explanation, None
 
         if not remaining_chords:
             final_explanation = parent_explanation.clone()
             final_explanation.add_step(
-                formal_rule_applied="Fim da Sequência",
-                observation="Fim da sequência. Todos os acordes foram processados com sucesso."
+                formal_rule_applied="End of Sequence",
+                observation="End of sequence. All chords have been successfully processed."
             )
             return True, final_explanation, current_path
 
+        # --- Recursive Step ---
         p_chord = remaining_chords[0]
         phi_sub_sequence = remaining_chords[1:]
 
-        # Passo 1: Gerar e testar todas as hipóteses de extensão de caminho (continuações e pivôs)
+        # Step 1: Generate all possible next moves (hypotheses).
         possible_continuations = self._get_possible_continuations(p_chord, current_path, parent_explanation)
         possible_pivots = self._get_possible_pivots(p_chord, phi_sub_sequence, current_path, parent_explanation)
 
+        # Step 2: Explore each hypothesis using recursion (Depth-First Search).
+        # The order here is important: we test simpler explanations (continuations) before complex ones (pivots).
         for path, explanation in possible_continuations + possible_pivots:
+            # This is the "advance" step of the backtracking algorithm.
             success, final_explanation, final_path = self.evaluate_satisfaction_with_path(
                 path,
                 phi_sub_sequence,
                 recursion_depth + 1,
                 explanation
             )
+            # If the recursive call finds a complete solution, we have succeeded.
             if success:
                 self.cache[cache_key] = (True, final_explanation, final_path)
                 return True, final_explanation, final_path
+            # If it returns False, this loop implicitly "backtracks" by simply trying the next hypothesis.
 
-        # Passo 2: Se todas as extensões falharam, usar a "rede de segurança" da reancoragem
+        # Step 3: If all path extension hypotheses failed, try the re-anchor safety net.
         success, final_explanation, final_path = self._try_reanchor(
-            remaining_chords, # Reancora a sequência inteira restante
+            remaining_chords, # Re-anchor the entire remaining sequence
             parent_explanation,
             recursion_depth
         )
@@ -212,7 +255,7 @@ class SatisfactionEvaluator:
             self.cache[cache_key] = (True, final_explanation, final_path)
             return True, final_explanation, final_path
 
-        # Se tudo falhou, armazena o resultado da falha no cache e retorna
+        # If all strategies have failed, this path is a dead end.
         self.cache[cache_key] = (False, parent_explanation, None)
         return False, parent_explanation, None
 
@@ -225,9 +268,13 @@ class SatisfactionEvaluator:
         parent_explanation: Explanation,
         ranked_tonalities: Optional[List[Tonality]] = None
     ) -> Tuple[bool, Explanation]:
+        """
+        Wrapper method for backward compatibility. Creates the initial path and calls the main backtracking engine.
+        """
         initial_path = KripkePath()
-        initial_path.add_step(current_state, current_tonality, f"Iniciando análise em {current_tonality.tonality_name}")
-
+        initial_path.add_step(current_state, current_tonality, f"Starting analysis in {current_tonality.tonality_name}")
+        
+        # Pass the ranked tonalities to the evaluator instance for optimization.
         if ranked_tonalities:
             self.ranked_tonalities = ranked_tonalities
         
