@@ -12,7 +12,7 @@ TEMP_IMAGE_DIR.mkdir(exist_ok=True)
 
 @dataclass
 class NodeInfo:
-    """Structure to store information for each node to be drawn."""
+    """Structure to hold information for each node to be drawn."""
     node_id: str
     chord: str
     function: str
@@ -40,7 +40,11 @@ class VisualizerService:
         # 1. FIRST PASS: Classify and create nodes for each world
         for i, step in enumerate(relevant_steps):
             chord = step.processed_chord
-            function = step.evaluated_functional_state.split(" ")[0] if step.evaluated_functional_state else "TONIC"
+
+            function = "TONIC" # Default
+            if step.evaluated_functional_state:
+                function = step.evaluated_functional_state.split(" ")[0]
+
             shape = function_to_shape.get(function, 'circle')
             is_primary = step.tonality_used_in_step == tonality_name
             is_pivot = "Pivot" in step.formal_rule_applied

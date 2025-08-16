@@ -13,7 +13,7 @@ app = FastAPI(
     version="2.0.0"
 )
 
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 KRIPKE_CONFIG_PATH = BASE_DIR / "core" / "config" / "data" / "kripke_structure.json"
 TONALITIES_CONFIG_PATH = BASE_DIR / "core" / "config" / "data" / "tonalities.json"
 
