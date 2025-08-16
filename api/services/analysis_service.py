@@ -1,6 +1,6 @@
 from typing import List, Dict, Optional, Set
 from api.schemas.analysis_schemas import ProgressionAnalysisRequest, ExplanationStepAPI, ProgressionAnalysisResponse
-from core.domain.models import Chord, Tonality, Explanation, TonalFunction # Added TonalFunction
+from core.domain.models import Chord, Tonality, Explanation, TonalFunction
 from core.logic.progression_analyzer import ProgressionAnalyzer
 from core.config.knowledge_base import TonalKnowledgeBase
 import logging
@@ -123,10 +123,22 @@ class TonalAnalysisService:
                  final_step_with_tonality = next((step for step in reversed(explanation.steps) if step.tonality_used_in_step), None)
                  if final_step_with_tonality:
                      identified_tonality = final_step_with_tonality.tonality_used_in_step.tonality_name
-            
-            explanation_steps_api: List[ExplanationStepAPI] = [
-                ExplanationStepAPI.model_validate(step) for step in explanation.steps
-            ]
+
+            explanation_steps_api: List[ExplanationStepAPI] = []
+            for step in explanation.steps:
+                evaluated_state_str = None
+                if step.evaluated_functional_state:
+                    state = step.evaluated_functional_state
+                    evaluated_state_str = f"{state.associated_tonal_function.name} ({state.state_id})"
+
+                api_step = ExplanationStepAPI(
+                    formal_rule_applied=step.formal_rule_applied,
+                    observation=step.observation,
+                    processed_chord=step.processed_chord.name if step.processed_chord else None,
+                    tonality_used_in_step=step.tonality_used_in_step.tonality_name if step.tonality_used_in_step else None,
+                    evaluated_functional_state=evaluated_state_str
+                )
+                explanation_steps_api.append(api_step)
 
             return ProgressionAnalysisResponse(
                 is_tonal_progression=success,
