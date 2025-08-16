@@ -5,11 +5,11 @@ from .svg_factory import SvgFactory
 
 class HarmonicGraph:
     """
-    Classe "Builder" que orquestra a construção de um diagrama de progressão harmônica.
+    "Builder" class that orchestrates the construction of a harmonic progression diagram.
     """
 
     def __init__(self, theme: dict, temp_dir: Path, rankdir='LR', splines='line', nodesep='0.8', ranksep='1.5'):
-        self.dot = graphviz.Digraph('ProgressaoHarmonica')
+        self.dot = graphviz.Digraph('HarmonicProgression')
         self.dot.attr('graph', rankdir=rankdir, splines=splines, nodesep=nodesep, ranksep=ranksep, bgcolor='transparent')
         self.dot.attr('node', fontname='Arial', fontsize='22')
         self.dot.attr('edge', fontname='Arial', fontsize='10')
@@ -20,11 +20,11 @@ class HarmonicGraph:
     def _add_image_node(self, node_id, label, shape_name, style_variant, fill, stroke, penwidth='4', fontcolor=None):
         shape_variants = SVG_TEMPLATES.get(shape_name)
         if not shape_variants:
-            raise ValueError(f"Forma '{shape_name}' não encontrada em SVG_TEMPLATES.")
+            raise ValueError(f"Shape '{shape_name}' not found in SVG_TEMPLATES.")
 
         svg_template = shape_variants.get(style_variant)
         if not svg_template:
-            raise ValueError(f"Variante de estilo '{style_variant}' não encontrada para a forma '{shape_name}'.")
+            raise ValueError(f"Style variant '{style_variant}' not found for shape '{shape_name}'.")
 
         image_path = self.svg_factory.create_styled_image_file(node_id, svg_template, fill, stroke, penwidth)
 
@@ -53,7 +53,7 @@ class HarmonicGraph:
                              fontcolor=font_color)
 
     def add_placeholder_chord(self, node_id, label, shape='circle', style_variant='dashed_filled'):
-        """Adiciona um nó placeholder translúcido no mundo principal."""
+        """Adds a translucent placeholder node in the main world."""
         fill = self.theme.get('secondary_fill', '#FFFFFF80') 
         stroke = self.theme.get('secondary_stroke', '#000000')
         font_color = self.theme.get('secondary_text_color')
@@ -68,13 +68,13 @@ class HarmonicGraph:
     def connect_with_double_arrow(self, from_node, to_node, color_key: str, **kwargs):
         color = self.theme.get(color_key)
         if not color:
-            raise ValueError(f"Chave de cor '{color_key}' não encontrada no tema.")
+            raise ValueError(f"Color key '{color_key}' not found in theme.")
         double_line_color = f"{color}:invis:{color}"
         self.connect_nodes(from_node, to_node, color=double_line_color, penwidth='3', **kwargs)
 
 
     def align_nodes_in_ranks(self, *ranks):
-        """Alinha nós em ranks (linhas) separadas."""
+        """Aligns nodes in separate ranks (rows)."""
         for rank in ranks:
             if rank:
                 nodes_str = '; '.join(f'"{nid}"' for nid in rank)
@@ -94,7 +94,7 @@ class HarmonicGraph:
             self.dot.render(str(filename), view=False, cleanup=True, format='png')
             return str(output_path)
         except Exception as e:
-            print(f"Erro ao gerar o gráfico: {e}")
+            print(f"Error generating graph: {e}")
             raise
         finally:
             self.svg_factory.cleanup_files()
