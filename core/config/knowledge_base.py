@@ -58,10 +58,10 @@ class TonalKnowledgeBase:
         }
         
         # Build the accessibility relation using the KripkeState objects
-        relation: Set[Tuple[KripkeState, KripkeState]] = {
+        relation: List[Tuple[KripkeState, KripkeState]] = [
             (states_map[r['from']], states_map[r['to']])
             for r in data['accessibility_relation']
-        }
+        ]
 
         # Build the final configuration object
         return KripkeStructureConfig(
@@ -96,7 +96,8 @@ class TonalKnowledgeBase:
             loaded_tonalities.append(
                 Tonality(
                     tonality_name=t_data['tonality_name'],
-                    function_to_chords_map=function_map
+                    function_to_chords_map=function_map,
+                    primary_scale_notes=set(t_data.get('primary_scale_notes', []))
                 )
             )
         return loaded_tonalities

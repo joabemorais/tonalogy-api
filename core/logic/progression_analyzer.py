@@ -1,6 +1,4 @@
 from typing import List, Tuple
-
-# Import domain models and evaluator class
 from core.domain.models import (
     Chord, Tonality, KripkeStructureConfig, Explanation, TonalFunction
 )
@@ -14,10 +12,6 @@ class ProgressionAnalyzer:
     def __init__(self, kripke_config: KripkeStructureConfig, all_available_tonalities: List[Tonality]):
         """
         Initializes the ProgressionAnalyzer.
-
-        Args:
-            kripke_config: The base configuration of the Kripke structure (S, S0, SF, R).
-            all_available_tonalities: A list of all tonalities known by the system.
         """
         self.kripke_config = kripke_config
         self.all_available_tonalities = all_available_tonalities
@@ -29,69 +23,68 @@ class ProgressionAnalyzer:
         tonalities_to_test: List[Tonality]
     ) -> Tuple[bool, Explanation]:
         """
-        Checks if a chord sequence is a valid tonal progression in
-        any of the provided tonalities.
-
-        Args:
-            input_chord_sequence: The list of Chord objects to be analyzed.
-            tonalities_to_test: A list of Tonality objects to use as starting points.
-
-        Returns:
-            A tuple containing a success boolean and the Explanation object with the
-            trace of the successful analysis (or the last failure).
+        Checks if a chord sequence is a valid tonal progression.
+        The analysis starts from the most likely tonality and explores
+        other possibilities recursively.
         """
-        # According to Aragão's methodology, analysis starts from end to beginning.
-        reversed_chord_sequence = list(reversed(input_chord_sequence))
-
-        if not reversed_chord_sequence:
-            failure_explanation = Explanation()
+        failure_explanation = Explanation()
+        if not input_chord_sequence:
             failure_explanation.add_step(formal_rule_applied="Failure", observation="Input chord sequence is empty.")
             return False, failure_explanation
+        if not tonalities_to_test:
+            failure_explanation.add_step(formal_rule_applied="Failure", observation="List of tonalities to test is empty.")
+            return False, failure_explanation
 
-        # The analysis of a tonal progression typically resolves in the tonic.
-        # Therefore, the initial state for evaluating the reversed sequence is the Tonic.
+        # The primary candidate is the first in the ranked list. This is our "home base" and starting point.
+        primary_tonality = tonalities_to_test[0]
+
+        # Create the evaluator ONCE with the fixed primary (original) tonality.
+        evaluator = SatisfactionEvaluator(self.kripke_config, self.all_available_tonalities, primary_tonality)
+
+        reversed_chord_sequence = list(reversed(input_chord_sequence))
         initial_state = self.kripke_config.get_state_by_tonal_function(TonalFunction.TONIC)
+
         if not initial_state:
-            failure_explanation = Explanation()
             failure_explanation.add_step(
                 formal_rule_applied="Configuration Error",
                 observation="Kripke structure configuration is missing a TONIC state."
             )
             return False, failure_explanation
 
-        # Iterate over each candidate tonality to find one that satisfies the progression.
-        for candidate_tonality in tonalities_to_test:
-            # For each attempt in a new tonality, we create a new evaluator.
-            # It's crucial to pass the 'candidate_tonality' as the 'original_tonality',
-            # as this informs the evaluator which is the "main" tonality
-            # to be prioritized in ATTEMPT 3 (Re-anchoring).
-            evaluator = SatisfactionEvaluator(self.kripke_config, self.all_available_tonalities, candidate_tonality)
-
-            initial_explanation = Explanation()
-            initial_explanation.add_step(
-                formal_rule_applied="Analysis Start",
-                observation=f"Testing progression in tonality: '{candidate_tonality.tonality_name}'.",
-                tonality_used_in_step=candidate_tonality
+        # The analysis MUST begin with the last chord being a tonic in the primary tonality.
+        if not primary_tonality.chord_fulfills_function(reversed_chord_sequence[0], TonalFunction.TONIC):
+            failure_explanation.add_step(
+                formal_rule_applied="Overall Failure",
+                observation=f"The progression's final chord '{reversed_chord_sequence[0].name}' is not a tonic in the most likely tonality '{primary_tonality.tonality_name}'. Analysis cannot proceed."
             )
+            return False, failure_explanation
 
-            success, final_explanation = evaluator.evaluate_satisfaction_recursive(
-                current_tonality=candidate_tonality,
-                current_state=initial_state,
-                remaining_chords=reversed_chord_sequence,
-                recursion_depth=0,
-                parent_explanation=initial_explanation
+        # We initiate the analysis only once from the primary tonality.
+        # The evaluator's internal logic (pivots, re-anchoring) is responsible for exploring other tonalities.
+        initial_explanation = Explanation()
+        initial_explanation.add_step(
+            formal_rule_applied="Analysis Start",
+            observation=f"Testing progression with primary tonality: '{primary_tonality.tonality_name}'.",
+            tonality_used_in_step=primary_tonality
+        )
+
+        success, final_explanation = evaluator.evaluate_satisfaction_recursive(
+            current_tonality=primary_tonality,
+            current_state=initial_state,
+            remaining_chords=reversed_chord_sequence,
+            recursion_depth=0,
+            parent_explanation=initial_explanation,
+            ranked_tonalities=tonalities_to_test
+        )
+        
+        if success:
+            final_explanation.add_step(
+                formal_rule_applied="Overall Success",
+                observation=f"Progression identified as tonal, anchored in '{primary_tonality.tonality_name}'.",
+                tonality_used_in_step=primary_tonality
             )
+            return True, final_explanation
 
-            # If a solution is found, return immediately with success and explanation.
-            if success:
-                final_explanation.add_step(
-                    formal_rule_applied="Overall Success",
-                    observation=f"Progression identified as tonal in '{candidate_tonality.tonality_name}'.",
-                    tonality_used_in_step=candidate_tonality
-                )
-                return True, final_explanation
-
-        # If the loop ends without finding a solution in any of the tested tonalities.
-        failure_explanation = Explanation()
-        failure_explanation.add_step(formal_rule_applied="Overall Failure", observation="No tested tonality satisfied the progression.")
+        # If the single, comprehensive analysis fails, then no solution was found.
+        failure_explanation.add_step(formal_rule_applied="Overall Failure", observation="No valid analytical path found for the progression.")
         return False, failure_explanation
