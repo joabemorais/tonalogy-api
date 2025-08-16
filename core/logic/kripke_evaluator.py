@@ -68,7 +68,7 @@ class SatisfactionEvaluator:
                     f"Direct transition to {next_state.associated_tonal_function.name}"
                 )
                 continuations.append((path_copy, explanation_for_P.clone()))
-        
+
         return continuations
 
     def _get_possible_pivots(
@@ -90,10 +90,25 @@ class SatisfactionEvaluator:
         if not current_tonality or not current_state or not new_tonic_state:
             return []
 
-        # Optimization: Use the ranked list of tonalities from the heuristic if available.
-        tonalities_to_check = self.all_available_tonalities
+        # --- FIX START ---
+        # The list of tonalities to check for pivots must be comprehensive, but prioritized.
+        # We start with the ranked tonalities (if provided) and then add all others to ensure completeness.
+        tonalities_to_check: List[Tonality] = []
+        seen_tonalities = set()
+
+        # First, add the prioritized tonalities from the heuristic
         if hasattr(self, 'ranked_tonalities'):
-             tonalities_to_check = self.ranked_tonalities
+            for tonality in self.ranked_tonalities:
+                if tonality.tonality_name not in seen_tonalities:
+                    tonalities_to_check.append(tonality)
+                    seen_tonalities.add(tonality.tonality_name)
+
+        # Then, add any remaining tonalities to ensure the search is exhaustive
+        for tonality in self.all_available_tonalities:
+            if tonality.tonality_name not in seen_tonalities:
+                tonalities_to_check.append(tonality)
+                seen_tonalities.add(tonality.tonality_name)
+        # --- FIX END ---
 
         for l_prime_tonality in tonalities_to_check:
             if l_prime_tonality.tonality_name == current_tonality.tonality_name:
@@ -106,16 +121,16 @@ class SatisfactionEvaluator:
 
             # A pivot is stronger if it also has a function in the original tonality...
             p_functions_in_L = [func for func in TonalFunction if current_tonality.chord_fulfills_function(p_chord, func)]
-            
+
             # ...or if the modulation is reinforced by the next chord (which should be the dominant of L').
             tonicization_reinforced = False
             if phi_sub_sequence:
                 next_chord = phi_sub_sequence[0]
                 if l_prime_tonality.chord_fulfills_function(next_chord, TonalFunction.DOMINANT):
                     tonicization_reinforced = True
-            
+
             pivot_valid = p_is_tonic_in_L_prime and (bool(p_functions_in_L) or tonicization_reinforced)
-            
+
             if pivot_valid:
                 explanation_for_pivot = parent_explanation.clone()
                 functions_str = ", ".join([f.name for f in p_functions_in_L]) if p_functions_in_L else "a transitional role"
@@ -139,7 +154,7 @@ class SatisfactionEvaluator:
                         f"Transition to {next_state.associated_tonal_function.name} in {l_prime_tonality.tonality_name}"
                     )
                     pivots.append((path_copy, explanation_for_pivot.clone()))
-        
+
         return pivots
 
     def _try_reanchor(
@@ -158,7 +173,7 @@ class SatisfactionEvaluator:
             formal_rule_applied="Re-anchor Attempt (Eq.4B)",
             observation=f"Path extension failed. Attempting to re-evaluate remaining sequence '{[c.name for c in remaining_chords]}' from a new context."
         )
-        
+
         tonalities_to_try = [self.original_tonality] + [k for k in self.all_available_tonalities if k.tonality_name != self.original_tonality.tonality_name]
         tonic_start_state = self.kripke_config.get_state_by_tonal_function(TonalFunction.TONIC)
 
@@ -172,7 +187,7 @@ class SatisfactionEvaluator:
                 l_star_tonality,
                 f"Re-anchoring in {l_star_tonality.tonality_name}"
             )
-            
+
             # Recursive call to solve the subproblem.
             success, final_explanation, final_path = self.evaluate_satisfaction_with_path(
                 reanchor_path,
@@ -197,14 +212,12 @@ class SatisfactionEvaluator:
         The main backtracking engine. It orchestrates the search for a valid solution.
         """
         # --- Memoization ---
-        # Create a hashable key for the current subproblem.
         current_tonality_obj = current_path.get_current_tonality()
         cache_key = (
             current_path.get_current_state(), 
             current_tonality_obj.tonality_name if current_tonality_obj else None, 
             tuple(c.name for c in remaining_chords)
         )
-        # If this subproblem has been solved before, return the cached result.
         if cache_key in self.cache:
             success, cached_exp, cached_path = self.cache[cache_key]
             return success, cached_exp.clone(), cached_path.clone() if cached_path else None
@@ -225,37 +238,32 @@ class SatisfactionEvaluator:
         p_chord = remaining_chords[0]
         phi_sub_sequence = remaining_chords[1:]
 
-        # Step 1: Generate all possible next moves (hypotheses).
-        possible_continuations = self._get_possible_continuations(p_chord, current_path, parent_explanation)
-        possible_pivots = self._get_possible_pivots(p_chord, phi_sub_sequence, current_path, parent_explanation)
+        # STRATEGY 1: Try to extend the current path.
+        all_hypotheses = self._get_possible_continuations(p_chord, current_path, parent_explanation) \
+                       + self._get_possible_pivots(p_chord, phi_sub_sequence, current_path, parent_explanation)
 
-        # Step 2: Explore each hypothesis using recursion (Depth-First Search).
-        # The order here is important: we test simpler explanations (continuations) before complex ones (pivots).
-        for path, explanation in possible_continuations + possible_pivots:
-            # This is the "advance" step of the backtracking algorithm.
+        for path_after_p, explanation_for_p in all_hypotheses:
             success, final_explanation, final_path = self.evaluate_satisfaction_with_path(
-                path,
+                path_after_p,
                 phi_sub_sequence,
                 recursion_depth + 1,
-                explanation
+                explanation_for_p
             )
-            # If the recursive call finds a complete solution, we have succeeded.
             if success:
                 self.cache[cache_key] = (True, final_explanation, final_path)
                 return True, final_explanation, final_path
-            # If it returns False, this loop implicitly "backtracks" by simply trying the next hypothesis.
 
-        # Step 3: If all path extension hypotheses failed, try the re-anchor safety net.
-        success, final_explanation, final_path = self._try_reanchor(
-            remaining_chords, # Re-anchor the entire remaining sequence
+        # STRATEGY 2: If ALL attempts to extend the path failed, try to re-anchor.
+        success_reanchor, explanation_reanchor, path_reanchor = self._try_reanchor(
+            remaining_chords,
             parent_explanation,
             recursion_depth
         )
-        if success:
-            self.cache[cache_key] = (True, final_explanation, final_path)
-            return True, final_explanation, final_path
+        if success_reanchor:
+            self.cache[cache_key] = (True, explanation_reanchor, path_reanchor)
+            return True, explanation_reanchor, path_reanchor
 
-        # If all strategies have failed, this path is a dead end.
+        # If both strategies have failed, this subproblem is unsolvable.
         self.cache[cache_key] = (False, parent_explanation, None)
         return False, parent_explanation, None
 
@@ -273,13 +281,13 @@ class SatisfactionEvaluator:
         """
         initial_path = KripkePath()
         initial_path.add_step(current_state, current_tonality, f"Starting analysis in {current_tonality.tonality_name}")
-        
+
         # Pass the ranked tonalities to the evaluator instance for optimization.
         if ranked_tonalities:
             self.ranked_tonalities = ranked_tonalities
-        
+
         success, explanation, _ = self.evaluate_satisfaction_with_path(
             initial_path, remaining_chords, recursion_depth, parent_explanation
         )
-        
+
         return success, explanation
