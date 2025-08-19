@@ -11,7 +11,7 @@ class HarmonicGraph:
     def __init__(self, theme: dict, temp_dir: Path, rankdir='LR', splines='line', nodesep='0.8', ranksep='1.5'):
         self.dot = graphviz.Digraph('HarmonicProgression')
         self.dot.attr('graph', rankdir=rankdir, splines=splines, nodesep=nodesep, ranksep=ranksep, bgcolor='transparent')
-        self.dot.attr('node', fontname='Arial', fontsize='22')
+        self.dot.attr('node', fontname='MuseJazzText', fontsize='22')
         self.dot.attr('edge', fontname='Arial', fontsize='10')
         self.existing_connections = set()
         self.theme = theme 
