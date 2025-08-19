@@ -31,6 +31,10 @@ class VisualizerService:
 
         function_to_shape = {"TONIC": "house", "DOMINANT": "circle", "SUBDOMINANT": "cds"}
 
+        # Determine the style for primary chords based on the tonality mode
+        is_minor_tonality = "minor" in tonality_name.lower()
+        primary_style_variant = 'dashed_filled' if is_minor_tonality else 'solid_filled'
+
         relevant_steps = [step for step in analysis_data.explanation_details if step.processed_chord]
         relevant_steps.reverse()
 
@@ -51,31 +55,30 @@ class VisualizerService:
             main_node = NodeInfo(f"{chord}_main_{i}", chord, function, shape, step)
             main_world_nodes.append(main_node)
             if is_primary:
-                graph.add_primary_chord(main_node.node_id, main_node.chord, shape=main_node.shape)
+                # Apply the style determined by the tonality's mode
+                graph.add_primary_chord(main_node.node_id, main_node.chord, shape=main_node.shape, style_variant=primary_style_variant)
             else:
-                graph.add_placeholder_chord(main_node.node_id, main_node.chord, shape=main_node.shape)
+                # Non-diatonic chords are always dashed
+                graph.add_placeholder_chord(main_node.node_id, main_node.chord, shape=main_node.shape, style_variant='dashed_filled')
 
             if not is_primary or is_pivot:
                 secondary_function = "TONIC" if is_pivot else function
                 secondary_shape = function_to_shape.get(secondary_function, 'circle')
                 possible_node = NodeInfo(f"{chord}_possible_{i}", chord, secondary_function, secondary_shape, step)
                 possible_world_nodes[i] = possible_node
-                graph.add_secondary_chord(possible_node.node_id, possible_node.chord, shape=possible_node.shape)
+                # Secondary chords are always dashed
+                graph.add_secondary_chord(possible_node.node_id, possible_node.chord, shape=possible_node.shape, style_variant='dashed_filled')
 
         # 2. SECOND PASS: Connect and align the nodes
         for i in range(len(main_world_nodes)):
             main_node = main_world_nodes[i]
             possible_node = possible_world_nodes[i]
-
+            
             if main_node and possible_node:
-                # Align the main node and its corresponding possible-world node in the same column
                 graph.align_nodes_in_ranks([main_node.node_id, possible_node.node_id])
-
-                # Connect them with a dotted line that doesn't affect layout
                 color = theme['secondary_stroke'] if "Pivot" not in main_node.step.formal_rule_applied else theme['annotation_gray']
                 graph.connect_nodes(main_node.node_id, possible_node.node_id, style='dotted', color=color, arrowhead='none', constraint='false')
 
-            # Horizontal connections (Cadences)
             if i > 0:
                 prev_main = main_world_nodes[i-1]
                 curr_main = main_world_nodes[i]
@@ -84,7 +87,7 @@ class VisualizerService:
                         graph.connect_nodes(prev_main.node_id, curr_main.node_id, style='dashed', color=theme['primary_stroke'], penwidth='2')
                     elif prev_main.function == "DOMINANT" and curr_main.function == "TONIC":
                         graph.connect_with_double_arrow(prev_main.node_id, curr_main.node_id, 'primary_stroke')
-
+                
                 prev_possible = possible_world_nodes[i-1]
                 curr_possible = possible_world_nodes[i]
                 if prev_possible and curr_possible:
@@ -94,5 +97,5 @@ class VisualizerService:
         # 3. Build the invisible chain for horizontal layout and Render
         main_ids = [n.node_id for n in main_world_nodes if n]
         graph.build_progression_chain(main_ids)
-
+        
         return graph.render(output_filename)

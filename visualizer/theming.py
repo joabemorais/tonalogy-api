@@ -19,6 +19,22 @@ DEFAULT_THEME = {
     'annotation_gray': '#555555'
 }
 
+# Mapping of minor keys to their relative major keys
+RELATIVE_MAJOR_MAP = {
+    "A minor": "C Major",
+    "E minor": "G Major",
+    "B minor": "D Major",
+    "F# minor": "A Major",
+    "C# minor": "E Major",
+    "G# minor": "B Major",
+    "D# minor": "F# Major",
+    "A# minor": "C# Major",
+    "D minor": "F Major",
+    "G minor": "A# Major",
+    "C minor": "D# Major",
+    "F minor": "G# Major",
+}
+
 def _load_themes_from_csv(file_path: Path) -> Dict[str, Dict[str, str]]:
     """Loads themes from a CSV file."""
     try:
@@ -42,5 +58,15 @@ def _load_themes_from_csv(file_path: Path) -> Dict[str, Dict[str, str]]:
 TONALITY_THEMES = _load_themes_from_csv(CONFIG_PATH)
 
 def get_theme_for_tonality(tonality_name: str) -> dict:
-    """Fetches the theme for a tonality, returning the default if not found."""
-    return TONALITY_THEMES.get(tonality_name, DEFAULT_THEME)
+    """
+    Fetches the theme for a tonality. If the tonality is minor,
+    it uses the theme of its relative major.
+    """
+    key_to_lookup = tonality_name
+    
+    # If the provided name is a minor key, find its relative major
+    if tonality_name in RELATIVE_MAJOR_MAP:
+        key_to_lookup = RELATIVE_MAJOR_MAP[tonality_name]
+
+    # Return the theme for the determined key (major or relative major)
+    return TONALITY_THEMES.get(key_to_lookup, DEFAULT_THEME)
