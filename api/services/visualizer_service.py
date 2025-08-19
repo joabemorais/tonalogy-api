@@ -40,11 +40,10 @@ class VisualizerService:
         # 1. FIRST PASS: Classify and create nodes for each world
         for i, step in enumerate(relevant_steps):
             chord = step.processed_chord
-
-            function = "TONIC" # Default
+            function = "TONIC"
             if step.evaluated_functional_state:
                 function = step.evaluated_functional_state.split(" ")[0]
-
+            
             shape = function_to_shape.get(function, 'circle')
             is_primary = step.tonality_used_in_step == tonality_name
             is_pivot = "Pivot" in step.formal_rule_applied
@@ -63,14 +62,20 @@ class VisualizerService:
                 possible_world_nodes[i] = possible_node
                 graph.add_secondary_chord(possible_node.node_id, possible_node.chord, shape=possible_node.shape)
 
-        # 2. SECOND PASS: Connect the nodes
+        # 2. SECOND PASS: Connect and align the nodes
         for i in range(len(main_world_nodes)):
             main_node = main_world_nodes[i]
             possible_node = possible_world_nodes[i]
-            if main_node and possible_node:
-                color = theme['secondary_stroke'] if "Pivot" not in main_node.step.formal_rule_applied else theme['annotation_gray']
-                graph.connect_nodes(main_node.node_id, possible_node.node_id, style='dotted', color=color, arrowhead='none')
 
+            if main_node and possible_node:
+                # Align the main node and its corresponding possible-world node in the same column
+                graph.align_nodes_in_ranks([main_node.node_id, possible_node.node_id])
+
+                # Connect them with a dotted line that doesn't affect layout
+                color = theme['secondary_stroke'] if "Pivot" not in main_node.step.formal_rule_applied else theme['annotation_gray']
+                graph.connect_nodes(main_node.node_id, possible_node.node_id, style='dotted', color=color, arrowhead='none', constraint='false')
+
+            # Horizontal connections (Cadences)
             if i > 0:
                 prev_main = main_world_nodes[i-1]
                 curr_main = main_world_nodes[i]
@@ -86,11 +91,8 @@ class VisualizerService:
                      if prev_possible.function == "DOMINANT" and curr_possible.function == "TONIC":
                          graph.connect_with_double_arrow(prev_possible.node_id, curr_possible.node_id, 'secondary_stroke')
 
-        # 3. Align and Render
+        # 3. Build the invisible chain for horizontal layout and Render
         main_ids = [n.node_id for n in main_world_nodes if n]
-        possible_ids = [n.node_id for n in possible_world_nodes if n]
-
         graph.build_progression_chain(main_ids)
-        graph.align_nodes_in_ranks(main_ids, possible_ids)
 
         return graph.render(output_filename)
