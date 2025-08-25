@@ -1,50 +1,182 @@
-# Tonalogy API v2.0
+## 📜 About The Project
 
-*Backend Service for Tonal Analysis and Visualization*
+**Tonalogy API** is a tool for musicians, students, and music theory researchers. It takes a sequence of chords and, using a model based on Kripke structures, analyzes the possible tonalities and the stability of the harmonic progression. Its key feature is the ability to not only analyze but also **generate elegant and informative vector visualizations (SVG)** of the harmonic path, making complex music theory concepts much easier to understand.
 
-## Overview
+> **Academic Context:** This system is the practical implementation of the undergraduate thesis entitled:
+>
+> *"A Computational Implementation for Tonality Analysis in Harmonic Progressions via Possible Worlds Semantics"*
+>
+> *Universidade Federal do Ceará – Campus Quixadá*
+>
+> It serves as the applied component of this research, transforming a theoretical model into a practical software solution for tonal inference and musical interpretation. For a deeper dive into the theoretical foundations, you can [read the preliminary thesis document here](./docs/tcc1_ajamorais.pdf).
 
-This API implements a computational model for tonality analysis in harmonic progressions, based on Possible Worlds Semantics. It offers two main endpoints:
+### ✨ Features
 
-1.  `/analyze`: Returns a detailed analysis in JSON format, explaining step by step how the tonality of a chord progression was identified.
-2.  `/visualize`: Returns a PNG image that visually represents the analysis, illustrating concepts like tonicization and pivot chords through a "two worlds" narrative.
+-   **Harmonic Analysis:** Evaluates chord progressions to determine their tonal characteristics.
+-   **Kripke Model:** Uses modal logic to model the "possible worlds" of a harmonic progression.
+-   **Graphic Visualization:** Generates SVG graphs that represent the tonal journey of the chords.
+-   **RESTful API:** A simple, HTTP-based interface for easy integration with other applications.
 
-## Project Structure
+### 🛠️ Tech Stack
 
--   **`main.py`**: Entry point of the FastAPI application.
--   **`api/`**: Contains the API logic (endpoints, services, schemas).
-    -   `endpoints/`: Defines the `/analyze` and `/visualize` routes.
-    -   `services/`: Orchestrates business logic. `analysis_service` calls the core, while `visualizer_service` translates the analysis into a diagram.
--   **`core/`**: The inference engine for formal harmonic analysis.
--   **`visualizer/`**: The rendering module that translates analysis data into `graphviz` diagrams with custom SVGs.
--   **`temp_images/`**: Temporary directory to store generated images before sending them to the client.
+-   [Python 3.11+](https://www.python.org/)
+-   [FastAPI](https://fastapi.tiangolo.com/)
+-   [Pydantic](https://docs.pydantic.dev/)
+-   [Graphviz](https://graphviz.org/) for graph rendering.
+-   [Pytest](https://docs.pytest.org/) for testing.
 
-## How to Run
+---
 
-1.  **Install dependencies:**
-    ```bash
-    pip install "fastapi[all]" pandas cairosvg python-graphviz
+## 🚀 Getting Started
+
+Follow these instructions to get a copy of the project up and running on your local machine.
+
+### ✅ Prerequisites
+
+-   Python 3.11 or higher.
+-   A package manager like `pip`.
+-   Graphviz system package. (e.g., `sudo apt-get install graphviz` on Debian/Ubuntu).
+
+### ⚙️ Installation
+
+1.  **Clone the repository**
+    ```sh
+    git clone [https://github.com/joabemorais/tonalogy-api.git](https://github.com/joabemorais/tonalogy-api.git)
     ```
 
-2.  **Start the server:**
-    ```bash
-    uvicorn main:app --reload
+2.  **Navigate to the project directory**
+    ```sh
+    cd tonalogy-api
     ```
 
-3.  **Access the interactive documentation:**
-    Navigate to `http://127.0.0.1:8000/docs` to test the endpoints.
+3.  **(Recommended) Create and activate a virtual environment**
+    ```sh
+    python -m venv venv
+    source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+    ```
 
-## Example Usage of the `/visualize` Endpoint
+4.  **Install the dependencies**
+    > **Note:** It's good practice to create a `requirements.txt` file in your project.
+    ```sh
+    pip install fastapi uvicorn[standard] graphviz
+    ```
 
-Send a `POST` request to `http://127.0.0.1:8000/visualize` with the following JSON body:
+5.  **Start the API server**
+    ```sh
+    uvicorn api.main:app --reload
+    ```
+    The server will be available at `http://localhost:8000`.
 
-```json
-{
+---
+
+## 💡 Usage
+
+You can interact with the API using any HTTP client. Here are some examples with `curl`.
+
+### 1. Analyze a Progression
+
+Send a list of chords to the `/api/analysis/` endpoint to receive a detailed analysis.
+
+**Request:**
+```sh
+curl -X 'POST' \
+  'http://localhost:8000/analyze' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
   "chords": [
     "Em",
     "A",
     "Dm",
     "G",
     "C"
+  ],
+  "tonalities_to_test": []
+}'
+```
+
+**Expected Response:**
+```json
+{
+  "is_tonal_progression": true,
+  "identified_tonality": "C Major",
+  "explanation_details": [
+    {
+      "formal_rule_applied": "Analysis Start",
+      "observation": "Testing progression with primary tonality: 'C Major'.",
+      "processed_chord": null,
+      "tonality_used_in_step": "C Major",
+      "evaluated_functional_state": null
+    },
+    // ... rest of the analysis
   ]
 }
+```
+
+### 2. Generate a Visualization
+
+Send a list of chords to `/api/visualizer/` to generate an SVG graph of the analysis.
+
+**Request:**
+```sh
+curl -X 'POST' \
+  'http://localhost:8000/visualize' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "chords": [
+    "Em",
+    "A",
+    "Dm",
+    "G",
+    "C"
+  ],
+  "tonalities_to_test": []
+}'
+```
+This command saves the returned SVG image to the `harmonic-visualization.svg` file.
+
+### 📚 Interactive API Documentation
+
+For a complete experience, including testing endpoints directly from your browser, access the documentation automatically generated by FastAPI:
+
+-   **Swagger UI:** [http://localhost:8000/docs](http://localhost:8000/docs)
+-   **ReDoc:** [http://localhost:8000/redoc](http://localhost:8000/redoc)
+
+---
+
+## 🧪 Running the Tests
+
+To ensure code integrity and validate new features, run the test suite with Pytest.
+
+```sh
+pytest
+```
+
+---
+
+## 🤝 Contributing
+
+Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+1.  **Fork** the Project.
+2.  Create your Feature **Branch** (`git checkout -b feature/AmazingFeature`).
+3.  **Commit** your Changes (`git commit -m 'Add some AmazingFeature'`).
+4.  **Push** to the Branch (`git push origin feature/AmazingFeature`).
+5.  Open a **Pull Request**.
+
+---
+
+## 📄 License
+
+This project is licensed under the **Business Source License 1.1**.
+
+Under this license, you may use the software for non-production purposes. On **August 14, 2029**, the license will automatically convert to the **Apache License, Version 2.0**.
+
+Please see the `LICENSE.md` file for the full terms.
+
+---
+
+## 📬 Contact
+
+Joabe Morais - [LinkedIn](https://www.linkedin.com/in/joabemorais/) - [Github](https://github.com/joabemorais)
