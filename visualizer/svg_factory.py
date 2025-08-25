@@ -1,5 +1,6 @@
 import os
 import xml.etree.ElementTree as ET
+import warnings
 from pathlib import Path
 
 try:
@@ -57,8 +58,9 @@ class SvgFactory:
         
         svg_string_styled = ET.tostring(root, encoding='unicode')
 
+        if not CAIROSVG_AVAILABLE:
             raise RuntimeError("The 'cairosvg' library is not installed, cannot convert SVG to PNG.")
-            
+
         png_data = cairosvg.svg2png(bytestring=svg_string_styled.encode('utf-8'))
 
         filepath = self.temp_dir / f"temp_img_{node_id}.png"
