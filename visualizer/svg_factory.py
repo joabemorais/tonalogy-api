@@ -15,8 +15,11 @@ class SvgFactory:
     """
     def __init__(self, temp_dir: Path):
         if not CAIROSVG_AVAILABLE:
-            print("WARNING: The 'cairosvg' library was not found. Custom SVG shape rendering will fail.")
-            print("Install it with: pip install cairosvg")
+            warnings.warn(
+                "The 'cairosvg' library was not found. Custom SVG shape rendering will fail. "
+                "Install it with: pip install cairosvg",
+                RuntimeWarning
+            )
 
         self.temp_dir = temp_dir
         self.temp_dir.mkdir(parents=True, exist_ok=True)
@@ -54,8 +57,7 @@ class SvgFactory:
         
         svg_string_styled = ET.tostring(root, encoding='unicode')
 
-        if not CAIROSVG_AVAILABLE:
-            raise RuntimeError("CairoSVG is not installed, cannot convert SVG to PNG.")
+            raise RuntimeError("The 'cairosvg' library is not installed, cannot convert SVG to PNG.")
             
         png_data = cairosvg.svg2png(bytestring=svg_string_styled.encode('utf-8'))
 
