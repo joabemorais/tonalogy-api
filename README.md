@@ -134,7 +134,12 @@ curl -X 'POST' \
   "tonalities_to_test": []
 }'
 ```
-This command saves the returned SVG image to the `harmonic-visualization.svg` file.
+
+**Expected Response:**
+Image of the generated SVG graph. No JSON, just the png file, as shown below:
+
+![Example SVG Visualization](./docs/example_svg_output.png)
+
 
 ### 📚 Interactive API Documentation
 
