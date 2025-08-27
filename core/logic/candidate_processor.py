@@ -33,20 +33,34 @@ class CandidateProcessor:
     def _rank_by_fit(
         self,
         progression_chords: List[Chord],
-        candidate_tonalities: List[Tonality]
+        candidate_tonalities: List[Tonality],
+        last_chord: Chord
     ) -> List[Tonality]:
         """
         Ranks candidate tonalities based on how well the progression fits them.
+        Criteria:
+        1. Score (number of chords that belong to the tonality).
+        2. Tie-breaker: Prefers tonality quality (Major/minor) that matches the last chord's quality.
         """
         scored_tonalities = []
         for tonality in candidate_tonalities:
             score = sum(1 for chord in progression_chords if self._is_chord_in_tonality(tonality, chord))
             scored_tonalities.append((tonality, score))
 
-        # Simple sort by score
-        scored_tonalities.sort(key=lambda item: item[1], reverse=True)
+        # Determine the preferred quality based on the last chord's quality.
+        # Assumes Chord.quality is 'm' for minor chords.
+        preferred_quality = 'minor' if last_chord.quality == 'm' else 'Major'
 
-        logger.info(f"Tonality Ranking: {[ (t.tonality_name, s) for t, s in scored_tonalities ]}")
+        # Custom sort key: first by score (desc), then by quality match
+        def sort_key(item: Tuple[Tonality, int]) -> Tuple[int, int]:
+            tonality, score = item
+            # Preference: 0 if tonality quality matches the preferred one, 1 otherwise.
+            quality_preference = 0 if tonality.quality == preferred_quality else 1
+            return (-score, quality_preference)
+
+        scored_tonalities.sort(key=sort_key)
+
+        logger.info(f"Tonality Ranking (preference: {preferred_quality}): {[ (t.tonality_name, s) for t, s in scored_tonalities ]}")
 
         return [tonality for tonality, score in scored_tonalities]
 
@@ -65,8 +79,12 @@ class CandidateProcessor:
         valid_candidates = self._filter_by_final_tonic(last_chord, all_tonalities)
 
         if not valid_candidates:
+            # For debugging, we can rank all tonalities to understand why it failed
+            all_ranked = self._rank_by_fit(progression_chords, all_tonalities, last_chord)
+            logger.warning(f"No valid candidates found. Overall ranking: {[t.tonality_name for t in all_ranked]}")
             error_msg = f"No candidate tonality found where the final chord '{last_chord.name}' functions as a Tonic."
             return [], error_msg
 
-        ranked_candidates = self._rank_by_fit(progression_chords, valid_candidates)
+        # Pass the last chord to the ranking method for the dynamic tie-breaker
+        ranked_candidates = self._rank_by_fit(progression_chords, valid_candidates, last_chord)
         return ranked_candidates, None
