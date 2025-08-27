@@ -48,8 +48,7 @@ class CandidateProcessor:
             scored_tonalities.append((tonality, score))
 
         # Determine the preferred quality based on the last chord's quality.
-        # Assumes Chord.quality is 'm' for minor chords.
-        preferred_quality = 'minor' if last_chord.quality == 'm' else 'Major'
+        preferred_quality = last_chord.quality
 
         # Custom sort key: first by score (desc), then by quality match
         def sort_key(item: Tuple[Tonality, int]) -> Tuple[int, int]:
