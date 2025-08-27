@@ -4,15 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tonalogy-api"
-version = "2.0.0"
-description = "An API for analysis and visualization of tonal harmonic progressions using Kripke Semantics"
+version = "1.0.0"
+description = "A REST API for harmonic progression analysis and visualization using modal logic and Kripke structures."
 readme = "README.md"
 license = {file = "LICENSE.md"}
 authors = [
-    {name = "João Morais", email = "joabe.morais@example.com"}
+    {name = "Joabe Morais", email = "joabealvesmorais@gmail.com"}
 ]
 maintainers = [
-    {name = "João Morais", email = "joabe.morais@example.com"}
+    {name = "Joabe Morais", email = "joabealvesmorais@gmail.com"}
 ]
 keywords = [
     "music-theory",
@@ -76,7 +76,7 @@ Documentation = "https://github.com/joabemorais/tonalogy-api#readme"
 Issues = "https://github.com/joabemorais/tonalogy-api/issues"
 
 [project.scripts]
-tonalogy-api = "api.main:app"
+tonalogy-api = "api.main:main"
 
 [tool.setuptools.packages.find]
 include = ["api*", "core*", "visualizer*"]
