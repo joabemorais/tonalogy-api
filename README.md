@@ -33,15 +33,15 @@ Follow these instructions to get a copy of the project up and running on your lo
 
 ### ✅ Prerequisites
 
--   Python 3.11 or higher.
--   A package manager like `pip`.
--   Graphviz system package. (e.g., `sudo apt-get install graphviz` on Debian/Ubuntu).
+-   Python 3.9 or higher
+-   A package manager like `pip`
+-   Graphviz system package (e.g., `sudo apt-get install graphviz` on Debian/Ubuntu)
 
 ### ⚙️ Installation
 
 1.  **Clone the repository**
     ```sh
-    git clone [https://github.com/joabemorais/tonalogy-api.git](https://github.com/joabemorais/tonalogy-api.git)
+    git clone https://github.com/joabemorais/tonalogy-api.git
     ```
 
 2.  **Navigate to the project directory**
@@ -51,21 +51,88 @@ Follow these instructions to get a copy of the project up and running on your lo
 
 3.  **(Recommended) Create and activate a virtual environment**
     ```sh
-    python -m venv venv
-    source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+    python -m venv .venv
+    source .venv/bin/activate  # On Windows, use `.venv\Scripts\activate`
     ```
 
-4.  **Install the dependencies**
-    > **Note:** It's good practice to create a `requirements.txt` file in your project.
+4.  **Install the project**
+    
+    **For production use:**
     ```sh
-    pip install fastapi uvicorn[standard] graphviz
+    pip install .
+    ```
+    
+    **For development:**
+    ```sh
+    pip install -e ".[dev]"
+    ```
+    
+    **Alternative using requirements.txt:**
+    ```sh
+    # Production
+    pip install -r requirements.txt
+    
+    # Development
+    pip install -r requirements-dev.txt
     ```
 
-5.  **Start the API server**
-    ```sh
-    uvicorn api.main:app --reload
-    ```
-    The server will be available at `http://localhost:8000`.
+### 🏃 Running the Application
+
+**Method 1: Using the installed script (recommended)**
+```sh
+# After installing with pip install .
+tonalogy-api
+```
+
+**Method 2: Using uvicorn directly**
+```sh
+uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+**Method 3: Using Python directly**
+```sh
+python api/main.py
+```
+
+The server will be available at `http://localhost:8000`.
+
+### 📖 API Documentation
+
+Once the server is running, visit:
+- **Interactive API docs (Swagger UI)**: `http://localhost:8000/docs`
+- **Alternative API docs (ReDoc)**: `http://localhost:8000/redoc`
+
+### 🧪 Running Tests
+
+```sh
+# Run all tests
+pytest
+
+# Run tests with coverage
+pytest --cov=api --cov=core --cov=visualizer
+
+# Run specific test categories
+pytest -m unit          # Unit tests only
+pytest -m integration   # Integration tests only
+```
+
+### 🔧 Development Tools
+
+**Code formatting:**
+```sh
+black .                 # Format code
+isort .                 # Sort imports
+```
+
+**Type checking:**
+```sh
+mypy .                  # Check types
+```
+
+**All quality checks:**
+```sh
+black . && isort . && mypy . && pytest
+```
 
 ---
 

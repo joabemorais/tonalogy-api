@@ -1,0 +1,7 @@
+# Production dependencies
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
+pandas>=2.0.0
+graphviz>=0.20.0
+cairosvg>=2.7.0

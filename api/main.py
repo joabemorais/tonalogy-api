@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from pathlib import Path
 from typing import Dict
+import uvicorn
 
 from api.endpoints import analysis, visualizer 
 
@@ -42,3 +43,18 @@ async def read_root() -> Dict[str, str]:
     return {
         "message": "Welcome to Tonalogy API. Visit /docs to see the API documentation."
     }
+
+
+def main():
+    """Entry point for the tonalogy-api script."""
+    uvicorn.run(
+        "api.main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+        log_level="info"
+    )
+
+
+if __name__ == "__main__":
+    main()
