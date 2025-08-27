@@ -1,3 +1,9 @@
+<h1 align="center">Tonalogy API</h1>
+
+<p align="center">
+  A powerful API for harmonic progression analysis and tonal structure visualization using modal logic and Kripke structures.
+</p>
+
 ## 📜 About The Project
 
 **Tonalogy API** is a tool for musicians, students, and music theory researchers. It takes a sequence of chords and, using a model based on Kripke structures, analyzes the possible tonalities and the stability of the harmonic progression. Its key feature is the ability to not only analyze but also **generate elegant and informative vector visualizations (SVG)** of the harmonic path, making complex music theory concepts much easier to understand.
