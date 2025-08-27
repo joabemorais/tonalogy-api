@@ -13,6 +13,16 @@ class Chord:
     name: str
 
     @property
+    def quality(self) -> str:
+        """Determines the chord's quality (Major, minor, diminished) from its name."""
+        if "dim" in self.name:
+            return 'diminished'
+        elif "m" in self.name:
+            return 'minor'
+        else:
+            return 'Major'
+
+    @property
     def notes(self) -> Set[str]:
         if not hasattr(self, '_notes_cache'):
             object.__setattr__(self, '_notes_cache', self._parse_notes())
@@ -74,6 +84,13 @@ class Tonality:
     tonality_name: str
     function_to_chords_map: Dict[TonalFunction, Dict[Chord, str]]
     primary_scale_notes: Set[str] = field(default_factory=set)
+
+    @property
+    def quality(self) -> str:
+        """Determines the tonality's quality from its name."""
+        if 'minor' in self.tonality_name:
+            return 'minor'
+        return 'Major'
 
     def get_chords_for_function(self, func: TonalFunction) -> Set[Chord]:
         """Returns the set of chords for a given tonal function."""
