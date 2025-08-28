@@ -266,10 +266,25 @@ class SatisfactionEvaluator:
         phi_sub_sequence = remaining_chords[1:]
 
         # STRATEGY 1: Try to extend the current path.
-        all_hypotheses = self._get_possible_continuations(p_chord, current_path, parent_explanation) \
-                       + self._get_possible_pivots(p_chord, phi_sub_sequence, current_path, parent_explanation)
-
-        for path_after_p, explanation_for_p in all_hypotheses:
+        # First, try direct continuations (higher priority)
+        direct_continuations = self._get_possible_continuations(p_chord, current_path, parent_explanation)
+        
+        # Test direct continuations first
+        for path_after_p, explanation_for_p in direct_continuations:
+            success, final_explanation, final_path = self.evaluate_satisfaction_with_path(
+                path_after_p,
+                phi_sub_sequence,
+                recursion_depth + 1,
+                explanation_for_p
+            )
+            if success:
+                self.cache[cache_key] = (True, final_explanation, final_path)
+                return True, final_explanation, final_path
+        
+        # If no direct continuation worked, try pivots (lower priority)
+        pivots = self._get_possible_pivots(p_chord, phi_sub_sequence, current_path, parent_explanation)
+        
+        for path_after_p, explanation_for_p in pivots:
             success, final_explanation, final_path = self.evaluate_satisfaction_with_path(
                 path_after_p,
                 phi_sub_sequence,
