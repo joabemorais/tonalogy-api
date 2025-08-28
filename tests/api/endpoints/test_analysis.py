@@ -16,6 +16,7 @@ client = TestClient(app)
 
 # --- Endpoint Tests ---
 
+
 def test_analyze_endpoint_success() -> None:
     """
     Tests a successful call to the /analyze endpoint.
@@ -26,21 +27,25 @@ def test_analyze_endpoint_success() -> None:
     mock_response_data: Dict[str, Any] = {
         "is_tonal_progression": True,
         "identified_tonality": "C Major",
-        "explanation_details": [{
-            "formal_rule_applied": "Overall Success",
-            "observation": "Progression identified as tonal.",
-            "tonality_used_in_step": "C Major",
-            "processed_chord": "C",
-            "evaluated_functional_state": "TONIC (s_t)"
-        }],
-        "error": None
+        "explanation_details": [
+            {
+                "formal_rule_applied": "Overall Success",
+                "observation": "Progression identified as tonal.",
+                "tonality_used_in_step": "C Major",
+                "processed_chord": "C",
+                "evaluated_functional_state": "TONIC (s_t)",
+            }
+        ],
+        "error": None,
     }
     # Use our Pydantic schema to create the response object
-    mock_service.analyze_progression.return_value = ProgressionAnalysisResponse(**mock_response_data)
-    
+    mock_service.analyze_progression.return_value = ProgressionAnalysisResponse(
+        **mock_response_data
+    )
+
     # Replace the real dependency with our mock using FastAPI's mechanism
     app.dependency_overrides[get_analysis_service] = lambda: mock_service
-    
+
     # The request body we'll send
     request_payload: Dict[str, Any] = {"chords": ["C", "G", "C"]}
 
@@ -54,6 +59,7 @@ def test_analyze_endpoint_success() -> None:
     assert response_data["identified_tonality"] == "C Major"
     assert "explanation_details" in response_data
 
+
 def test_analyze_endpoint_bad_request_known_error() -> None:
     """
     Tests if the endpoint returns a 400 error when the service detects a known problem.
@@ -65,19 +71,22 @@ def test_analyze_endpoint_bad_request_known_error() -> None:
         "is_tonal_progression": False,
         "identified_tonality": None,
         "explanation_details": [],
-        "error": "Tonality 'D Major' is not known."
+        "error": "Tonality 'D Major' is not known.",
     }
-    mock_service.analyze_progression.return_value = ProgressionAnalysisResponse(**mock_response_data)
+    mock_service.analyze_progression.return_value = ProgressionAnalysisResponse(
+        **mock_response_data
+    )
     app.dependency_overrides[get_analysis_service] = lambda: mock_service
-    
+
     request_payload: Dict[str, Any] = {"chords": ["C"], "tonalities_to_test": ["D Major"]}
-    
+
     # WHEN
     response = client.post("/analyze", json=request_payload)
-    
+
     # THEN
     assert response.status_code == 400
     assert response.json()["detail"] == "Tonality 'D Major' is not known."
+
 
 def test_analyze_endpoint_invalid_payload() -> None:
     """
@@ -88,14 +97,15 @@ def test_analyze_endpoint_invalid_payload() -> None:
     # Set up a mock service so the dependency is properly overridden
     mock_service = MagicMock(spec=TonalAnalysisService)
     app.dependency_overrides[get_analysis_service] = lambda: mock_service
-    
-    request_payload: Dict[str, Any] = {"chords": []} # min_items=1 is violated
+
+    request_payload: Dict[str, Any] = {"chords": []}  # min_items=1 is violated
 
     # WHEN
     response = client.post("/analyze", json=request_payload)
-    
+
     # THEN
-    assert response.status_code == 422 # FastAPI handles this automatically
+    assert response.status_code == 422  # FastAPI handles this automatically
+
 
 def test_analyze_endpoint_internal_server_error() -> None:
     """
@@ -106,15 +116,16 @@ def test_analyze_endpoint_internal_server_error() -> None:
     mock_service = MagicMock(spec=TonalAnalysisService)
     mock_service.analyze_progression.side_effect = ValueError("Something unexpected happened!")
     app.dependency_overrides[get_analysis_service] = lambda: mock_service
-    
+
     request_payload: Dict[str, Any] = {"chords": ["C"]}
 
     # WHEN
     response = client.post("/analyze", json=request_payload)
-    
+
     # THEN
     assert response.status_code == 500
     assert "internal server error" in response.json()["detail"]
+
 
 def test_root_endpoint():
     """
@@ -131,7 +142,9 @@ def test_root_endpoint():
         "message": "Welcome to Tonalogy API. Visit /docs to see the API documentation."
     }
 
+
 # --- Dependency Cleanup ---
+
 
 @pytest.fixture(autouse=True)
 def cleanup_dependencies():

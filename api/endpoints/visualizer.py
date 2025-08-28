@@ -9,9 +9,11 @@ from api.endpoints.analysis import get_analysis_service
 
 router = APIRouter()
 
+
 def get_visualizer_service() -> VisualizerService:
     """Dependency for the VisualizerService."""
     return VisualizerService()
+
 
 @router.post(
     "/visualize",
@@ -28,7 +30,7 @@ def get_visualizer_service() -> VisualizerService:
 async def visualize_progression(
     request: ProgressionAnalysisRequest,
     analysis_service: TonalAnalysisService = Depends(get_analysis_service),
-    visualizer_service: VisualizerService = Depends(get_visualizer_service)
+    visualizer_service: VisualizerService = Depends(get_visualizer_service),
 ):
     """
     Receives a list of chords, analyzes the progression and returns a
@@ -38,19 +40,20 @@ async def visualize_progression(
 
     if not analysis_result.is_tonal_progression:
         raise HTTPException(
-            status_code=400, 
-            detail=f"The progression is not tonal. {analysis_result.error or ''}"
+            status_code=400, detail=f"The progression is not tonal. {analysis_result.error or ''}"
         )
 
     try:
         image_path = visualizer_service.create_graph_from_analysis(analysis_result)
-        
+
         if not os.path.exists(image_path):
-             raise HTTPException(status_code=500, detail="Image file not found after generation.")
+            raise HTTPException(status_code=500, detail="Image file not found after generation.")
 
         return FileResponse(image_path, media_type="image/png")
-    
+
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"An internal error occurred during visualization: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"An internal error occurred during visualization: {e}"
+        )
