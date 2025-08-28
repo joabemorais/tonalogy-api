@@ -57,7 +57,8 @@ class VisualizerService:
                 
             function = "TONIC"
             if step.evaluated_functional_state:
-                function = step.evaluated_functional_state
+                # Extract function from strings like "TONIC (s_t)", "DOMINANT (s_d)", etc.
+                function = step.evaluated_functional_state.split(" ")[0]
 
             shape = function_to_shape.get(function, "circle")
             is_primary = (step.tonality_used_in_step is not None and 
