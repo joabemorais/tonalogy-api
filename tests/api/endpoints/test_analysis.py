@@ -1,7 +1,5 @@
-from typing import Any, Dict
+from typing import Any, Dict, Generator
 from unittest.mock import MagicMock
-
-from typing import Generator
 
 import pytest
 from fastapi.testclient import TestClient
