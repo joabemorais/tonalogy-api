@@ -53,6 +53,7 @@ temp_images/
 *.temp
 .DS_Store
 Thumbs.db
+*debug*
 
 # Logs
 *.log
