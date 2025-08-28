@@ -68,6 +68,33 @@ class SatisfactionEvaluator:
                     f"Direct transition to {next_state.associated_tonal_function.name}"
                 )
                 continuations.append((path_copy, explanation_for_P.clone()))
+        
+        # ADDITIONAL: Also check if the chord can fulfill any function in directly accessible states
+        # This handles cases like s_d -> s_sd where the chord is SUBDOMINANT (not DOMINANT)
+        successor_states = self.kripke_config.get_successors_of_state(current_state)
+        for next_state in successor_states:
+            # Skip if we already handled this through the current state logic above
+            if current_tonality.chord_fulfills_function(p_chord, current_state.associated_tonal_function):
+                continue
+                
+            # Check if the chord fulfills the function required by this successor state
+            if current_tonality.chord_fulfills_function(p_chord, next_state.associated_tonal_function):
+                explanation_for_P = parent_explanation.clone()
+                explanation_for_P.add_step(
+                    formal_rule_applied="P in L",
+                    observation=f"Chord '{p_chord.name}' fulfills function '{next_state.associated_tonal_function.name}' in '{current_tonality.tonality_name}'.",
+                    evaluated_functional_state=next_state,
+                    processed_chord=p_chord,
+                    tonality_used_in_step=current_tonality
+                )
+                # Create path with transition to this state
+                path_copy = current_path.clone()
+                path_copy.add_step(
+                    next_state,
+                    current_tonality,
+                    f"Direct transition to {next_state.associated_tonal_function.name}"
+                )
+                continuations.append((path_copy, explanation_for_P.clone()))
 
         return continuations
 
@@ -239,10 +266,25 @@ class SatisfactionEvaluator:
         phi_sub_sequence = remaining_chords[1:]
 
         # STRATEGY 1: Try to extend the current path.
-        all_hypotheses = self._get_possible_continuations(p_chord, current_path, parent_explanation) \
-                       + self._get_possible_pivots(p_chord, phi_sub_sequence, current_path, parent_explanation)
-
-        for path_after_p, explanation_for_p in all_hypotheses:
+        # First, try direct continuations (higher priority)
+        direct_continuations = self._get_possible_continuations(p_chord, current_path, parent_explanation)
+        
+        # Test direct continuations first
+        for path_after_p, explanation_for_p in direct_continuations:
+            success, final_explanation, final_path = self.evaluate_satisfaction_with_path(
+                path_after_p,
+                phi_sub_sequence,
+                recursion_depth + 1,
+                explanation_for_p
+            )
+            if success:
+                self.cache[cache_key] = (True, final_explanation, final_path)
+                return True, final_explanation, final_path
+        
+        # If no direct continuation worked, try pivots (lower priority)
+        pivots = self._get_possible_pivots(p_chord, phi_sub_sequence, current_path, parent_explanation)
+        
+        for path_after_p, explanation_for_p in pivots:
             success, final_explanation, final_path = self.evaluate_satisfaction_with_path(
                 path_after_p,
                 phi_sub_sequence,
