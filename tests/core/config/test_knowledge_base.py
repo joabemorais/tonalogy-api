@@ -61,7 +61,9 @@ def temp_tonalities_config_file(tmp_path: Path) -> Path:
 # --- Tests for TonalKnowledgeBase Class ---
 
 
-def test_knowledge_base_loads_successfully(temp_kripke_config_file: Path, temp_tonalities_config_file: Path) -> None:
+def test_knowledge_base_loads_successfully(
+    temp_kripke_config_file: Path, temp_tonalities_config_file: Path
+) -> None:
     """
     Tests if TonalKnowledgeBase loads and interprets configuration files correctly.
     """
@@ -79,7 +81,9 @@ def test_knowledge_base_loads_successfully(temp_kripke_config_file: Path, temp_t
     assert all(isinstance(t, Tonality) for t in knowledge_base.all_tonalities)
 
 
-def test_kripke_config_parsing(temp_kripke_config_file: Path, temp_tonalities_config_file: Path) -> None:
+def test_kripke_config_parsing(
+    temp_kripke_config_file: Path, temp_tonalities_config_file: Path
+) -> None:
     """
     Verifies if Kripke structure data was parsed to the correct domain objects.
     """
@@ -102,7 +106,9 @@ def test_kripke_config_parsing(temp_kripke_config_file: Path, temp_tonalities_co
     assert expected_relation in k_config.accessibility_relation
 
 
-def test_tonalities_parsing(temp_kripke_config_file: Path, temp_tonalities_config_file: Path) -> None:
+def test_tonalities_parsing(
+    temp_kripke_config_file: Path, temp_tonalities_config_file: Path
+) -> None:
     """
     Verifies if tonality data was parsed to the correct domain objects.
     """
@@ -119,7 +125,9 @@ def test_tonalities_parsing(temp_kripke_config_file: Path, temp_tonalities_confi
     assert Chord("Am") in tonic_chords
 
 
-def test_load_raises_error_for_missing_kripke_file(tmp_path: Path, temp_tonalities_config_file: Path) -> None:
+def test_load_raises_error_for_missing_kripke_file(
+    tmp_path: Path, temp_tonalities_config_file: Path
+) -> None:
     """
     Tests if an error is raised when the Kripke configuration file doesn't exist.
     """
@@ -132,7 +140,9 @@ def test_load_raises_error_for_missing_kripke_file(tmp_path: Path, temp_tonaliti
         TonalKnowledgeBase(invalid_path, temp_tonalities_config_file)
 
 
-def test_load_raises_error_for_missing_tonalities_file(tmp_path: Path, temp_kripke_config_file: Path) -> None:
+def test_load_raises_error_for_missing_tonalities_file(
+    tmp_path: Path, temp_kripke_config_file: Path
+) -> None:
     """
     Tests if an error is raised when the tonalities configuration file doesn't exist.
     """

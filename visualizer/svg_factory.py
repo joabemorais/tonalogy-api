@@ -30,7 +30,9 @@ class SvgFactory:
         self.temp_dir.mkdir(parents=True, exist_ok=True)
         self.temp_files: List[Path] = []
 
-    def create_styled_image_file(self, node_id: str, svg_template: str, fill: str, stroke: str, penwidth: str = "1.5") -> str:
+    def create_styled_image_file(
+        self, node_id: str, svg_template: str, fill: str, stroke: str, penwidth: str = "1.5"
+    ) -> str:
         """
         Takes an SVG template, applies styles, converts to PNG and saves to a temporary file.
         Returns the absolute path of the created PNG file.

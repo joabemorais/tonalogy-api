@@ -60,7 +60,11 @@ def c_major_tonality() -> Tonality:
         tonality_name="C Major",
         function_to_chords_map={
             TonalFunction.TONIC: {Chord("C"): "major", Chord("Am"): "major"},
-            TonalFunction.DOMINANT: {Chord("G"): "major", Chord("G7"): "major", Chord("Bdim"): "major"},
+            TonalFunction.DOMINANT: {
+                Chord("G"): "major",
+                Chord("G7"): "major",
+                Chord("Bdim"): "major",
+            },
             TonalFunction.SUBDOMINANT: {Chord("F"): "major", Chord("Dm"): "major"},
         },
     )
@@ -168,7 +172,9 @@ def test_get_state_by_tonal_function_found(
     assert subdominant_state == sample_states["s_sd"], "Should find the correct subdominant state"
 
 
-def test_get_state_by_tonal_function_not_found(kripke_config_populated: KripkeStructureConfig) -> None:
+def test_get_state_by_tonal_function_not_found(
+    kripke_config_populated: KripkeStructureConfig,
+) -> None:
     """Test finding a state by a TonalFunction that does not exist in any state."""
 
     # Define a TonalFunction value that is guaranteed not to be in use
@@ -181,7 +187,9 @@ def test_get_state_by_tonal_function_not_found(kripke_config_populated: KripkeSt
     assert unknown_function_state is None, "Should return None for a non-existent tonal function"
 
 
-def test_get_state_by_tonal_function_empty_config(kripke_config_empty: KripkeStructureConfig) -> None:
+def test_get_state_by_tonal_function_empty_config(
+    kripke_config_empty: KripkeStructureConfig,
+) -> None:
     """Test on an empty KripkeStructureConfig."""
     tonic_state = kripke_config_empty.get_state_by_tonal_function(TonalFunction.TONIC)
     assert tonic_state is None, "Should return None when config has no states"
@@ -190,7 +198,9 @@ def test_get_state_by_tonal_function_empty_config(kripke_config_empty: KripkeStr
 # --- Tests for get_successors_of_state ---
 
 
-def test_get_successors_of_st(kripke_config_populated: KripkeStructureConfig, sample_states: Dict) -> None:
+def test_get_successors_of_st(
+    kripke_config_populated: KripkeStructureConfig, sample_states: Dict
+) -> None:
     """Test successors for s_sd (Subdominant), which has multiple distinct successors."""
     successors_of_st = kripke_config_populated.get_successors_of_state(sample_states["s_t"])
     expected_successors = {sample_states["s_d"], sample_states["s_sd"]}
@@ -397,7 +407,9 @@ def test_explanation_clone_with_one_step(
     assert len(exp_cloned.steps) == 1
 
 
-def test_explanation_clone_with_multiple_steps(explanation_with_multiple_steps: Explanation) -> None:
+def test_explanation_clone_with_multiple_steps(
+    explanation_with_multiple_steps: Explanation,
+) -> None:
     """Test cloning an Explanation with multiple steps, ensuring deep enough copy."""
     exp_orig = explanation_with_multiple_steps
     original_steps_copy = copy.deepcopy(exp_orig.steps)

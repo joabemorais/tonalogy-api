@@ -31,8 +31,16 @@ def c_major_tonality() -> Tonality:
     return Tonality(
         tonality_name="C Major",
         function_to_chords_map={
-            TonalFunction.TONIC: {Chord("C"): "natural", Chord("Am"): "natural", Chord("Em"): "natural"},
-            TonalFunction.DOMINANT: {Chord("G"): "natural", Chord("G7"): "natural", Chord("Bdim"): "natural"},
+            TonalFunction.TONIC: {
+                Chord("C"): "natural",
+                Chord("Am"): "natural",
+                Chord("Em"): "natural",
+            },
+            TonalFunction.DOMINANT: {
+                Chord("G"): "natural",
+                Chord("G7"): "natural",
+                Chord("Bdim"): "natural",
+            },
             TonalFunction.SUBDOMINANT: {Chord("F"): "natural", Chord("Dm"): "natural"},
         },
     )
@@ -51,7 +59,9 @@ def d_minor_tonality() -> Tonality:
 
 
 @pytest.fixture
-def aragao_kripke_config(tonic_state: KripkeState, dominant_state: KripkeState, subdominant_state: KripkeState) -> KripkeStructureConfig:
+def aragao_kripke_config(
+    tonic_state: KripkeState, dominant_state: KripkeState, subdominant_state: KripkeState
+) -> KripkeStructureConfig:
     """
     Creates the Kripke structure configuration with INVERTED accessibility relations,
     according to the direct suggestion from author Aragão.
@@ -73,7 +83,9 @@ def aragao_kripke_config(tonic_state: KripkeState, dominant_state: KripkeState, 
 
 
 def test_full_analysis_of_complex_progression(
-    aragao_kripke_config: KripkeStructureConfig, c_major_tonality: Tonality, d_minor_tonality: Tonality
+    aragao_kripke_config: KripkeStructureConfig,
+    c_major_tonality: Tonality,
+    d_minor_tonality: Tonality,
 ) -> None:
     """
     This is a complete integration test for the core. It validates the analysis of

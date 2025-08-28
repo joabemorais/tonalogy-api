@@ -37,7 +37,15 @@ class HarmonicGraph:
         self.svg_factory = SvgFactory(temp_dir)
 
     def _add_image_node(
-        self, node_id: str, label: str, shape_name: str, style_variant: str, fill: str, stroke: str, penwidth: str = "4", fontcolor: Union[str, None] = None
+        self,
+        node_id: str,
+        label: str,
+        shape_name: str,
+        style_variant: str,
+        fill: str,
+        stroke: str,
+        penwidth: str = "4",
+        fontcolor: Union[str, None] = None,
     ) -> None:
         shape_variants = SVG_TEMPLATES.get(shape_name)
         if not shape_variants:
@@ -66,7 +74,9 @@ class HarmonicGraph:
 
         self.dot.node(node_id, **node_kwargs)
 
-    def add_primary_chord(self, node_id: str, label: str, shape: str = "house", style_variant: str = "solid_filled") -> None:
+    def add_primary_chord(
+        self, node_id: str, label: str, shape: str = "house", style_variant: str = "solid_filled"
+    ) -> None:
         font_color = self.theme.get("primary_text_color")
         if isinstance(font_color, str):
             font_color_param: Union[str, None] = font_color
@@ -82,7 +92,9 @@ class HarmonicGraph:
             fontcolor=font_color_param,
         )
 
-    def add_secondary_chord(self, node_id: str, label: str, shape: str = "circle", style_variant: str = "dashed_filled") -> None:
+    def add_secondary_chord(
+        self, node_id: str, label: str, shape: str = "circle", style_variant: str = "dashed_filled"
+    ) -> None:
         font_color = self.theme.get("secondary_text_color")
         if isinstance(font_color, str):
             font_color_param: Union[str, None] = font_color
@@ -98,7 +110,9 @@ class HarmonicGraph:
             fontcolor=font_color_param,
         )
 
-    def add_placeholder_chord(self, node_id: str, label: str, shape: str = "circle", style_variant: str = "dashed_filled") -> None:
+    def add_placeholder_chord(
+        self, node_id: str, label: str, shape: str = "circle", style_variant: str = "dashed_filled"
+    ) -> None:
         """Adds a translucent placeholder node in the main world."""
         fill = self.theme.get("secondary_fill", "#FFFFFF80")
         stroke = self.theme.get("secondary_stroke", "#000000")
@@ -116,7 +130,9 @@ class HarmonicGraph:
         sorted_nodes = sorted((from_node, to_node))
         self.existing_connections.add((sorted_nodes[0], sorted_nodes[1]))
 
-    def connect_with_double_arrow(self, from_node: str, to_node: str, color_key: str, **kwargs: Any) -> None:
+    def connect_with_double_arrow(
+        self, from_node: str, to_node: str, color_key: str, **kwargs: Any
+    ) -> None:
         color = self.theme.get(color_key)
         if not color:
             raise ValueError(f"Color key '{color_key}' not found in theme.")

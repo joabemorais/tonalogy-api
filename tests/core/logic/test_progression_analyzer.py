@@ -69,7 +69,10 @@ def test_check_progression_returns_true_on_first_tonality(
 
 
 def test_check_progression_returns_true_on_second_tonality(
-    mocker: Any, mock_kripke_config: MagicMock, c_major_tonality_mock: MagicMock, g_major_tonality_mock: MagicMock
+    mocker: Any,
+    mock_kripke_config: MagicMock,
+    c_major_tonality_mock: MagicMock,
+    g_major_tonality_mock: MagicMock,
 ) -> None:
     """
     Verifies if the analyzer continues to the second tonality if the first one fails.
@@ -121,7 +124,9 @@ def test_check_progression_returns_false_if_all_tonalities_fail(
     assert success is False
 
 
-def test_check_progression_handles_empty_sequence(mock_kripke_config: MagicMock, c_major_tonality_mock: MagicMock) -> None:
+def test_check_progression_handles_empty_sequence(
+    mock_kripke_config: MagicMock, c_major_tonality_mock: MagicMock
+) -> None:
     """
     Verifies the edge case of an empty chord progression.
     """

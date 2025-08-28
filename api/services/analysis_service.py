@@ -41,10 +41,10 @@ class TonalAnalysisService:
         try:
             if not request.chords:
                 return ProgressionAnalysisResponse(
-                    is_tonal_progression=False, 
+                    is_tonal_progression=False,
                     identified_tonality=None,
                     explanation_details=[],
-                    error="Chord list cannot be empty."
+                    error="Chord list cannot be empty.",
                 )
 
             input_chords: List[Chord] = [Chord(c) for c in request.chords]
@@ -75,7 +75,7 @@ class TonalAnalysisService:
                     is_tonal_progression=False,
                     identified_tonality=None,
                     explanation_details=[],
-                    error=error
+                    error=error,
                 )
 
             success: bool
@@ -122,5 +122,5 @@ class TonalAnalysisService:
                 is_tonal_progression=False,
                 identified_tonality=None,
                 explanation_details=[],
-                error="An unexpected error occurred during analysis."
+                error="An unexpected error occurred during analysis.",
             )

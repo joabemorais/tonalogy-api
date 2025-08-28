@@ -40,8 +40,16 @@ def c_major_tonality() -> Tonality:
     return Tonality(
         tonality_name="C Major",
         function_to_chords_map={
-            TonalFunction.TONIC: {Chord("C"): "natural", Chord("Am"): "natural", Chord("Em"): "natural"},
-            TonalFunction.DOMINANT: {Chord("G"): "natural", Chord("G7"): "natural", Chord("Bdim"): "natural"},
+            TonalFunction.TONIC: {
+                Chord("C"): "natural",
+                Chord("Am"): "natural",
+                Chord("Em"): "natural",
+            },
+            TonalFunction.DOMINANT: {
+                Chord("G"): "natural",
+                Chord("G7"): "natural",
+                Chord("Bdim"): "natural",
+            },
             TonalFunction.SUBDOMINANT: {Chord("F"): "natural", Chord("Dm"): "natural"},
         },
     )

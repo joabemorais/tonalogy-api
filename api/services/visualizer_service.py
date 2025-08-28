@@ -30,7 +30,7 @@ class VisualizerService:
         tonality_name = analysis_data.identified_tonality
         if tonality_name is None:
             raise ValueError("Cannot visualize a progression without an identified tonality.")
-        
+
         theme = get_theme_for_tonality(tonality_name)
         output_filename = TEMP_IMAGE_DIR / str(uuid.uuid4())
         graph = HarmonicGraph(theme=theme, temp_dir=TEMP_IMAGE_DIR)
@@ -54,15 +54,17 @@ class VisualizerService:
             chord = step.processed_chord
             if chord is None:
                 continue
-                
+
             function = "TONIC"
             if step.evaluated_functional_state:
                 # Extract function from strings like "TONIC (s_t)", "DOMINANT (s_d)", etc.
                 function = step.evaluated_functional_state.split(" ")[0]
 
             shape = function_to_shape.get(function, "circle")
-            is_primary = (step.tonality_used_in_step is not None and 
-                         step.tonality_used_in_step == tonality_name)
+            is_primary = (
+                step.tonality_used_in_step is not None
+                and step.tonality_used_in_step == tonality_name
+            )
             is_pivot = step.formal_rule_applied and "Pivot" in step.formal_rule_applied
 
             main_node = NodeInfo(f"{chord}_main_{i}", chord, function, shape, step)
@@ -105,10 +107,13 @@ class VisualizerService:
             current_possible_node: Optional[NodeInfo] = possible_world_nodes[i]
 
             if current_main_node and current_possible_node:
-                graph.align_nodes_in_ranks([current_main_node.node_id, current_possible_node.node_id])
+                graph.align_nodes_in_ranks(
+                    [current_main_node.node_id, current_possible_node.node_id]
+                )
                 color = (
                     theme["secondary_stroke"]
-                    if current_main_node.step.formal_rule_applied is None or "Pivot" not in current_main_node.step.formal_rule_applied
+                    if current_main_node.step.formal_rule_applied is None
+                    or "Pivot" not in current_main_node.step.formal_rule_applied
                     else theme["annotation_gray"]
                 )
                 graph.connect_nodes(
