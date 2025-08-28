@@ -1,14 +1,14 @@
-from typing import List, Tuple, Optional, Dict
+from typing import Dict, List, Optional, Tuple
 
 # Import the domain models we created previously
 from core.domain.models import (
     Chord,
-    KripkeState,
-    Tonality,
-    KripkeStructureConfig,
     Explanation,
-    TonalFunction,
     KripkePath,
+    KripkeState,
+    KripkeStructureConfig,
+    TonalFunction,
+    Tonality,
 )
 
 # A constant to prevent infinite recursion in edge cases or complex progressions.

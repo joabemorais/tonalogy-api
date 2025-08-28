@@ -1,8 +1,9 @@
-import pytest
 from unittest.mock import MagicMock
 
+import pytest
+
+from core.domain.models import Chord, Explanation, Tonality
 from core.logic.progression_analyzer import ProgressionAnalyzer
-from core.domain.models import Chord, Tonality, Explanation
 
 # We'll use fixtures for the mocks. In your real project, the fixtures for
 # mock_kripke_config, c_major_tonality_mock, etc., could be moved

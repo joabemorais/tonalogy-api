@@ -1,1 +1,1 @@
-from .models import Chord, TonalFunction, KripkeState, Tonality, KripkeStructureConfig
+from .models import Chord, KripkeState, KripkeStructureConfig, TonalFunction, Tonality

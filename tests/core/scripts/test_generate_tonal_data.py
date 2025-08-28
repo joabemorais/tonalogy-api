@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+
 import pytest
 
 # Import the classes and functions we want to test from the script

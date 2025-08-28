@@ -1,6 +1,7 @@
-from typing import List, Tuple, Optional
-from core.domain.models import Chord, Tonality, TonalFunction
 import logging
+from typing import List, Optional, Tuple
+
+from core.domain.models import Chord, TonalFunction, Tonality
 
 logger = logging.getLogger(__name__)
 

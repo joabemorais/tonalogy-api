@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import FileResponse
 import os
 
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import FileResponse
+
+from api.endpoints.analysis import get_analysis_service
 from api.schemas.analysis_schemas import ProgressionAnalysisRequest
 from api.services.analysis_service import TonalAnalysisService
 from api.services.visualizer_service import VisualizerService
-from api.endpoints.analysis import get_analysis_service
 
 router = APIRouter()
 

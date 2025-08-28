@@ -1,9 +1,9 @@
 import json
 from pathlib import Path
-from typing import List, Dict, Set, Tuple
+from typing import Dict, List, Set, Tuple
 
 # Import domain models that will serve as "templates" for the loaded data
-from core.domain.models import Chord, TonalFunction, KripkeState, Tonality, KripkeStructureConfig
+from core.domain.models import Chord, KripkeState, KripkeStructureConfig, TonalFunction, Tonality
 
 
 class TonalKnowledgeBase:

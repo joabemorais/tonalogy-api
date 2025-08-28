@@ -1,10 +1,11 @@
 import json
 from pathlib import Path
+
 import pytest
 
 # Import the classes we are going to test and those needed for assertions
 from core.config.knowledge_base import TonalKnowledgeBase
-from core.domain.models import KripkeStructureConfig, Tonality, TonalFunction, Chord, KripkeState
+from core.domain.models import Chord, KripkeState, KripkeStructureConfig, TonalFunction, Tonality
 
 # --- Fixtures to create temporary configuration files ---
 

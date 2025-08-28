@@ -1,13 +1,15 @@
-from fastapi.testclient import TestClient
+from typing import Any, Dict
 from unittest.mock import MagicMock
+
 import pytest
-from typing import Dict, Any
+from fastapi.testclient import TestClient
+
+from api.endpoints.analysis import get_analysis_service
 
 # Import our FastAPI application and the dependencies we'll replace
 from api.main import app
-from api.endpoints.analysis import get_analysis_service
-from api.services.analysis_service import TonalAnalysisService
 from api.schemas.analysis_schemas import ProgressionAnalysisResponse
+from api.services.analysis_service import TonalAnalysisService
 
 # --- Test Setup ---
 

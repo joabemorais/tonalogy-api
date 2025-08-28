@@ -1,14 +1,15 @@
-from typing import List, Dict, Optional
+import logging
+from typing import Dict, List, Optional
+
 from api.schemas.analysis_schemas import (
-    ProgressionAnalysisRequest,
     ExplanationStepAPI,
+    ProgressionAnalysisRequest,
     ProgressionAnalysisResponse,
 )
-from core.domain.models import Chord, Tonality, Explanation
-from core.logic.progression_analyzer import ProgressionAnalyzer
-from core.logic.candidate_processor import CandidateProcessor
 from core.config.knowledge_base import TonalKnowledgeBase
-import logging
+from core.domain.models import Chord, Explanation, Tonality
+from core.logic.candidate_processor import CandidateProcessor
+from core.logic.progression_analyzer import ProgressionAnalyzer
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

@@ -1,16 +1,17 @@
-import pytest
+import copy
 from enum import Enum, auto
 from typing import Dict
-import copy
+
+import pytest
 
 from core.domain.models import (
-    KripkeState,
-    TonalFunction,
-    KripkeStructureConfig,
     Chord,
-    Tonality,
-    Explanation,
     DetailedExplanationStep,
+    Explanation,
+    KripkeState,
+    KripkeStructureConfig,
+    TonalFunction,
+    Tonality,
 )
 
 # --- Test Fixtures ---

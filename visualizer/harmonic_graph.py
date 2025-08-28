@@ -1,5 +1,7 @@
-import graphviz
 from pathlib import Path
+
+import graphviz
+
 from .styles import SVG_TEMPLATES
 from .svg_factory import SvgFactory
 

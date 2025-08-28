@@ -2,9 +2,10 @@
 Defines the visual themes (colors) for different tonalities.
 """
 
-import pandas as pd
 from pathlib import Path
 from typing import Dict
+
+import pandas as pd
 
 # Path to the color configuration file
 CONFIG_PATH = Path(__file__).parent / "config" / "tonality_colors.csv"

@@ -1,17 +1,18 @@
 # tonalogy-api/tests/core/logic/test_kripke_evaluator.py
 
-import pytest
 from typing import List, Optional
+
+import pytest
 
 # Import the classes we will test and use as dependencies
 from core.domain.models import (
     Chord,
-    TonalFunction,
-    KripkeState,
-    Tonality,
-    KripkeStructureConfig,
-    Explanation,
     DetailedExplanationStep,
+    Explanation,
+    KripkeState,
+    KripkeStructureConfig,
+    TonalFunction,
+    Tonality,
 )
 from core.logic.kripke_evaluator import SatisfactionEvaluator
 

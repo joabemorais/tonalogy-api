@@ -1,5 +1,6 @@
 from typing import List, Tuple
-from core.domain.models import Chord, Tonality, KripkeStructureConfig, Explanation, TonalFunction
+
+from core.domain.models import Chord, Explanation, KripkeStructureConfig, TonalFunction, Tonality
 from core.logic.kripke_evaluator import SatisfactionEvaluator
 
 

@@ -1,10 +1,10 @@
-from fastapi import FastAPI
 from pathlib import Path
 from typing import Dict
+
 import uvicorn
+from fastapi import FastAPI
 
 from api.endpoints import analysis, visualizer
-
 from api.services.analysis_service import TonalAnalysisService
 from core.config.knowledge_base import TonalKnowledgeBase
 

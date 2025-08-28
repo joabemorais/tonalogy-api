@@ -1,6 +1,6 @@
 import os
-import xml.etree.ElementTree as ET
 import warnings
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 try:

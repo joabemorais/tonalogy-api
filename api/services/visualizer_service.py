@@ -1,9 +1,9 @@
-from pathlib import Path
-from typing import Dict, List, Optional
 import uuid
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Dict, List, Optional
 
-from api.schemas.analysis_schemas import ProgressionAnalysisResponse, ExplanationStepAPI
+from api.schemas.analysis_schemas import ExplanationStepAPI, ProgressionAnalysisResponse
 from visualizer.harmonic_graph import HarmonicGraph
 from visualizer.theming import get_theme_for_tonality
 

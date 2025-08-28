@@ -1,8 +1,9 @@
-import pytest
 from typing import List
 
+import pytest
+
 # Import all real classes from our core
-from core.domain.models import Chord, TonalFunction, KripkeState, Tonality, KripkeStructureConfig
+from core.domain.models import Chord, KripkeState, KripkeStructureConfig, TonalFunction, Tonality
 from core.logic.progression_analyzer import ProgressionAnalyzer
 
 # --- Fixtures with Real Data ---

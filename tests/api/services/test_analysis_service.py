@@ -1,11 +1,13 @@
-import pytest
-from unittest.mock import MagicMock, patch
 from typing import List
+from unittest.mock import MagicMock, patch
+
+import pytest
+
+from api.schemas.analysis_schemas import ProgressionAnalysisRequest, ProgressionAnalysisResponse
 
 # Classes to be tested or used
 from api.services.analysis_service import TonalAnalysisService
-from api.schemas.analysis_schemas import ProgressionAnalysisRequest, ProgressionAnalysisResponse
-from core.domain.models import Chord, Tonality, Explanation, DetailedExplanationStep
+from core.domain.models import Chord, DetailedExplanationStep, Explanation, Tonality
 
 
 @pytest.fixture

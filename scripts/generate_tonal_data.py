@@ -30,9 +30,10 @@ Example:
 """
 
 import json
-from typing import Dict, List, Any
-from pathlib import Path
 import logging
+from pathlib import Path
+from typing import Any, Dict, List
+
 from core.domain.models import NOTE_NAMES
 
 

@@ -1,8 +1,8 @@
-from enum import Enum, auto
-from typing import Set, Dict, Tuple, List, Optional
-from dataclasses import dataclass, field
-import re
 import copy
+import re
+from dataclasses import dataclass, field
+from enum import Enum, auto
+from typing import Dict, List, Optional, Set, Tuple
 
 NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 NOTE_MAP = {name: i for i, name in enumerate(NOTE_NAMES)}
