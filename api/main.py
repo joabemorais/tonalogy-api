@@ -48,7 +48,7 @@ async def read_root() -> Dict[str, str]:
     return {"message": "Welcome to Tonalogy API. Visit /docs to see the API documentation."}
 
 
-def main():
+def main() -> None:
     """Entry point for the tonalogy-api script."""
     uvicorn.run("api.main:app", host="0.0.0.0", port=8000, reload=True, log_level="info")
 

@@ -28,6 +28,9 @@ class VisualizerService:
             raise ValueError("Cannot visualize a non-tonal progression.")
 
         tonality_name = analysis_data.identified_tonality
+        if tonality_name is None:
+            raise ValueError("Cannot visualize a progression without an identified tonality.")
+        
         theme = get_theme_for_tonality(tonality_name)
         output_filename = TEMP_IMAGE_DIR / str(uuid.uuid4())
         graph = HarmonicGraph(theme=theme, temp_dir=TEMP_IMAGE_DIR)
@@ -49,13 +52,17 @@ class VisualizerService:
         # 1. FIRST PASS: Classify and create nodes for each world
         for i, step in enumerate(relevant_steps):
             chord = step.processed_chord
+            if chord is None:
+                continue
+                
             function = "TONIC"
             if step.evaluated_functional_state:
-                function = step.evaluated_functional_state.split(" ")[0]
+                function = step.evaluated_functional_state
 
             shape = function_to_shape.get(function, "circle")
-            is_primary = step.tonality_used_in_step == tonality_name
-            is_pivot = "Pivot" in step.formal_rule_applied
+            is_primary = (step.tonality_used_in_step is not None and 
+                         step.tonality_used_in_step == tonality_name)
+            is_pivot = step.formal_rule_applied and "Pivot" in step.formal_rule_applied
 
             main_node = NodeInfo(f"{chord}_main_{i}", chord, function, shape, step)
             main_world_nodes.append(main_node)
@@ -93,19 +100,19 @@ class VisualizerService:
 
         # 2. SECOND PASS: Connect and align the nodes
         for i in range(len(main_world_nodes)):
-            main_node = main_world_nodes[i]
-            possible_node = possible_world_nodes[i]
+            current_main_node: Optional[NodeInfo] = main_world_nodes[i]
+            current_possible_node: Optional[NodeInfo] = possible_world_nodes[i]
 
-            if main_node and possible_node:
-                graph.align_nodes_in_ranks([main_node.node_id, possible_node.node_id])
+            if current_main_node and current_possible_node:
+                graph.align_nodes_in_ranks([current_main_node.node_id, current_possible_node.node_id])
                 color = (
                     theme["secondary_stroke"]
-                    if "Pivot" not in main_node.step.formal_rule_applied
+                    if current_main_node.step.formal_rule_applied is None or "Pivot" not in current_main_node.step.formal_rule_applied
                     else theme["annotation_gray"]
                 )
                 graph.connect_nodes(
-                    main_node.node_id,
-                    possible_node.node_id,
+                    current_main_node.node_id,
+                    current_possible_node.node_id,
                     style="dotted",
                     color=color,
                     arrowhead="none",

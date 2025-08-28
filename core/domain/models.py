@@ -13,6 +13,7 @@ class Chord:
     """Represents an individual chord symbol. Immutable and hashable."""
 
     name: str
+    _notes_cache: Optional[Set[str]] = field(default=None, init=False, compare=False)
 
     @property
     def quality(self) -> str:
@@ -26,9 +27,9 @@ class Chord:
 
     @property
     def notes(self) -> Set[str]:
-        if not hasattr(self, "_notes_cache"):
+        if self._notes_cache is None:
             object.__setattr__(self, "_notes_cache", self._parse_notes())
-        return self._notes_cache
+        return self._notes_cache  # type: ignore[return-value]
 
     def _parse_notes(self) -> Set[str]:
         """
@@ -225,7 +226,7 @@ class Explanation:
         evaluated_functional_state: Optional[KripkeState] = None,
         processed_chord: Optional[Chord] = None,
         tonality_used_in_step: Optional[Tonality] = None,
-    ):
+    ) -> None:
         """Adds a new detailed step to the explanation."""
         step = DetailedExplanationStep(
             evaluated_functional_state,

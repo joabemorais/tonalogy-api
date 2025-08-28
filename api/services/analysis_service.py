@@ -41,7 +41,10 @@ class TonalAnalysisService:
         try:
             if not request.chords:
                 return ProgressionAnalysisResponse(
-                    is_tonal_progression=False, error="Chord list cannot be empty."
+                    is_tonal_progression=False, 
+                    identified_tonality=None,
+                    explanation_details=[],
+                    error="Chord list cannot be empty."
                 )
 
             input_chords: List[Chord] = [Chord(c) for c in request.chords]
@@ -56,6 +59,8 @@ class TonalAnalysisService:
                 if not initial_tonalities_to_test:
                     return ProgressionAnalysisResponse(
                         is_tonal_progression=False,
+                        identified_tonality=None,
+                        explanation_details=[],
                         error="None of the specified tonalities are known by the system.",
                     )
             else:
@@ -66,7 +71,12 @@ class TonalAnalysisService:
             )
 
             if error:
-                return ProgressionAnalysisResponse(is_tonal_progression=False, error=error)
+                return ProgressionAnalysisResponse(
+                    is_tonal_progression=False,
+                    identified_tonality=None,
+                    explanation_details=[],
+                    error=error
+                )
 
             success: bool
             explanation: Explanation
@@ -104,9 +114,13 @@ class TonalAnalysisService:
                 is_tonal_progression=success,
                 identified_tonality=identified_tonality,
                 explanation_details=explanation_steps_api,
+                error=None,
             )
         except Exception as e:
             logging.error("Unexpected error during progression analysis", exc_info=True)
             return ProgressionAnalysisResponse(
-                is_tonal_progression=False, error="An unexpected error occurred during analysis."
+                is_tonal_progression=False,
+                identified_tonality=None,
+                explanation_details=[],
+                error="An unexpected error occurred during analysis."
             )

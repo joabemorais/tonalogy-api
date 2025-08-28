@@ -2,7 +2,17 @@
 Tonality Data Generator for Tonalogy API
 
 This module generates comprehensive tonal data for all 24 major and minor tonalities,
-including their harmonic fields and chord-function mappings. The generated data is
+i    DEGREE_INFO: Dict[str, MinorDegreeInfo] = {
+        "i": {"quality": "m", "function": "TONIC", "source": "natural", "index": 0},
+        "iidim": {"quality": "dim", "function": "SUBDOMINANT", "source": "natural", "index": 1},
+        "bIII": {"quality": "", "function": "TONIC", "source": "natural", "index": 2},
+        "iv": {"quality": "m", "function": "SUBDOMINANT", "source": "natural", "index": 3},
+        "v": {"quality": "m", "function": "DOMINANT", "source": "natural", "index": 4},
+        "V": {"quality": "", "function": "DOMINANT", "source": "harmonic", "index": 4},
+        "bVI": {"quality": "", "function": "SUBDOMINANT", "source": "natural", "index": 5},
+        "viidim": {"quality": "dim", "function": "DOMINANT", "source": "harmonic", "index": 6},
+        "bVII": {"quality": "", "function": "SUBDOMINANT", "source": "natural", "index": 6},
+    }eir harmonic fields and chord-function mappings. The generated data is
 used by the Tonalogy API for music theory analysis and chord progression suggestions.
 
 Classes:
@@ -32,9 +42,21 @@ Example:
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, TypedDict
 
 from core.domain.models import NOTE_NAMES
+
+
+class DegreeInfo(TypedDict):
+    quality: str
+    function: str
+
+
+class MinorDegreeInfo(TypedDict):
+    source: str
+    index: int
+    quality: str
+    function: str
 
 
 class TonalityGenerator:
@@ -79,7 +101,7 @@ class MajorTonality(TonalityGenerator):
 
     DEGREE_LABELS = ["I", "ii", "iii", "IV", "V", "vi", "viidim"]
 
-    DEGREE_INFO = {
+    DEGREE_INFO: Dict[str, DegreeInfo] = {
         "I": {"quality": "", "function": "TONIC"},
         "ii": {"quality": "m", "function": "SUBDOMINANT"},
         "iii": {"quality": "m", "function": "TONIC"},
@@ -119,7 +141,7 @@ class MinorTonality(TonalityGenerator):
 
     NATURAL_MINOR_STEPS = [2, 1, 2, 2, 1, 2, 2]
 
-    DEGREE_INFO = {
+    DEGREE_INFO: Dict[str, MinorDegreeInfo] = {
         "i": {"quality": "m", "function": "TONIC", "source": "natural", "index": 0},
         "iidim": {"quality": "dim", "function": "SUBDOMINANT", "source": "natural", "index": 1},
         "bIII": {"quality": "", "function": "TONIC", "source": "natural", "index": 2},
@@ -149,12 +171,12 @@ class MinorTonality(TonalityGenerator):
         field: Dict[str, Dict[str, str]] = {"TONIC": {}, "SUBDOMINANT": {}, "DOMINANT": {}}
 
         for _, info in self.DEGREE_INFO.items():
-            source_scale_name = info["source"]
+            source_scale_name: str = info["source"]
             source_scale = self.scales[source_scale_name]
-            note = source_scale[info["index"]]
+            note: str = source_scale[info["index"]]
 
-            quality = info["quality"]
-            function_name = info["function"]
+            quality: str = info["quality"]
+            function_name: str = info["function"]
 
             chord_name = f"{note}{quality}"
             field[function_name][chord_name] = source_scale_name
@@ -162,7 +184,7 @@ class MinorTonality(TonalityGenerator):
         return field
 
 
-def generate_tonal_data_json(filepath: str):
+def generate_tonal_data_json(filepath: str) -> None:
     """Generates the tonalities.json file with all 24 major and minor tonalities."""
     output_path_obj = Path(filepath)
     output_path_obj.parent.mkdir(parents=True, exist_ok=True)

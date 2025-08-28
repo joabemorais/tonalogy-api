@@ -1,4 +1,5 @@
 from unittest.mock import MagicMock
+from typing import Any
 
 import pytest
 
@@ -11,7 +12,7 @@ from core.logic.progression_analyzer import ProgressionAnalyzer
 
 
 @pytest.fixture
-def mock_kripke_config():
+def mock_kripke_config() -> MagicMock:
     """Creates a mock of the Kripke configuration."""
     config = MagicMock()
     mock_tonic_state = MagicMock()
@@ -20,7 +21,7 @@ def mock_kripke_config():
 
 
 @pytest.fixture
-def c_major_tonality_mock():
+def c_major_tonality_mock() -> MagicMock:
     """Creates a mock for C Major tonality."""
     tonality = MagicMock(spec=Tonality)
     tonality.tonality_name = "C Major"
@@ -28,7 +29,7 @@ def c_major_tonality_mock():
 
 
 @pytest.fixture
-def g_major_tonality_mock():
+def g_major_tonality_mock() -> MagicMock:
     """Creates a mock for G Major tonality."""
     tonality = MagicMock(spec=Tonality)
     tonality.tonality_name = "G Major"
@@ -39,8 +40,8 @@ def g_major_tonality_mock():
 
 
 def test_check_progression_returns_true_on_first_tonality(
-    mocker, mock_kripke_config, c_major_tonality_mock
-):
+    mocker: Any, mock_kripke_config: MagicMock, c_major_tonality_mock: MagicMock
+) -> None:
     """
     Verifies if the analyzer returns True when the first tested tonality is successful.
     """
@@ -68,8 +69,8 @@ def test_check_progression_returns_true_on_first_tonality(
 
 
 def test_check_progression_returns_true_on_second_tonality(
-    mocker, mock_kripke_config, c_major_tonality_mock, g_major_tonality_mock
-):
+    mocker: Any, mock_kripke_config: MagicMock, c_major_tonality_mock: MagicMock, g_major_tonality_mock: MagicMock
+) -> None:
     """
     Verifies if the analyzer continues to the second tonality if the first one fails.
     """
@@ -86,10 +87,10 @@ def test_check_progression_returns_true_on_second_tonality(
 
     # WHEN: we run the analysis with two tonalities
     tonalities_to_test = [c_major_tonality_mock, g_major_tonality_mock]
-    analyzer = ProgressionAnalyzer(mock_kripke_config, tonalities_to_test)
+    analyzer = ProgressionAnalyzer(mock_kripke_config, tonalities_to_test)  # type: ignore[arg-type]
     progression = [Chord("G"), Chord("D7")]
 
-    success, _ = analyzer.check_tonal_progression(progression, tonalities_to_test)
+    success, _ = analyzer.check_tonal_progression(progression, tonalities_to_test)  # type: ignore[arg-type]
 
     # THEN: the final result is success and the evaluator was called twice
     assert success is True
@@ -97,8 +98,8 @@ def test_check_progression_returns_true_on_second_tonality(
 
 
 def test_check_progression_returns_false_if_all_tonalities_fail(
-    mocker, mock_kripke_config, c_major_tonality_mock
-):
+    mocker: Any, mock_kripke_config: MagicMock, c_major_tonality_mock: MagicMock
+) -> None:
     """
     Verifies if the analyzer returns False if no tonality satisfies the progression.
     """
@@ -120,7 +121,7 @@ def test_check_progression_returns_false_if_all_tonalities_fail(
     assert success is False
 
 
-def test_check_progression_handles_empty_sequence(mock_kripke_config, c_major_tonality_mock):
+def test_check_progression_handles_empty_sequence(mock_kripke_config: MagicMock, c_major_tonality_mock: MagicMock) -> None:
     """
     Verifies the edge case of an empty chord progression.
     """

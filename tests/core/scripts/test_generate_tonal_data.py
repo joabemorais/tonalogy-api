@@ -9,7 +9,7 @@ from scripts.generate_tonal_data import MajorTonality, MinorTonality, generate_t
 # --- Tests for MajorTonality Class ---
 
 
-def test_major_tonality_scale_generation():
+def test_major_tonality_scale_generation() -> None:
     """
     Verifies if the major scale is generated correctly.
     """
@@ -22,7 +22,7 @@ def test_major_tonality_scale_generation():
     assert tonality.tonality_name == "C Major"
 
 
-def test_major_tonality_harmonic_field():
+def test_major_tonality_harmonic_field() -> None:
     """
     Verifies if the major harmonic field assigns chords to the correct functions.
     """
@@ -41,7 +41,7 @@ def test_major_tonality_harmonic_field():
 # --- Tests for MinorTonality Class ---
 
 
-def test_minor_tonality_scales_generation():
+def test_minor_tonality_scales_generation() -> None:
     """
     Verifies if the three minor scales (natural, harmonic, melodic) are generated correctly.
     """
@@ -59,7 +59,7 @@ def test_minor_tonality_scales_generation():
     assert tonality.tonality_name == "A minor"
 
 
-def test_minor_tonality_harmonic_field_contains_all_modes():
+def test_minor_tonality_harmonic_field_contains_all_modes() -> None:
     """
     Verifies if the minor harmonic field includes triads from all three scales.
     """
@@ -86,7 +86,7 @@ def test_minor_tonality_harmonic_field_contains_all_modes():
 # --- Test for Main JSON Generation Function ---
 
 
-def test_generate_tonal_data_json(tmp_path: Path):
+def test_generate_tonal_data_json(tmp_path: Path) -> None:
     """
     Tests the JSON file generation function.
     Uses pytest's 'tmp_path' fixture to create a temporary directory.

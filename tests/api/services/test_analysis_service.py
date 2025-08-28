@@ -53,7 +53,10 @@ def test_analyze_progression_success_with_all_tonalities(mock_knowledge_base: Ma
         "api.services.analysis_service.ProgressionAnalyzer", return_value=mock_analyzer_instance
     ):
         service: TonalAnalysisService = TonalAnalysisService(mock_knowledge_base)
-        request: ProgressionAnalysisRequest = ProgressionAnalysisRequest(chords=["C", "G", "C"])
+        request: ProgressionAnalysisRequest = ProgressionAnalysisRequest(
+            chords=["C", "G", "C"], 
+            tonalities_to_test=None
+        )
 
         # WHEN
         response: ProgressionAnalysisResponse = service.analyze_progression(request)
@@ -85,7 +88,10 @@ def test_analyze_progression_failure(mock_knowledge_base: MagicMock) -> None:
         "api.services.analysis_service.ProgressionAnalyzer", return_value=mock_analyzer_instance
     ):
         service: TonalAnalysisService = TonalAnalysisService(mock_knowledge_base)
-        request: ProgressionAnalysisRequest = ProgressionAnalysisRequest(chords=["C", "F#", "B"])
+        request: ProgressionAnalysisRequest = ProgressionAnalysisRequest(
+            chords=["C", "F#", "B"], 
+            tonalities_to_test=None
+        )
 
         # WHEN
         response: ProgressionAnalysisResponse = service.analyze_progression(request)

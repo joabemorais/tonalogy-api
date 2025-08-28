@@ -40,9 +40,9 @@ def c_major_tonality() -> Tonality:
     return Tonality(
         tonality_name="C Major",
         function_to_chords_map={
-            TonalFunction.TONIC: {Chord("C"), Chord("Am"), Chord("Em")},
-            TonalFunction.DOMINANT: {Chord("G"), Chord("G7"), Chord("Bdim")},
-            TonalFunction.SUBDOMINANT: {Chord("F"), Chord("Dm")},
+            TonalFunction.TONIC: {Chord("C"): "natural", Chord("Am"): "natural", Chord("Em"): "natural"},
+            TonalFunction.DOMINANT: {Chord("G"): "natural", Chord("G7"): "natural", Chord("Bdim"): "natural"},
+            TonalFunction.SUBDOMINANT: {Chord("F"): "natural", Chord("Dm"): "natural"},
         },
     )
 
@@ -52,9 +52,9 @@ def d_minor_tonality() -> Tonality:
     return Tonality(
         tonality_name="D minor",
         function_to_chords_map={
-            TonalFunction.TONIC: {Chord("Dm"), Chord("F")},
-            TonalFunction.DOMINANT: {Chord("A"), Chord("A7")},
-            TonalFunction.SUBDOMINANT: {Chord("Gm"), Chord("Bb")},
+            TonalFunction.TONIC: {Chord("Dm"): "natural", Chord("F"): "natural"},
+            TonalFunction.DOMINANT: {Chord("A"): "harmonic", Chord("A7"): "harmonic"},
+            TonalFunction.SUBDOMINANT: {Chord("Gm"): "natural", Chord("Bb"): "natural"},
         },
     )
 
@@ -71,11 +71,11 @@ def aragao_kripke_config(
         states={tonic_state, dominant_state, subdominant_state},
         initial_states={tonic_state},
         final_states={dominant_state, subdominant_state},
-        accessibility_relation={
+        accessibility_relation=[
             (tonic_state, dominant_state),
             (tonic_state, subdominant_state),
             (dominant_state, subdominant_state),
-        },
+        ],
     )
 
 
@@ -246,6 +246,7 @@ def test_tonicization_pivot_success_complex_progression(
         (step for step in explanation.steps if step.processed_chord == Chord("A")), None
     )
     assert a_step is not None
+    assert a_step.tonality_used_in_step is not None
     assert a_step.tonality_used_in_step.tonality_name == "D minor"
 
     # The final chord (Em) should be re-anchored back to C Major.
@@ -253,6 +254,7 @@ def test_tonicization_pivot_success_complex_progression(
         (step for step in explanation.steps if step.processed_chord == Chord("Em")), None
     )
     assert em_step is not None
+    assert em_step.tonality_used_in_step is not None
     assert em_step.tonality_used_in_step.tonality_name == "C Major"
     # Should have a re-anchor step before it
     reanchor_steps = [

@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -45,7 +45,7 @@ class ExplanationStepAPI(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     @classmethod
-    def from_orm(cls, orm_obj):
+    def from_orm(cls, orm_obj: Any) -> "ExplanationStepAPI":
         """Converts an ORM-like object to the Pydantic schema."""
         return cls(
             formal_rule_applied=orm_obj.formal_rule_applied,

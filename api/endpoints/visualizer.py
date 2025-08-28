@@ -32,7 +32,7 @@ async def visualize_progression(
     request: ProgressionAnalysisRequest,
     analysis_service: TonalAnalysisService = Depends(get_analysis_service),
     visualizer_service: VisualizerService = Depends(get_visualizer_service),
-):
+) -> FileResponse:
     """
     Receives a list of chords, analyzes the progression and returns a
     visual diagram of the analysis.

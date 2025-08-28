@@ -31,9 +31,9 @@ def c_major_tonality() -> Tonality:
     return Tonality(
         tonality_name="C Major",
         function_to_chords_map={
-            TonalFunction.TONIC: {Chord("C"), Chord("Am"), Chord("Em")},
-            TonalFunction.DOMINANT: {Chord("G"), Chord("G7"), Chord("Bdim")},
-            TonalFunction.SUBDOMINANT: {Chord("F"), Chord("Dm")},
+            TonalFunction.TONIC: {Chord("C"): "natural", Chord("Am"): "natural", Chord("Em"): "natural"},
+            TonalFunction.DOMINANT: {Chord("G"): "natural", Chord("G7"): "natural", Chord("Bdim"): "natural"},
+            TonalFunction.SUBDOMINANT: {Chord("F"): "natural", Chord("Dm"): "natural"},
         },
     )
 
@@ -43,15 +43,15 @@ def d_minor_tonality() -> Tonality:
     return Tonality(
         tonality_name="D minor",
         function_to_chords_map={
-            TonalFunction.TONIC: {Chord("Dm"), Chord("F")},
-            TonalFunction.DOMINANT: {Chord("A"), Chord("A7")},
-            TonalFunction.SUBDOMINANT: {Chord("Gm"), Chord("Bb")},
+            TonalFunction.TONIC: {Chord("Dm"): "natural", Chord("F"): "natural"},
+            TonalFunction.DOMINANT: {Chord("A"): "harmonic", Chord("A7"): "harmonic"},
+            TonalFunction.SUBDOMINANT: {Chord("Gm"): "natural", Chord("Bb"): "natural"},
         },
     )
 
 
 @pytest.fixture
-def aragao_kripke_config(tonic_state, dominant_state, subdominant_state) -> KripkeStructureConfig:
+def aragao_kripke_config(tonic_state: KripkeState, dominant_state: KripkeState, subdominant_state: KripkeState) -> KripkeStructureConfig:
     """
     Creates the Kripke structure configuration with INVERTED accessibility relations,
     according to the direct suggestion from author Aragão.
@@ -61,11 +61,11 @@ def aragao_kripke_config(tonic_state, dominant_state, subdominant_state) -> Krip
         # In real analysis, the initial state is always the Tonic.
         initial_states={tonic_state},
         final_states={dominant_state, subdominant_state},
-        accessibility_relation={
+        accessibility_relation=[
             (tonic_state, dominant_state),  # s_t -> s_d
             (tonic_state, subdominant_state),  # s_t -> s_sd
             (dominant_state, subdominant_state),  # s_d -> s_sd
-        },
+        ],
     )
 
 
@@ -73,8 +73,8 @@ def aragao_kripke_config(tonic_state, dominant_state, subdominant_state) -> Krip
 
 
 def test_full_analysis_of_complex_progression(
-    aragao_kripke_config, c_major_tonality, d_minor_tonality
-):
+    aragao_kripke_config: KripkeStructureConfig, c_major_tonality: Tonality, d_minor_tonality: Tonality
+) -> None:
     """
     This is a complete integration test for the core. It validates the analysis of
     the progression "C G Dm A7 Em" (already inverted), which requires all three strategies
@@ -110,11 +110,15 @@ def test_full_analysis_of_complex_progression(
     # 1. Verify initial direct continuation in C Major
     # The step for 'C' should be in C Major as Tonic
     step_c = next(s for s in explanation.steps if s.processed_chord == Chord("C"))
+    assert step_c.tonality_used_in_step is not None
+    assert step_c.evaluated_functional_state is not None
     assert step_c.tonality_used_in_step.tonality_name == "C Major"
     assert step_c.evaluated_functional_state.associated_tonal_function == TonalFunction.TONIC
 
     # The step for 'G' should be in C Major as Dominant
     step_g = next(s for s in explanation.steps if s.processed_chord == Chord("G"))
+    assert step_g.tonality_used_in_step is not None
+    assert step_g.evaluated_functional_state is not None
     assert step_g.tonality_used_in_step.tonality_name == "C Major"
     assert step_g.evaluated_functional_state.associated_tonal_function == TonalFunction.DOMINANT
     assert (
@@ -134,6 +138,8 @@ def test_full_analysis_of_complex_progression(
     # 3. Verify continuation in D minor for 'A'
     # The step for 'A' should occur in D minor tonality
     step_a = next(s for s in explanation.steps if s.processed_chord == Chord("A"))
+    assert step_a.tonality_used_in_step is not None
+    assert step_a.evaluated_functional_state is not None
     assert step_a.tonality_used_in_step.tonality_name == "D minor"
     assert step_a.evaluated_functional_state.associated_tonal_function == TonalFunction.DOMINANT
 
@@ -144,5 +150,7 @@ def test_full_analysis_of_complex_progression(
 
     step_em = next(s for s in explanation.steps if s.processed_chord == Chord("Em"))
     assert step_em.processed_chord == Chord("Em")
+    assert step_em.tonality_used_in_step is not None
+    assert step_em.evaluated_functional_state is not None
     assert step_em.tonality_used_in_step.tonality_name == "C Major"
     assert step_em.evaluated_functional_state.associated_tonal_function == TonalFunction.TONIC

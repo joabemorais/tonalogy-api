@@ -1,6 +1,8 @@
 from typing import Any, Dict
 from unittest.mock import MagicMock
 
+from typing import Generator
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -129,7 +131,7 @@ def test_analyze_endpoint_internal_server_error() -> None:
     assert "internal server error" in response.json()["detail"]
 
 
-def test_root_endpoint():
+def test_root_endpoint() -> None:
     """
     Test the root endpoint to ensure the API is responding correctly.
     """
@@ -149,7 +151,7 @@ def test_root_endpoint():
 
 
 @pytest.fixture(autouse=True)
-def cleanup_dependencies():
+def cleanup_dependencies() -> Generator[None, None, None]:
     """
     A fixture that ensures dependency overrides are cleaned up
     after each test execution, ensuring test isolation.

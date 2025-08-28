@@ -2,6 +2,7 @@ import os
 import warnings
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from typing import List
 
 try:
     import cairosvg
@@ -27,9 +28,9 @@ class SvgFactory:
 
         self.temp_dir = temp_dir
         self.temp_dir.mkdir(parents=True, exist_ok=True)
-        self.temp_files = []
+        self.temp_files: List[Path] = []
 
-    def create_styled_image_file(self, node_id, svg_template, fill, stroke, penwidth="1.5"):
+    def create_styled_image_file(self, node_id: str, svg_template: str, fill: str, stroke: str, penwidth: str = "1.5") -> str:
         """
         Takes an SVG template, applies styles, converts to PNG and saves to a temporary file.
         Returns the absolute path of the created PNG file.
@@ -37,7 +38,7 @@ class SvgFactory:
         cleaned_template = svg_template.replace("\xa0", " ").strip()
         root = ET.fromstring(cleaned_template)
 
-        def parse_color_with_alpha(color_string):
+        def parse_color_with_alpha(color_string: str) -> tuple[str, str]:
             if len(color_string) == 9 and color_string.startswith("#"):
                 base_color = color_string[:7]
                 alpha_hex = color_string[7:]
@@ -75,7 +76,7 @@ class SvgFactory:
         self.temp_files.append(filepath)
         return str(filepath.resolve())
 
-    def cleanup_files(self):
+    def cleanup_files(self) -> None:
         """Removes all temporary files created by the factory."""
         for f in self.temp_files:
             if os.path.exists(f):

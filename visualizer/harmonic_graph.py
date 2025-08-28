@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any, Dict, Set, Union
 
 import graphviz
 
@@ -13,12 +14,12 @@ class HarmonicGraph:
 
     def __init__(
         self,
-        theme: dict,
+        theme: Dict[str, Any],
         temp_dir: Path,
-        rankdir="LR",
-        splines="line",
-        nodesep="0.8",
-        ranksep="1.5",
+        rankdir: str = "LR",
+        splines: str = "line",
+        nodesep: str = "0.8",
+        ranksep: str = "1.5",
     ):
         self.dot = graphviz.Digraph("HarmonicProgression")
         self.dot.attr(
@@ -31,13 +32,13 @@ class HarmonicGraph:
         )
         self.dot.attr("node", fontname="MuseJazzText", fontsize="22")
         self.dot.attr("edge", fontname="Arial", fontsize="10")
-        self.existing_connections = set()
+        self.existing_connections: Set[tuple[str, str]] = set()
         self.theme = theme
         self.svg_factory = SvgFactory(temp_dir)
 
     def _add_image_node(
-        self, node_id, label, shape_name, style_variant, fill, stroke, penwidth="4", fontcolor=None
-    ):
+        self, node_id: str, label: str, shape_name: str, style_variant: str, fill: str, stroke: str, penwidth: str = "4", fontcolor: Union[str, None] = None
+    ) -> None:
         shape_variants = SVG_TEMPLATES.get(shape_name)
         if not shape_variants:
             raise ValueError(f"Shape '{shape_name}' not found in SVG_TEMPLATES.")
@@ -65,8 +66,12 @@ class HarmonicGraph:
 
         self.dot.node(node_id, **node_kwargs)
 
-    def add_primary_chord(self, node_id, label, shape="house", style_variant="solid_filled"):
+    def add_primary_chord(self, node_id: str, label: str, shape: str = "house", style_variant: str = "solid_filled") -> None:
         font_color = self.theme.get("primary_text_color")
+        if isinstance(font_color, str):
+            font_color_param: Union[str, None] = font_color
+        else:
+            font_color_param = None
         self._add_image_node(
             node_id,
             label,
@@ -74,11 +79,15 @@ class HarmonicGraph:
             style_variant,
             self.theme["primary_fill"],
             self.theme["primary_stroke"],
-            fontcolor=font_color,
+            fontcolor=font_color_param,
         )
 
-    def add_secondary_chord(self, node_id, label, shape="circle", style_variant="dashed_filled"):
+    def add_secondary_chord(self, node_id: str, label: str, shape: str = "circle", style_variant: str = "dashed_filled") -> None:
         font_color = self.theme.get("secondary_text_color")
+        if isinstance(font_color, str):
+            font_color_param: Union[str, None] = font_color
+        else:
+            font_color_param = None
         self._add_image_node(
             node_id,
             label,
@@ -86,37 +95,42 @@ class HarmonicGraph:
             style_variant,
             self.theme["secondary_fill"],
             self.theme["secondary_stroke"],
-            fontcolor=font_color,
+            fontcolor=font_color_param,
         )
 
-    def add_placeholder_chord(self, node_id, label, shape="circle", style_variant="dashed_filled"):
+    def add_placeholder_chord(self, node_id: str, label: str, shape: str = "circle", style_variant: str = "dashed_filled") -> None:
         """Adds a translucent placeholder node in the main world."""
         fill = self.theme.get("secondary_fill", "#FFFFFF80")
         stroke = self.theme.get("secondary_stroke", "#000000")
         font_color = self.theme.get("secondary_text_color")
+        if isinstance(font_color, str):
+            font_color_param: Union[str, None] = font_color
+        else:
+            font_color_param = None
         self._add_image_node(
-            node_id, label, shape, style_variant, fill, stroke, fontcolor=font_color
+            node_id, label, shape, style_variant, fill, stroke, fontcolor=font_color_param
         )
 
-    def connect_nodes(self, from_node, to_node, **kwargs):
+    def connect_nodes(self, from_node: str, to_node: str, **kwargs: Any) -> None:
         self.dot.edge(from_node, to_node, **kwargs)
-        self.existing_connections.add(tuple(sorted((from_node, to_node))))
+        sorted_nodes = sorted((from_node, to_node))
+        self.existing_connections.add((sorted_nodes[0], sorted_nodes[1]))
 
-    def connect_with_double_arrow(self, from_node, to_node, color_key: str, **kwargs):
+    def connect_with_double_arrow(self, from_node: str, to_node: str, color_key: str, **kwargs: Any) -> None:
         color = self.theme.get(color_key)
         if not color:
             raise ValueError(f"Color key '{color_key}' not found in theme.")
         double_line_color = f"{color}:invis:{color}"
         self.connect_nodes(from_node, to_node, color=double_line_color, penwidth="3", **kwargs)
 
-    def align_nodes_in_ranks(self, *ranks):
+    def align_nodes_in_ranks(self, *ranks: Any) -> None:
         """Aligns nodes in separate ranks (rows)."""
         for rank in ranks:
             if rank:
                 nodes_str = "; ".join(f'"{nid}"' for nid in rank)
                 self.dot.body.append(f"{{ rank=same; {nodes_str} }}")
 
-    def build_progression_chain(self, node_ids):
+    def build_progression_chain(self, node_ids: list[str]) -> None:
         for i in range(len(node_ids) - 1):
             from_node = node_ids[i]
             to_node = node_ids[i + 1]
