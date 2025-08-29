@@ -45,7 +45,9 @@ async def visualize_progression(
         )
 
     try:
-        image_path = visualizer_service.create_graph_from_analysis(analysis_result)
+        image_path = visualizer_service.create_graph_from_analysis(
+            analysis_result, theme_mode=request.theme or "light"
+        )
 
         if not os.path.exists(image_path):
             raise HTTPException(status_code=500, detail="Image file not found after generation.")

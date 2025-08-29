@@ -1,4 +1,4 @@
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -18,6 +18,11 @@ class ProgressionAnalysisRequest(BaseModel):
         None,
         description="Optional. A list of tonalities to be tested.",
         json_schema_extra={"example": []},
+    )
+    theme: Optional[Literal["light", "dark"]] = Field(
+        "light",
+        description="Theme mode for visualization - 'light' or 'dark'.",
+        json_schema_extra={"example": "light"},
     )
 
 

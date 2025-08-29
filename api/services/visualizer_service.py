@@ -7,7 +7,7 @@ from typing import Dict, List, Optional
 from api.schemas.analysis_schemas import ExplanationStepAPI, ProgressionAnalysisResponse
 from core.domain.models import to_unicode_symbols
 from visualizer.harmonic_graph import HarmonicGraph
-from visualizer.theming import get_theme_for_tonality
+from visualizer.theming import get_theme_for_tonality, ThemeMode
 
 TEMP_IMAGE_DIR = Path(__file__).resolve().parent.parent.parent / "temp_images"
 TEMP_IMAGE_DIR.mkdir(exist_ok=True)
@@ -30,7 +30,9 @@ class VisualizerService:
         match = re.search(r"becomes the new TONIC in '([^']+)'", observation)
         return match.group(1) if match else None
 
-    def create_graph_from_analysis(self, analysis_data: ProgressionAnalysisResponse) -> str:
+    def create_graph_from_analysis(
+        self, analysis_data: ProgressionAnalysisResponse, theme_mode: ThemeMode = "light"
+    ) -> str:
         if not analysis_data.is_tonal_progression:
             raise ValueError("Cannot visualize a non-tonal progression.")
 
@@ -38,7 +40,7 @@ class VisualizerService:
         if tonality_name is None:
             raise ValueError("Cannot visualize a progression without an identified tonality.")
 
-        theme = get_theme_for_tonality(tonality_name)
+        theme = get_theme_for_tonality(tonality_name, theme_mode)
         output_filename = TEMP_IMAGE_DIR / str(uuid.uuid4())
         graph = HarmonicGraph(theme=theme, temp_dir=TEMP_IMAGE_DIR)
 
@@ -62,7 +64,7 @@ class VisualizerService:
         # Create themes for secondary tonalities
         secondary_themes = {}
         for secondary_tonality in secondary_tonalities:
-            secondary_themes[secondary_tonality] = get_theme_for_tonality(secondary_tonality)
+            secondary_themes[secondary_tonality] = get_theme_for_tonality(secondary_tonality, theme_mode)
 
         function_to_shape = {"TONIC": "house", "DOMINANT": "circle", "SUBDOMINANT": "cds"}
 
@@ -181,12 +183,32 @@ class VisualizerService:
                 graph.align_nodes_in_ranks(
                     [current_main_node.node_id, current_possible_node.node_id]
                 )
-                color = (
-                    theme["secondary_stroke"]
-                    if current_main_node.step.formal_rule_applied is None
-                    or "Pivot" not in current_main_node.step.formal_rule_applied
-                    else theme["annotation_gray"]
+                
+                # Determine the appropriate stroke color based on the node's tonality
+                step = current_main_node.step
+                is_primary = (
+                    step.tonality_used_in_step is not None
+                    and step.tonality_used_in_step == tonality_name
                 )
+                is_pivot = step.formal_rule_applied and "Pivot" in step.formal_rule_applied
+                
+                if is_primary:
+                    # Use primary theme stroke color
+                    color = theme["primary_stroke"]
+                else:
+                    # Use secondary theme stroke color
+                    target_tonality = None
+                    if is_pivot and step.observation:
+                        target_tonality = self._extract_pivot_target_tonality(step.observation)
+                    elif step.tonality_used_in_step and step.tonality_used_in_step != tonality_name:
+                        target_tonality = step.tonality_used_in_step
+                    
+                    if target_tonality and target_tonality in secondary_themes:
+                        secondary_theme = secondary_themes[target_tonality]
+                        color = secondary_theme["primary_stroke"]
+                    else:
+                        color = theme["secondary_stroke"]
+                
                 graph.connect_nodes(
                     current_main_node.node_id,
                     current_possible_node.node_id,
@@ -337,7 +359,9 @@ class VisualizerService:
 
         return graph.render(output_filename)
 
-    def get_graph_dot_source(self, analysis_data: ProgressionAnalysisResponse) -> str:
+    def get_graph_dot_source(
+        self, analysis_data: ProgressionAnalysisResponse, theme_mode: ThemeMode = "light"
+    ) -> str:
         """Get the DOT source code for testing purposes."""
         if not analysis_data.is_tonal_progression:
             raise ValueError("Cannot visualize a non-tonal progression.")
@@ -346,7 +370,7 @@ class VisualizerService:
         if tonality_name is None:
             raise ValueError("Cannot visualize a progression without an identified tonality.")
 
-        theme = get_theme_for_tonality(tonality_name)
+        theme = get_theme_for_tonality(tonality_name, theme_mode)
         graph = HarmonicGraph(theme=theme, temp_dir=TEMP_IMAGE_DIR)
 
         # Process the analysis the same way as create_graph_from_analysis, but return DOT source
@@ -357,7 +381,7 @@ class VisualizerService:
 
         secondary_themes: Dict[str, Dict[str, str]] = {}
         for sec_tonality in secondary_tonalities:
-            secondary_themes[sec_tonality] = get_theme_for_tonality(sec_tonality)
+            secondary_themes[sec_tonality] = get_theme_for_tonality(sec_tonality, theme_mode)
 
         function_to_shape = {
             "TONIC": "house",
