@@ -111,7 +111,12 @@ class HarmonicGraph:
         )
 
     def add_secondary_chord_with_theme(
-        self, node_id: str, label: str, secondary_theme: Dict[str, Any], shape: str = "circle", style_variant: str = "dashed_filled"
+        self,
+        node_id: str,
+        label: str,
+        secondary_theme: Dict[str, Any],
+        shape: str = "circle",
+        style_variant: str = "dashed_filled",
     ) -> None:
         """Adds a secondary chord using a specific theme for secondary tonalities."""
         font_color = secondary_theme.get("primary_text_color")
@@ -150,7 +155,12 @@ class HarmonicGraph:
         self.existing_connections.add((sorted_nodes[0], sorted_nodes[1]))
 
     def connect_with_double_arrow(
-        self, from_node: str, to_node: str, color_key: str, theme: Dict[str, Any] = None, **kwargs: Any
+        self,
+        from_node: str,
+        to_node: str,
+        color_key: str,
+        theme: Dict[str, Any] = None,
+        **kwargs: Any,
     ) -> None:
         current_theme = theme if theme is not None else self.theme
         color = current_theme.get(color_key)
