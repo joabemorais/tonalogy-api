@@ -77,15 +77,14 @@ class TestFlatSupport:
         assert Chord("Dbdim").notes == Chord("C#dim").notes
 
     def test_invalid_flat_combinations(self) -> None:
-        """Test that invalid flat combinations don't break the parser."""
-        # Notes that don't typically use flats (E# doesn't exist, Fb = E, etc.)
-        # These should either work correctly or fail gracefully
+        """Test that unusual flat combinations are handled correctly."""
+        # Notes that are less common but valid enharmonic equivalents
         cb_chord = Chord("Cb")  # Should be equivalent to B
-        # Cb would not be in ENHARMONIC_MAP, so it should remain as "Cb" 
-        # and likely not match anything in NOTE_MAP, resulting in empty notes
-        assert cb_chord.notes == set()
+        # Cb is now in ENHARMONIC_MAP, so it should map to B and parse correctly
+        expected_cb_notes = {"B", "D#", "F#"}  # B major chord
+        assert cb_chord.notes == expected_cb_notes
 
         fb_chord = Chord("Fb")  # Should be equivalent to E
-        # Fb would not be in ENHARMONIC_MAP, so it should remain as "Fb"
-        # and likely not match anything in NOTE_MAP, resulting in empty notes
-        assert fb_chord.notes == set()
+        # Fb is now in ENHARMONIC_MAP, so it should map to E and parse correctly
+        expected_fb_notes = {"E", "G#", "B"}  # E major chord
+        assert fb_chord.notes == expected_fb_notes
