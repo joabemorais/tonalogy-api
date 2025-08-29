@@ -20,7 +20,8 @@
 
 -   **Harmonic Analysis:** Evaluates chord progressions to determine their tonal characteristics.
 -   **Kripke Model:** Uses modal logic to model the "possible worlds" of a harmonic progression.
--   **Graphic Visualization:** Generates SVG graphs that represent the tonal journey of the chords.
+-   **Graphic Visualization:** Generates PNG graphs that represent the tonal journey of the chords.
+-   **Dark & Light Themes:** Support for both light and dark visualization themes with automatic color adaptation.
 -   **RESTful API:** A simple, HTTP-based interface for easy integration with other applications.
 
 ### 🛠️ Tech Stack
@@ -148,7 +149,7 @@ You can interact with the API using any HTTP client. Here are some examples with
 
 ### 1. Analyze a Progression
 
-Send a list of chords to the `/api/analysis/` endpoint to receive a detailed analysis.
+Send a list of chords to the `/analyze` endpoint to receive a detailed analysis.
 
 **Request:**
 ```sh
@@ -188,9 +189,9 @@ curl -X 'POST' \
 
 ### 2. Generate a Visualization
 
-Send a list of chords to `/api/visualizer/` to generate an SVG graph of the analysis.
+Send a list of chords to `/visualize` to generate a PNG graph of the analysis.
 
-**Request:**
+**Request (Light Theme - Default):**
 ```sh
 curl -X 'POST' \
   'http://localhost:8000/visualize' \
@@ -204,14 +205,51 @@ curl -X 'POST' \
     "G",
     "C"
   ],
-  "tonalities_to_test": []
+  "tonalities_to_test": [],
+  "theme": "light"
+}'
+```
+
+**Request (Dark Theme):**
+```sh
+curl -X 'POST' \
+  'http://localhost:8000/visualize' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "chords": [
+    "Em",
+    "A",
+    "Dm",
+    "G",
+    "C"
+  ],
+  "tonalities_to_test": [],
+  "theme": "dark"
 }'
 ```
 
 **Expected Response:**
-Image of the generated SVG graph. No JSON, just the png file, as shown below:
+Image of the generated PNG graph. No JSON, just the png file, as shown below:
 
-![Example SVG Visualization](./docs/example_svg_output.png)
+![Example PNG Visualization](./docs/example_svg_output.png)
+
+### 🎨 Visualization Themes
+
+The API supports both light and dark themes for visualizations:
+
+- **Light Theme (default)**: Clean background with darker elements, ideal for documents and presentations
+- **Dark Theme**: Dark background with bright elements, perfect for modern interfaces and reduced eye strain
+
+**Theme Parameter:**
+- `"light"` - Light theme (default if not specified)
+- `"dark"` - Dark theme
+
+The theme affects all visual elements including:
+- Background colors
+- Node colors (automatically adjusted per tonality)
+- Edge colors and connecting lines
+- Text labels
 
 
 ### 📚 Interactive API Documentation
