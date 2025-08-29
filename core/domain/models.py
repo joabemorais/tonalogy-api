@@ -7,6 +7,79 @@ from typing import Dict, List, Optional, Set, Tuple
 NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 NOTE_MAP = {name: i for i, name in enumerate(NOTE_NAMES)}
 
+# Musical symbols Unicode constants
+SHARP_SYMBOL = "\uE10C"  # ♯ (Unicode E10C for MuseJazz font)
+FLAT_SYMBOL = "\uE10D"   # ♭ (Unicode E10D for MuseJazz font)
+
+# Enharmonic equivalents mapping: flat to sharp
+ENHARMONIC_MAP = {
+    "Db": "C#",
+    "Eb": "D#",
+    "Gb": "F#",
+    "Ab": "G#",
+    "Bb": "A#",
+    # Less common but valid enharmonic equivalents
+    "Cb": "B",
+    "Fb": "E",
+    "E#": "F",
+    "B#": "C",
+    # Unicode symbol variants
+    f"D{FLAT_SYMBOL}": "C#",
+    f"E{FLAT_SYMBOL}": "D#",
+    f"G{FLAT_SYMBOL}": "F#", 
+    f"A{FLAT_SYMBOL}": "G#",
+    f"B{FLAT_SYMBOL}": "A#",
+    f"C{FLAT_SYMBOL}": "B",
+    f"F{FLAT_SYMBOL}": "E",
+    f"E{SHARP_SYMBOL}": "F",
+    f"B{SHARP_SYMBOL}": "C"
+}
+
+
+def normalize_note_name(note_name: str) -> str:
+    """
+    Normalizes a note name by converting flat notation to sharp notation.
+    
+    Args:
+        note_name: The note name (e.g., "Bb", "A#", "C")
+    
+    Returns:
+        The normalized note name using sharp notation
+    """
+    return ENHARMONIC_MAP.get(note_name, note_name)
+
+
+def to_unicode_symbols(chord_name: str) -> str:
+    """
+    Converts ASCII sharp (#) and flat (b) symbols to Unicode musical symbols.
+    
+    Args:
+        chord_name: Chord name with ASCII symbols (e.g., "C#", "Bb")
+    
+    Returns:
+        Chord name with Unicode musical symbols (e.g., "C♯", "B♭")
+    """
+    result = chord_name
+    result = result.replace("#", SHARP_SYMBOL)
+    result = result.replace("b", FLAT_SYMBOL)
+    return result
+
+
+def from_unicode_symbols(chord_name: str) -> str:
+    """
+    Converts Unicode musical symbols to ASCII sharp (#) and flat (b) symbols.
+    
+    Args:
+        chord_name: Chord name with Unicode symbols (e.g., "C♯", "B♭")
+    
+    Returns:
+        Chord name with ASCII symbols (e.g., "C#", "Bb")
+    """
+    result = chord_name
+    result = result.replace(SHARP_SYMBOL, "#")
+    result = result.replace(FLAT_SYMBOL, "b")
+    return result
+
 
 @dataclass(frozen=True)
 class Chord:
@@ -34,22 +107,30 @@ class Chord:
     def _parse_notes(self) -> Set[str]:
         """
         Parses the chord name to return the set of notes it contains.
-        This initial implementation supports major, minor, and diminished triads.
+        This implementation supports major, minor, and diminished triads.
+        It also supports both sharp (#) and flat (b) notation, as well as Unicode musical symbols,
+        converting flats to their enharmonic sharp equivalents.
         """
-        match = re.match(r"([A-G]#?)", self.name)
+        # First normalize Unicode symbols to ASCII for consistent processing
+        normalized_name = from_unicode_symbols(self.name)
+        
+        # Updated regex to match both sharp (#) and flat (b) notations
+        match = re.match(r"([A-G][#b]?)", normalized_name)
         if not match:
             return set()
 
         root_note_name = match.group(1)
-        root_note_index = NOTE_MAP.get(root_note_name)
+        # Normalize the note name (convert flats to sharps)
+        normalized_root = normalize_note_name(root_note_name)
+        root_note_index = NOTE_MAP.get(normalized_root)
 
         if root_note_index is None:
             return set()
 
-        if self.name.endswith("dim"):
+        if normalized_name.endswith("dim"):
             # Diminished: T + 3st + 6st
             intervals = [0, 3, 6]
-        elif self.name.endswith("m"):
+        elif normalized_name.endswith("m"):
             # Minor: T + 3st + 7st
             intervals = [0, 3, 7]
         else:
@@ -103,8 +184,23 @@ class Tonality:
         return set(self.function_to_chords_map.get(func, {}).keys())
 
     def chord_fulfills_function(self, test_chord: Chord, target_function: TonalFunction) -> bool:
-        """Checks if a chord fulfills a specific function in this tonality."""
-        return test_chord in self.function_to_chords_map.get(target_function, {})
+        """
+        Checks if a chord fulfills a specific function in this tonality.
+        This method supports enharmonic equivalence by comparing chord notes.
+        """
+        function_chords = self.function_to_chords_map.get(target_function, {})
+        
+        # First try direct comparison (for exact matches)
+        if test_chord in function_chords:
+            return True
+        
+        # If no direct match, check for enharmonic equivalence by comparing notes
+        test_chord_notes = test_chord.notes
+        for chord in function_chords.keys():
+            if chord.notes == test_chord_notes:
+                return True
+        
+        return False
 
     def get_chord_origin_for_function(
         self, test_chord: Chord, target_function: TonalFunction
