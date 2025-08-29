@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from api.schemas.analysis_schemas import ExplanationStepAPI, ProgressionAnalysisResponse
+from core.domain.models import to_unicode_symbols
 from visualizer.harmonic_graph import HarmonicGraph
 from visualizer.theming import get_theme_for_tonality
 
@@ -83,6 +84,9 @@ class VisualizerService:
             if chord is None:
                 continue
 
+            # Convert ASCII symbols to Unicode musical symbols for display
+            chord_display = to_unicode_symbols(chord)
+
             function = "TONIC"
             if step.evaluated_functional_state:
                 # Extract function from strings like "TONIC (s_t)", "DOMINANT (s_d)", etc.
@@ -95,7 +99,7 @@ class VisualizerService:
             )
             is_pivot = step.formal_rule_applied and "Pivot" in step.formal_rule_applied
 
-            main_node = NodeInfo(f"{chord}_main_{i}", chord, function, shape, step)
+            main_node = NodeInfo(f"{chord}_main_{i}", chord_display, function, shape, step)
             main_world_nodes.append(main_node)
             if is_primary:
                 # Apply the style determined by the tonality's mode
@@ -137,7 +141,7 @@ class VisualizerService:
                 secondary_function = "TONIC" if is_pivot else function
                 secondary_shape = function_to_shape.get(secondary_function, "circle")
                 possible_node = NodeInfo(
-                    f"{chord}_possible_{i}", chord, secondary_function, secondary_shape, step
+                    f"{chord}_possible_{i}", chord_display, secondary_function, secondary_shape, step
                 )
                 possible_world_nodes[i] = possible_node
 
@@ -332,3 +336,73 @@ class VisualizerService:
         graph.build_progression_chain(main_ids)
 
         return graph.render(output_filename)
+
+    def get_graph_dot_source(self, analysis_data: ProgressionAnalysisResponse) -> str:
+        """Get the DOT source code for testing purposes."""
+        if not analysis_data.is_tonal_progression:
+            raise ValueError("Cannot visualize a non-tonal progression.")
+
+        tonality_name = analysis_data.identified_tonality
+        if tonality_name is None:
+            raise ValueError("Cannot visualize a progression without an identified tonality.")
+
+        theme = get_theme_for_tonality(tonality_name)
+        graph = HarmonicGraph(theme=theme, temp_dir=TEMP_IMAGE_DIR)
+
+        # Process the analysis the same way as create_graph_from_analysis, but return DOT source
+        secondary_tonalities = set()
+        for step in analysis_data.explanation_details:
+            if step.tonality_used_in_step and step.tonality_used_in_step != tonality_name:
+                secondary_tonalities.add(step.tonality_used_in_step)
+
+        secondary_themes: Dict[str, Dict[str, str]] = {}
+        for sec_tonality in secondary_tonalities:
+            secondary_themes[sec_tonality] = get_theme_for_tonality(sec_tonality)
+
+        function_to_shape = {
+            "TONIC": "house",
+            "DOMINANT": "circle",
+            "SUBDOMINANT": "circle",
+        }
+
+        is_minor_tonality = "minor" in tonality_name.lower()
+        primary_style_variant = "dashed_filled" if is_minor_tonality else "solid_filled"
+
+        relevant_steps = [
+            step for step in analysis_data.explanation_details if step.processed_chord
+        ]
+        relevant_steps.reverse()
+
+        main_world_nodes: List[Optional[NodeInfo]] = []
+
+        # Process nodes (simplified version)
+        for i, step in enumerate(relevant_steps):
+            chord = step.processed_chord
+            if chord is None:
+                continue
+
+            # Convert ASCII symbols to Unicode musical symbols for display
+            chord_display = to_unicode_symbols(chord)
+
+            function = "TONIC"
+            if step.evaluated_functional_state:
+                function = step.evaluated_functional_state.split(" ")[0]
+
+            shape = function_to_shape.get(function, "circle")
+            is_primary = (
+                step.tonality_used_in_step is not None
+                and step.tonality_used_in_step == tonality_name
+            )
+
+            main_node = NodeInfo(f"{chord}_main_{i}", chord_display, function, shape, step)
+            main_world_nodes.append(main_node)
+            
+            if is_primary:
+                graph.add_primary_chord(
+                    main_node.node_id,
+                    main_node.chord,
+                    shape=main_node.shape,
+                    style_variant=primary_style_variant,
+                )
+
+        return graph.get_dot_source()

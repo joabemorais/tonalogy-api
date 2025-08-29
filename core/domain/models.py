@@ -7,6 +7,10 @@ from typing import Dict, List, Optional, Set, Tuple
 NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 NOTE_MAP = {name: i for i, name in enumerate(NOTE_NAMES)}
 
+# Musical symbols Unicode constants
+SHARP_SYMBOL = "\uE10C"  # ♯ (Unicode E10C for MuseJazz font)
+FLAT_SYMBOL = "\uE10D"   # ♭ (Unicode E10D for MuseJazz font)
+
 # Enharmonic equivalents mapping: flat to sharp
 ENHARMONIC_MAP = {
     "Db": "C#",
@@ -18,7 +22,17 @@ ENHARMONIC_MAP = {
     "Cb": "B",
     "Fb": "E",
     "E#": "F",
-    "B#": "C"
+    "B#": "C",
+    # Unicode symbol variants
+    f"D{FLAT_SYMBOL}": "C#",
+    f"E{FLAT_SYMBOL}": "D#",
+    f"G{FLAT_SYMBOL}": "F#", 
+    f"A{FLAT_SYMBOL}": "G#",
+    f"B{FLAT_SYMBOL}": "A#",
+    f"C{FLAT_SYMBOL}": "B",
+    f"F{FLAT_SYMBOL}": "E",
+    f"E{SHARP_SYMBOL}": "F",
+    f"B{SHARP_SYMBOL}": "C"
 }
 
 
@@ -33,6 +47,38 @@ def normalize_note_name(note_name: str) -> str:
         The normalized note name using sharp notation
     """
     return ENHARMONIC_MAP.get(note_name, note_name)
+
+
+def to_unicode_symbols(chord_name: str) -> str:
+    """
+    Converts ASCII sharp (#) and flat (b) symbols to Unicode musical symbols.
+    
+    Args:
+        chord_name: Chord name with ASCII symbols (e.g., "C#", "Bb")
+    
+    Returns:
+        Chord name with Unicode musical symbols (e.g., "C♯", "B♭")
+    """
+    result = chord_name
+    result = result.replace("#", SHARP_SYMBOL)
+    result = result.replace("b", FLAT_SYMBOL)
+    return result
+
+
+def from_unicode_symbols(chord_name: str) -> str:
+    """
+    Converts Unicode musical symbols to ASCII sharp (#) and flat (b) symbols.
+    
+    Args:
+        chord_name: Chord name with Unicode symbols (e.g., "C♯", "B♭")
+    
+    Returns:
+        Chord name with ASCII symbols (e.g., "C#", "Bb")
+    """
+    result = chord_name
+    result = result.replace(SHARP_SYMBOL, "#")
+    result = result.replace(FLAT_SYMBOL, "b")
+    return result
 
 
 @dataclass(frozen=True)
@@ -62,10 +108,14 @@ class Chord:
         """
         Parses the chord name to return the set of notes it contains.
         This implementation supports major, minor, and diminished triads.
-        It also supports both sharp (#) and flat (b) notation, converting flats to their enharmonic sharp equivalents.
+        It also supports both sharp (#) and flat (b) notation, as well as Unicode musical symbols,
+        converting flats to their enharmonic sharp equivalents.
         """
+        # First normalize Unicode symbols to ASCII for consistent processing
+        normalized_name = from_unicode_symbols(self.name)
+        
         # Updated regex to match both sharp (#) and flat (b) notations
-        match = re.match(r"([A-G][#b]?)", self.name)
+        match = re.match(r"([A-G][#b]?)", normalized_name)
         if not match:
             return set()
 
@@ -77,10 +127,10 @@ class Chord:
         if root_note_index is None:
             return set()
 
-        if self.name.endswith("dim"):
+        if normalized_name.endswith("dim"):
             # Diminished: T + 3st + 6st
             intervals = [0, 3, 6]
-        elif self.name.endswith("m"):
+        elif normalized_name.endswith("m"):
             # Minor: T + 3st + 7st
             intervals = [0, 3, 7]
         else:

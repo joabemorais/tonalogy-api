@@ -208,3 +208,7 @@ class HarmonicGraph:
             raise
         finally:
             self.svg_factory.cleanup_files()
+
+    def get_dot_source(self) -> str:
+        """Returns the DOT source code of the graph for testing purposes."""
+        return self.dot.source
