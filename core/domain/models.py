@@ -7,6 +7,33 @@ from typing import Dict, List, Optional, Set, Tuple
 NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 NOTE_MAP = {name: i for i, name in enumerate(NOTE_NAMES)}
 
+# Enharmonic equivalents mapping: flat to sharp
+ENHARMONIC_MAP = {
+    "Db": "C#",
+    "Eb": "D#",
+    "Gb": "F#",
+    "Ab": "G#",
+    "Bb": "A#",
+    # Less common but valid enharmonic equivalents
+    "Cb": "B",
+    "Fb": "E",
+    "E#": "F",
+    "B#": "C"
+}
+
+
+def normalize_note_name(note_name: str) -> str:
+    """
+    Normalizes a note name by converting flat notation to sharp notation.
+    
+    Args:
+        note_name: The note name (e.g., "Bb", "A#", "C")
+    
+    Returns:
+        The normalized note name using sharp notation
+    """
+    return ENHARMONIC_MAP.get(note_name, note_name)
+
 
 @dataclass(frozen=True)
 class Chord:
