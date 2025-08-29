@@ -61,14 +61,18 @@ class Chord:
     def _parse_notes(self) -> Set[str]:
         """
         Parses the chord name to return the set of notes it contains.
-        This initial implementation supports major, minor, and diminished triads.
+        This implementation supports major, minor, and diminished triads.
+        It also supports both sharp (#) and flat (b) notation, converting flats to their enharmonic sharp equivalents.
         """
-        match = re.match(r"([A-G]#?)", self.name)
+        # Updated regex to match both sharp (#) and flat (b) notations
+        match = re.match(r"([A-G][#b]?)", self.name)
         if not match:
             return set()
 
         root_note_name = match.group(1)
-        root_note_index = NOTE_MAP.get(root_note_name)
+        # Normalize the note name (convert flats to sharps)
+        normalized_root = normalize_note_name(root_note_name)
+        root_note_index = NOTE_MAP.get(normalized_root)
 
         if root_note_index is None:
             return set()
