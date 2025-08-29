@@ -232,7 +232,11 @@ curl -X 'POST' \
 **Expected Response:**
 Image of the generated PNG graph. No JSON, just the png file, as shown below:
 
-![Example PNG Visualization](./docs/example_svg_output.png)
+![Example PNG Visualization](./docs/example_svg_output_light_theme.png)
+
+... Or in the dark theme:
+
+![Example PNG Visualization](./docs/example_svg_output_dark_theme.png)
 
 ### 🎨 Visualization Themes
 
