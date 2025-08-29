@@ -134,8 +134,23 @@ class Tonality:
         return set(self.function_to_chords_map.get(func, {}).keys())
 
     def chord_fulfills_function(self, test_chord: Chord, target_function: TonalFunction) -> bool:
-        """Checks if a chord fulfills a specific function in this tonality."""
-        return test_chord in self.function_to_chords_map.get(target_function, {})
+        """
+        Checks if a chord fulfills a specific function in this tonality.
+        This method supports enharmonic equivalence by comparing chord notes.
+        """
+        function_chords = self.function_to_chords_map.get(target_function, {})
+        
+        # First try direct comparison (for exact matches)
+        if test_chord in function_chords:
+            return True
+        
+        # If no direct match, check for enharmonic equivalence by comparing notes
+        test_chord_notes = test_chord.notes
+        for chord in function_chords.keys():
+            if chord.notes == test_chord_notes:
+                return True
+        
+        return False
 
     def get_chord_origin_for_function(
         self, test_chord: Chord, target_function: TonalFunction
