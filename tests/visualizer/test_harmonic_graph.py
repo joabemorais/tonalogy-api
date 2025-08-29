@@ -220,6 +220,51 @@ class TestHarmonicGraph:
         with pytest.raises(ValueError, match="Color key 'nonexistent_color' not found in theme"):
             harmonic_graph.connect_with_double_arrow(from_node, to_node, invalid_color_key)
 
+    def test_connect_with_single_arrow_default_theme(self, harmonic_graph: HarmonicGraph) -> None:
+        """Test connecting nodes with single arrow using default theme."""
+        # GIVEN
+        from_node = "F_main_1"
+        to_node = "C_main_2"
+        color_key = "primary_stroke"
+
+        # WHEN
+        harmonic_graph.connect_with_single_arrow(from_node, to_node, color_key)
+
+        # THEN
+        # Verify connection was recorded
+        expected_connection = tuple(sorted((from_node, to_node)))
+        assert expected_connection in harmonic_graph.existing_connections
+
+    def test_connect_with_single_arrow_custom_theme(
+        self, harmonic_graph: HarmonicGraph, alternative_theme: Dict[str, Any]
+    ) -> None:
+        """Test connecting nodes with single arrow using custom theme."""
+        # GIVEN
+        from_node = "Bb_possible_1"
+        to_node = "F_possible_2"
+        color_key = "primary_stroke"
+
+        # WHEN
+        harmonic_graph.connect_with_single_arrow(from_node, to_node, color_key, alternative_theme)
+
+        # THEN
+        # Verify connection was recorded
+        expected_connection = tuple(sorted((from_node, to_node)))
+        assert expected_connection in harmonic_graph.existing_connections
+
+    def test_connect_with_single_arrow_missing_color_key(
+        self, harmonic_graph: HarmonicGraph
+    ) -> None:
+        """Test that missing color key raises ValueError."""
+        # GIVEN
+        from_node = "F_main_1"
+        to_node = "C_main_2"
+        invalid_color_key = "nonexistent_color"
+
+        # WHEN & THEN
+        with pytest.raises(ValueError, match="Color key 'nonexistent_color' not found in theme"):
+            harmonic_graph.connect_with_single_arrow(from_node, to_node, invalid_color_key)
+
     def test_align_nodes_in_ranks_single_rank(self, harmonic_graph: HarmonicGraph) -> None:
         """Test aligning nodes in a single rank."""
         # GIVEN

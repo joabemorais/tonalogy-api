@@ -169,6 +169,21 @@ class HarmonicGraph:
         double_line_color = f"{color}:invis:{color}"
         self.connect_nodes(from_node, to_node, color=double_line_color, penwidth="3", **kwargs)
 
+    def connect_with_single_arrow(
+        self,
+        from_node: str,
+        to_node: str,
+        color_key: str,
+        theme: Dict[str, Any] = None,
+        **kwargs: Any,
+    ) -> None:
+        """Connects two nodes with a single arrow (for plagal cadence)."""
+        current_theme = theme if theme is not None else self.theme
+        color = current_theme.get(color_key)
+        if not color:
+            raise ValueError(f"Color key '{color_key}' not found in theme.")
+        self.connect_nodes(from_node, to_node, color=color, penwidth="2", **kwargs)
+
     def align_nodes_in_ranks(self, *ranks: Any) -> None:
         """Aligns nodes in separate ranks (rows)."""
         for rank in ranks:

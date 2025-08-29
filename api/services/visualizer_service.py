@@ -201,6 +201,9 @@ class VisualizerService:
                     and prev_main.step.tonality_used_in_step == tonality_name
                     and curr_main.step.tonality_used_in_step == tonality_name
                 ):
+                    # Como a lista foi revertida, curr_main é cronologicamente anterior a prev_main
+                    # Para cadências, queremos: curr_main (anterior) -> prev_main (posterior)
+                    # Mas nos índices: prev_main[i-1] -> curr_main[i] 
                     if prev_main.function == "SUBDOMINANT" and curr_main.function == "DOMINANT":
                         graph.connect_nodes(
                             prev_main.node_id,
@@ -213,10 +216,17 @@ class VisualizerService:
                         graph.connect_with_double_arrow(
                             prev_main.node_id, curr_main.node_id, "primary_stroke"
                         )
+                    elif prev_main.function == "SUBDOMINANT" and curr_main.function == "TONIC":
+                        graph.connect_with_single_arrow(
+                            prev_main.node_id, curr_main.node_id, "primary_stroke"
+                        )
 
                 prev_possible = possible_world_nodes[i - 1]
                 curr_possible = possible_world_nodes[i]
                 if prev_possible and curr_possible:
+                    # Como a lista foi revertida, curr_possible é cronologicamente anterior a prev_possible
+                    # Para cadências, queremos: curr_possible (anterior) -> prev_possible (posterior)
+                    # Mas nos índices: prev_possible[i-1] -> curr_possible[i]
                     if prev_possible.function == "DOMINANT" and curr_possible.function == "TONIC":
                         # Determine which secondary theme to use based on target tonality
                         secondary_tonality = None
@@ -264,6 +274,56 @@ class VisualizerService:
                             )
                         else:
                             graph.connect_with_double_arrow(
+                                prev_possible.node_id, curr_possible.node_id, "secondary_stroke"
+                            )
+                    
+                    elif prev_possible.function == "SUBDOMINANT" and curr_possible.function == "TONIC":
+                        # Determine which secondary theme to use based on target tonality
+                        secondary_tonality = None
+
+                        # Check current possible node for pivot target tonality
+                        curr_step = curr_possible.step
+                        if (
+                            curr_step.formal_rule_applied
+                            and "Pivot" in curr_step.formal_rule_applied
+                            and curr_step.observation
+                        ):
+                            secondary_tonality = self._extract_pivot_target_tonality(
+                                curr_step.observation
+                            )
+                        elif (
+                            curr_step.tonality_used_in_step
+                            and curr_step.tonality_used_in_step in secondary_themes
+                        ):
+                            secondary_tonality = curr_step.tonality_used_in_step
+
+                        # Fallback to previous possible node
+                        if not secondary_tonality:
+                            prev_step = prev_possible.step
+                            if (
+                                prev_step.formal_rule_applied
+                                and "Pivot" in prev_step.formal_rule_applied
+                                and prev_step.observation
+                            ):
+                                secondary_tonality = self._extract_pivot_target_tonality(
+                                    prev_step.observation
+                                )
+                            elif (
+                                prev_step.tonality_used_in_step
+                                and prev_step.tonality_used_in_step in secondary_themes
+                            ):
+                                secondary_tonality = prev_step.tonality_used_in_step
+
+                        if secondary_tonality and secondary_tonality in secondary_themes:
+                            secondary_theme = secondary_themes[secondary_tonality]
+                            graph.connect_with_single_arrow(
+                                prev_possible.node_id,
+                                curr_possible.node_id,
+                                "primary_stroke",
+                                secondary_theme,
+                            )
+                        else:
+                            graph.connect_with_single_arrow(
                                 prev_possible.node_id, curr_possible.node_id, "secondary_stroke"
                             )
 
