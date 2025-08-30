@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img src="./docs/demo.gif" alt="Tonalogy API Demo">
+  <img src="./docs/demo.gif" alt="Tonalogy API Demo" width="500">
 </p>
 
 ## 📜 About The Project
