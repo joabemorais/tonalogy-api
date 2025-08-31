@@ -61,27 +61,6 @@ async def read_root() -> Dict[str, str]:
     return {"message": T("api.welcome_message")}
 
 
-# --- I18n Test Route ---
-@app.get("/test-i18n", tags=["Testing"])
-async def test_i18n(lang: str = "en") -> Dict[str, str]:
-    """Test endpoint to verify i18n translations."""
-    from core.i18n.translator import locale_manager
-    
-    # Set locale temporarily for this request
-    locale_manager.set_locale(lang)
-    
-    return {
-        "locale": locale_manager.current_locale,
-        "api_title": T("api.title"),
-        "api_description": T("api.description"),
-        "welcome_message": T("api.welcome_message"),
-        "chord_list_empty_error": T("errors.chord_list_empty"),
-        "analysis_start": T("analysis.rules.analysis_start"),
-        "pivot_modulation": T("analysis.rules.pivot_modulation"),
-        "end_of_sequence": T("analysis.rules.end_of_sequence")
-    }
-
-
 def main() -> None:
     """Entry point for the tonalogy-api script."""
     uvicorn.run("api.main:app", host="0.0.0.0", port=8000, reload=True, log_level="info")
