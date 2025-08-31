@@ -279,6 +279,57 @@ pytest
 
 ---
 
+## 🌍 Internationalization (i18n)
+
+The Tonalogy API supports multiple languages with automatic detection and manual override:
+
+### Supported Languages
+- **English** (`en`) - Default
+- **Portuguese Brazilian** (`pt_br`)
+
+### Usage Examples
+
+```bash
+# Using query parameter
+curl "http://localhost:8000/analyze?lang=pt_br" \
+  -H "Content-Type: application/json" \
+  -d '{"chords": ["C", "F", "G", "C"]}'
+
+# Using Accept-Language header  
+curl -H "Accept-Language: pt-BR" \
+  "http://localhost:8000/analyze" \
+  -H "Content-Type: application/json" \
+  -d '{"chords": ["C", "F", "G", "C"]}'
+```
+
+**English Response:**
+```json
+{
+  "is_tonal_progression": true,
+  "identified_tonality": "C Major",
+  "explanation_details": [
+    {"formal_rule_applied": "Analysis Start", "observation": "Testing progression with primary tonality: 'C Major'."},
+    {"formal_rule_applied": "P in L", "observation": "Chord 'C' fulfills function 'TONIC' in 'C Major'."}
+  ]
+}
+```
+
+**Portuguese Response:**
+```json
+{
+  "is_tonal_progression": true,
+  "identified_tonality": "Dó Maior",
+  "explanation_details": [
+    {"formal_rule_applied": "Início da Análise", "observation": "Testando progressão com tonalidade primária: 'Dó Maior'."},
+    {"formal_rule_applied": "P em L", "observation": "O acorde 'C' cumpre a função 'TÔNICA' em 'Dó Maior'."}
+  ]
+}
+```
+
+For detailed technical documentation, see [`docs/i18n.md`](./docs/i18n.md).
+
+---
+
 ## 🤝 Contributing
 
 Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
