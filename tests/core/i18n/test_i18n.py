@@ -3,7 +3,8 @@ Tests for the internationalization (i18n) system.
 """
 
 import pytest
-from core.i18n import T, LocaleManager, get_translator
+
+from core.i18n import LocaleManager, T, get_translator
 from core.i18n.locale_manager import locale_manager
 
 

@@ -3,9 +3,10 @@ Tests for Unicode musical symbols in visualizer output.
 """
 
 import pytest
-from api.services.visualizer_service import VisualizerService
+
 from api.schemas.analysis_schemas import ExplanationStepAPI, ProgressionAnalysisResponse
-from core.domain.models import SHARP_SYMBOL, FLAT_SYMBOL
+from api.services.visualizer_service import VisualizerService
+from core.domain.models import FLAT_SYMBOL, SHARP_SYMBOL
 
 
 class TestUnicodeSymbolsInVisualizer:

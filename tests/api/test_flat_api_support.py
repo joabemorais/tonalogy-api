@@ -4,6 +4,7 @@ End-to-end test for flat notation support through the API.
 
 import pytest
 from fastapi.testclient import TestClient
+
 from api.main import app
 
 

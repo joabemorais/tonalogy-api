@@ -1,8 +1,8 @@
 from typing import List, Tuple
 
 from core.domain.models import Chord, Explanation, KripkeStructureConfig, TonalFunction, Tonality
-from core.logic.kripke_evaluator import SatisfactionEvaluator
 from core.i18n import T
+from core.logic.kripke_evaluator import SatisfactionEvaluator
 
 
 class ProgressionAnalyzer:

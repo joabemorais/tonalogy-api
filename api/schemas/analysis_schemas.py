@@ -1,7 +1,8 @@
-from typing import Any, List, Optional, Literal
+from typing import Any, List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
-from core.i18n import T, translate_tonality, translate_function
+
+from core.i18n import T, translate_function, translate_tonality
 
 
 class ProgressionAnalysisRequest(BaseModel):

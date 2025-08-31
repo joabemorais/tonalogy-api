@@ -1,4 +1,5 @@
 from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.schemas.analysis_schemas import ProgressionAnalysisRequest, ProgressionAnalysisResponse

@@ -3,7 +3,8 @@ Integration test for flat notation support in progression analysis.
 """
 
 import pytest
-from core.domain.models import Chord, Tonality, TonalFunction
+
+from core.domain.models import Chord, TonalFunction, Tonality
 
 
 class TestFlatIntegration:

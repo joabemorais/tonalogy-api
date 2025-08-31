@@ -1,7 +1,7 @@
 """Internationalization (i18n) package for TonalogyAPI."""
 
-from .locale_manager import locale_manager, LocaleManager
-from .translator import get_translator, T, translate_tonality, translate_function
+from .locale_manager import LocaleManager, locale_manager
+from .translator import T, get_translator, translate_function, translate_tonality
 
 __all__ = [
     "locale_manager",
@@ -12,8 +12,8 @@ __all__ = [
     "translate_function",
 ]
 
-from .translator import get_translator, T
 from .locale_manager import LocaleManager
+from .translator import T, get_translator
 
 try:
     from .middleware import I18nMiddleware

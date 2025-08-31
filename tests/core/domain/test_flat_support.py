@@ -3,6 +3,7 @@ Tests for flat notation support in chord parsing.
 """
 
 import pytest
+
 from core.domain.models import Chord, normalize_note_name
 
 

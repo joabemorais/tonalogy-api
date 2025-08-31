@@ -6,9 +6,9 @@ from typing import Dict, List, Optional
 
 from api.schemas.analysis_schemas import ExplanationStepAPI, ProgressionAnalysisResponse
 from core.domain.models import to_unicode_symbols
-from visualizer.harmonic_graph import HarmonicGraph
-from visualizer.theming import get_theme_for_tonality, ThemeMode
 from core.i18n import T
+from visualizer.harmonic_graph import HarmonicGraph
+from visualizer.theming import ThemeMode, get_theme_for_tonality
 
 TEMP_IMAGE_DIR = Path(__file__).resolve().parent.parent.parent / "temp_images"
 TEMP_IMAGE_DIR.mkdir(exist_ok=True)

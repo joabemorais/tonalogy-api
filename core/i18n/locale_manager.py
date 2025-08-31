@@ -3,9 +3,9 @@ Locale Manager for handling language settings and detection.
 """
 
 import os
-from typing import Optional
-from threading import local
 from contextlib import contextmanager
+from threading import local
+from typing import Optional
 
 
 class LocaleManager:

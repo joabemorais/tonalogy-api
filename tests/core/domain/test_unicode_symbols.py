@@ -3,13 +3,14 @@ Tests for Unicode musical symbols support.
 """
 
 import pytest
+
 from core.domain.models import (
-    Chord,
-    to_unicode_symbols,
-    from_unicode_symbols,
-    SHARP_SYMBOL,
     FLAT_SYMBOL,
+    SHARP_SYMBOL,
+    Chord,
+    from_unicode_symbols,
     normalize_note_name,
+    to_unicode_symbols,
 )
 
 

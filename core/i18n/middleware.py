@@ -3,9 +3,10 @@ FastAPI middleware for internationalization support.
 """
 
 try:
+    from typing import Callable
+
     from fastapi import Request, Response
     from fastapi.middleware.base import BaseHTTPMiddleware
-    from typing import Callable
 
     FASTAPI_AVAILABLE = True
 except ImportError:
@@ -17,7 +18,6 @@ except ImportError:
     Callable = None
 
 from .locale_manager import locale_manager
-
 
 if FASTAPI_AVAILABLE:
 

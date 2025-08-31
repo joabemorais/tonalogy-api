@@ -3,9 +3,10 @@ from typing import Any, Dict, Set, Union
 
 import graphviz
 
+from core.i18n import T
+
 from .styles import SVG_TEMPLATES
 from .svg_factory import SvgFactory
-from core.i18n import T
 
 
 class HarmonicGraph:

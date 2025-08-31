@@ -8,11 +8,10 @@ from api.schemas.analysis_schemas import (
 )
 from core.config.knowledge_base import TonalKnowledgeBase
 from core.domain.models import Chord, Explanation, Tonality
+from core.i18n import T, translate_function, translate_tonality
+from core.i18n.locale_manager import locale_manager
 from core.logic.candidate_processor import CandidateProcessor
 from core.logic.progression_analyzer import ProgressionAnalyzer
-from core.i18n import T, translate_tonality, translate_function
-from core.i18n.locale_manager import locale_manager
-from core.i18n.locale_manager import locale_manager
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
