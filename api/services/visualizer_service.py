@@ -8,6 +8,7 @@ from api.schemas.analysis_schemas import ExplanationStepAPI, ProgressionAnalysis
 from core.domain.models import to_unicode_symbols
 from visualizer.harmonic_graph import HarmonicGraph
 from visualizer.theming import get_theme_for_tonality, ThemeMode
+from core.i18n import T
 
 TEMP_IMAGE_DIR = Path(__file__).resolve().parent.parent.parent / "temp_images"
 TEMP_IMAGE_DIR.mkdir(exist_ok=True)
@@ -34,11 +35,11 @@ class VisualizerService:
         self, analysis_data: ProgressionAnalysisResponse, theme_mode: ThemeMode = "light"
     ) -> str:
         if not analysis_data.is_tonal_progression:
-            raise ValueError("Cannot visualize a non-tonal progression.")
+            raise ValueError(T("errors.cannot_visualize_non_tonal"))
 
         tonality_name = analysis_data.identified_tonality
         if tonality_name is None:
-            raise ValueError("Cannot visualize a progression without an identified tonality.")
+            raise ValueError(T("errors.cannot_visualize_no_tonality"))
 
         theme = get_theme_for_tonality(tonality_name, theme_mode)
         output_filename = TEMP_IMAGE_DIR / str(uuid.uuid4())
@@ -364,11 +365,11 @@ class VisualizerService:
     ) -> str:
         """Get the DOT source code for testing purposes."""
         if not analysis_data.is_tonal_progression:
-            raise ValueError("Cannot visualize a non-tonal progression.")
+            raise ValueError(T("errors.cannot_visualize_non_tonal"))
 
         tonality_name = analysis_data.identified_tonality
         if tonality_name is None:
-            raise ValueError("Cannot visualize a progression without an identified tonality.")
+            raise ValueError(T("errors.cannot_visualize_no_tonality"))
 
         theme = get_theme_for_tonality(tonality_name, theme_mode)
         graph = HarmonicGraph(theme=theme, temp_dir=TEMP_IMAGE_DIR)
