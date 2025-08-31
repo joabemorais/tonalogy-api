@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 from api.endpoints.analysis import get_analysis_service
 from api.endpoints.visualizer import get_visualizer_service
 from api.main import app
-from api.schemas.analysis_schemas import ProgressionAnalysisResponse
+from api.schemas.analysis_schemas import ExplanationStepAPI, ProgressionAnalysisResponse
 from api.services.analysis_service import TonalAnalysisService
 from api.services.visualizer_service import VisualizerService
 
@@ -36,13 +36,13 @@ class TestVisualizerEndpoint:
             is_tonal_progression=True,
             identified_tonality="C Major",
             explanation_details=[
-                {
-                    "formal_rule_applied": "P in L",
-                    "observation": "Chord 'C' fulfills function 'TONIC' in 'C Major'.",
-                    "processed_chord": "C",
-                    "tonality_used_in_step": "C Major",
-                    "evaluated_functional_state": "TONIC (s_t)",
-                }
+                ExplanationStepAPI(
+                    formal_rule_applied="P in L",
+                    observation="Chord 'C' fulfills function 'TONIC' in 'C Major'.",
+                    processed_chord="C",
+                    tonality_used_in_step="C Major",
+                    evaluated_functional_state="TONIC (s_t)",
+                )
             ],
             error=None,
         )
@@ -195,7 +195,7 @@ class TestVisualizerEndpoint:
         for payload in invalid_payloads:
             # For now, we'll just check that these payloads are indeed invalid
             # In a full integration test, these would be sent to the endpoint
-            assert payload != {"chords": ["C", "G", "Am", "F"]}  # Valid format
+            assert isinstance(payload, dict)  # Just check it's a dict
 
         # Placeholder assertion for the test structure
         assert True

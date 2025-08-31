@@ -262,7 +262,7 @@ class VisualizerService:
                     # Mas nos índices: prev_possible[i-1] -> curr_possible[i]
                     if prev_possible.function == "DOMINANT" and curr_possible.function == "TONIC":
                         # Determine which secondary theme to use based on target tonality
-                        secondary_tonality = None
+                        target_tonality_for_cadence: Optional[str] = None
 
                         # Check current possible node for pivot target tonality
                         curr_step = curr_possible.step
@@ -271,14 +271,14 @@ class VisualizerService:
                             and "Pivot" in curr_step.formal_rule_applied
                             and curr_step.observation
                         ):
-                            secondary_tonality = self._extract_pivot_target_tonality(
+                            target_tonality_for_cadence = self._extract_pivot_target_tonality(
                                 curr_step.observation
                             )
                         elif (
                             curr_step.tonality_used_in_step
                             and curr_step.tonality_used_in_step in secondary_themes
                         ):
-                            secondary_tonality = curr_step.tonality_used_in_step
+                            target_tonality_for_cadence = curr_step.tonality_used_in_step
 
                         # Fallback to previous possible node
                         if not secondary_tonality:
@@ -288,7 +288,7 @@ class VisualizerService:
                                 and "Pivot" in prev_step.formal_rule_applied
                                 and prev_step.observation
                             ):
-                                secondary_tonality = self._extract_pivot_target_tonality(
+                                target_tonality_for_cadence = self._extract_pivot_target_tonality(
                                     prev_step.observation
                                 )
                             elif (
@@ -315,7 +315,7 @@ class VisualizerService:
                         and curr_possible.function == "TONIC"
                     ):
                         # Determine which secondary theme to use based on target tonality
-                        secondary_tonality = None
+                        target_tonality_for_plagal: Optional[str] = None
 
                         # Check current possible node for pivot target tonality
                         curr_step = curr_possible.step
@@ -324,14 +324,14 @@ class VisualizerService:
                             and "Pivot" in curr_step.formal_rule_applied
                             and curr_step.observation
                         ):
-                            secondary_tonality = self._extract_pivot_target_tonality(
+                            target_tonality_for_cadence = self._extract_pivot_target_tonality(
                                 curr_step.observation
                             )
                         elif (
                             curr_step.tonality_used_in_step
                             and curr_step.tonality_used_in_step in secondary_themes
                         ):
-                            secondary_tonality = curr_step.tonality_used_in_step
+                            target_tonality_for_cadence = curr_step.tonality_used_in_step
 
                         # Fallback to previous possible node
                         if not secondary_tonality:
@@ -341,7 +341,7 @@ class VisualizerService:
                                 and "Pivot" in prev_step.formal_rule_applied
                                 and prev_step.observation
                             ):
-                                secondary_tonality = self._extract_pivot_target_tonality(
+                                target_tonality_for_cadence = self._extract_pivot_target_tonality(
                                     prev_step.observation
                                 )
                             elif (

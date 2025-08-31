@@ -5,7 +5,7 @@ Locale Manager for handling language settings and detection.
 import os
 from contextlib import contextmanager
 from threading import local
-from typing import Optional
+from typing import Generator, Optional
 
 
 class LocaleManager:
@@ -14,7 +14,7 @@ class LocaleManager:
     DEFAULT_LOCALE = "en"
     SUPPORTED_LOCALES = {"en", "pt_br"}
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._local = local()
         self._local.current_locale = self.DEFAULT_LOCALE
 
@@ -78,7 +78,7 @@ class LocaleManager:
         return self.DEFAULT_LOCALE
 
     @contextmanager
-    def locale_context(self, locale: str):
+    def locale_context(self, locale: str) -> Generator[None, None, None]:
         """Context manager for temporary locale changes."""
         old_locale = self.current_locale
         self.set_locale(locale)

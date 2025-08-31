@@ -11,21 +11,21 @@ from core.i18n.locale_manager import locale_manager
 class TestTranslator:
     """Test cases for the translation system."""
 
-    def test_english_translation(self):
+    def test_english_translation(self) -> None:
         """Test translation in English (default)."""
         with locale_manager.locale_context("en"):
             result = T("api.welcome_message")
             expected = "Welcome to Tonalogy API. Visit /docs to see the API documentation."
             assert result == expected
 
-    def test_portuguese_translation(self):
+    def test_portuguese_translation(self) -> None:
         """Test translation in Portuguese."""
         with locale_manager.locale_context("pt_br"):
             result = T("api.welcome_message")
             expected = "Bem-vindo à Tonalogy API. Visite /docs para ver a documentação da API."
             assert result == expected
 
-    def test_translation_with_variables(self):
+    def test_translation_with_variables(self) -> None:
         """Test translation with variable substitution."""
         with locale_manager.locale_context("en"):
             result = T(
@@ -47,7 +47,7 @@ class TestTranslator:
             expected = "Acorde 'C' cumpre função 'TÔNICA' em 'C Major'."
             assert result == expected
 
-    def test_fallback_to_english(self):
+    def test_fallback_to_english(self) -> None:
         """Test fallback to English when translation not found."""
         with locale_manager.locale_context("pt_br"):
             # Use a key that might not exist in Portuguese
@@ -55,7 +55,7 @@ class TestTranslator:
             # Should fallback to the key itself since it doesn't exist in any language
             assert result == "nonexistent.key"
 
-    def test_nested_keys(self):
+    def test_nested_keys(self) -> None:
         """Test nested key access."""
         with locale_manager.locale_context("en"):
             result = T("endpoints.analyze.summary")
@@ -66,12 +66,12 @@ class TestTranslator:
 class TestLocaleManager:
     """Test cases for locale management."""
 
-    def test_default_locale(self):
+    def test_default_locale(self) -> None:
         """Test default locale is English."""
         assert locale_manager.DEFAULT_LOCALE == "en"
         assert locale_manager.current_locale == "en"
 
-    def test_set_supported_locale(self):
+    def test_set_supported_locale(self) -> None:
         """Test setting a supported locale."""
         locale_manager.set_locale("pt_br")
         assert locale_manager.current_locale == "pt_br"
@@ -80,12 +80,12 @@ class TestLocaleManager:
         locale_manager.set_locale("en")
         assert locale_manager.current_locale == "en"
 
-    def test_set_unsupported_locale(self):
+    def test_set_unsupported_locale(self) -> None:
         """Test setting an unsupported locale falls back to default."""
         locale_manager.set_locale("fr")  # French not supported
         assert locale_manager.current_locale == "en"
 
-    def test_locale_context_manager(self):
+    def test_locale_context_manager(self) -> None:
         """Test locale context manager."""
         # Start with English
         assert locale_manager.current_locale == "en"
@@ -97,7 +97,7 @@ class TestLocaleManager:
         # Should return to English
         assert locale_manager.current_locale == "en"
 
-    def test_accept_language_parsing(self):
+    def test_accept_language_parsing(self) -> None:
         """Test parsing of Accept-Language header."""
         # Test Portuguese preference
         result = locale_manager.get_locale_from_accept_language("pt-BR,pt;q=0.9,en;q=0.8")
@@ -119,7 +119,7 @@ class TestLocaleManager:
 class TestI18nIntegration:
     """Integration tests for the i18n system."""
 
-    def test_error_messages_translation(self):
+    def test_error_messages_translation(self) -> None:
         """Test that error messages are properly translated."""
         with locale_manager.locale_context("en"):
             result = T("errors.chord_list_empty")
@@ -129,7 +129,7 @@ class TestI18nIntegration:
             result = T("errors.chord_list_empty")
             assert "não pode estar vazia" in result
 
-    def test_analysis_messages_translation(self):
+    def test_analysis_messages_translation(self) -> None:
         """Test that analysis messages are properly translated."""
         with locale_manager.locale_context("en"):
             result = T("analysis.rules.analysis_start")

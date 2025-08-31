@@ -50,10 +50,8 @@ class ExplanationStepAPI(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     @classmethod
-    def from_domain_step(cls, orm_obj) -> "ExplanationStepResponse":
+    def from_domain_step(cls, orm_obj: Any) -> "ExplanationStepAPI":
         """Convert from domain ExplanationStep to response DTO."""
-        from core.domain.models import ExplanationStep
-
         # Get the current locale for translations
         from core.i18n.locale_manager import locale_manager
 

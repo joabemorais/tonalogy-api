@@ -54,7 +54,7 @@ def test_analyze_progression_success_with_all_tonalities(mock_knowledge_base: Ma
     ):
         service: TonalAnalysisService = TonalAnalysisService(mock_knowledge_base)
         request: ProgressionAnalysisRequest = ProgressionAnalysisRequest(
-            chords=["C", "G", "C"], tonalities_to_test=None
+            chords=["C", "G", "C"], tonalities_to_test=None, theme="light"
         )
 
         # WHEN
@@ -88,7 +88,7 @@ def test_analyze_progression_failure(mock_knowledge_base: MagicMock) -> None:
     ):
         service: TonalAnalysisService = TonalAnalysisService(mock_knowledge_base)
         request: ProgressionAnalysisRequest = ProgressionAnalysisRequest(
-            chords=["C", "F#", "B"], tonalities_to_test=None
+            chords=["C", "F#", "B"], tonalities_to_test=None, theme="light"
         )
 
         # WHEN
@@ -114,7 +114,7 @@ def test_analyze_with_specific_tonalities_to_test(mock_knowledge_base: MagicMock
         service: TonalAnalysisService = TonalAnalysisService(mock_knowledge_base)
         # Request to test only in G Major
         request: ProgressionAnalysisRequest = ProgressionAnalysisRequest(
-            chords=["G", "D", "G"], tonalities_to_test=["G Major"]
+            chords=["G", "D", "G"], tonalities_to_test=["G Major"], theme="light"
         )
 
         # WHEN
@@ -136,7 +136,7 @@ def test_analyze_with_unknown_tonality_to_test(mock_knowledge_base: MagicMock) -
     # GIVEN
     service: TonalAnalysisService = TonalAnalysisService(mock_knowledge_base)
     request: ProgressionAnalysisRequest = ProgressionAnalysisRequest(
-        chords=["C", "G", "C"], tonalities_to_test=["D Major"]
+        chords=["C", "G", "C"], tonalities_to_test=["D Major"], theme="light"
     )  # Tonality not mocked
 
     # WHEN

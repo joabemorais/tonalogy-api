@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict, Set, Union
+from typing import Any, Dict, Optional, Set, Union
 
 import graphviz
 
@@ -167,7 +167,7 @@ class HarmonicGraph:
         from_node: str,
         to_node: str,
         color_key: str,
-        theme: Dict[str, Any] = None,
+        theme: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> None:
         current_theme = theme if theme is not None else self.theme
@@ -182,7 +182,7 @@ class HarmonicGraph:
         from_node: str,
         to_node: str,
         color_key: str,
-        theme: Dict[str, Any] = None,
+        theme: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> None:
         """Connects two nodes with a single arrow (for plagal cadence)."""
@@ -221,4 +221,4 @@ class HarmonicGraph:
 
     def get_dot_source(self) -> str:
         """Returns the DOT source code of the graph for testing purposes."""
-        return self.dot.source
+        return str(self.dot.source)

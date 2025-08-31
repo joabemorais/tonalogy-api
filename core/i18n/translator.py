@@ -33,7 +33,7 @@ class Translator:
             except (json.JSONDecodeError, OSError) as e:
                 print(f"Warning: Could not load translations for {locale_code}: {e}")
 
-    def translate(self, key: str, locale: Optional[str] = None, **kwargs) -> str:
+    def translate(self, key: str, locale: Optional[str] = None, **kwargs: Any) -> str:
         """
         Translate a message key to the specified locale.
 
@@ -70,7 +70,7 @@ class Translator:
     def _get_nested_value(self, data: Dict[str, Any], key: str) -> Optional[str]:
         """Get value from nested dictionary using dot notation."""
         keys = key.split(".")
-        value = data
+        value: Any = data
 
         for k in keys:
             if isinstance(value, dict) and k in value:
@@ -90,7 +90,7 @@ def get_translator() -> Translator:
     return _translator
 
 
-def T(key: str, locale: Optional[str] = None, **kwargs) -> str:
+def T(key: str, locale: Optional[str] = None, **kwargs: Any) -> str:
     """
     Convenience function for translation.
 
