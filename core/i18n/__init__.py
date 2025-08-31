@@ -5,11 +5,11 @@ from .translator import get_translator, T, translate_tonality, translate_functio
 
 __all__ = [
     "locale_manager",
-    "LocaleManager", 
+    "LocaleManager",
     "get_translator",
     "T",
     "translate_tonality",
-    "translate_function"
+    "translate_function",
 ]
 
 from .translator import get_translator, T
@@ -17,6 +17,7 @@ from .locale_manager import LocaleManager
 
 try:
     from .middleware import I18nMiddleware
+
     __all__ = ["get_translator", "T", "LocaleManager", "I18nMiddleware"]
 except ImportError:
     __all__ = ["get_translator", "T", "LocaleManager"]

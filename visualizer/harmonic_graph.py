@@ -54,8 +54,13 @@ class HarmonicGraph:
 
         svg_template = shape_variants.get(style_variant)
         if not svg_template:
-            raise ValueError(T("errors.style_variant_not_found", 
-                              style_variant=style_variant, shape_name=shape_name))
+            raise ValueError(
+                T(
+                    "errors.style_variant_not_found",
+                    style_variant=style_variant,
+                    shape_name=shape_name,
+                )
+            )
 
         image_path = self.svg_factory.create_styled_image_file(
             node_id, svg_template, fill, stroke, penwidth
@@ -198,7 +203,9 @@ class HarmonicGraph:
             from_node = node_ids[i]
             to_node = node_ids[i + 1]
             if tuple(sorted((from_node, to_node))) not in self.existing_connections:
-                self.connect_nodes(from_node, to_node, style="dotted", arrowhead="none", color="#888888")
+                self.connect_nodes(
+                    from_node, to_node, style="dotted", arrowhead="none", color="#888888"
+                )
 
     def render(self, filename: Path) -> str:
         output_path = filename.with_suffix(".png")

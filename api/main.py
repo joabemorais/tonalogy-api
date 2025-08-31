@@ -8,8 +8,10 @@ from api.endpoints import analysis, visualizer
 from api.services.analysis_service import TonalAnalysisService
 from core.config.knowledge_base import TonalKnowledgeBase
 from core.i18n import T
+
 try:
     from core.i18n.middleware import I18nMiddleware
+
     MIDDLEWARE_AVAILABLE = True
 except ImportError:
     MIDDLEWARE_AVAILABLE = False

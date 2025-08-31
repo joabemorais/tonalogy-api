@@ -9,9 +9,7 @@ from core.i18n import T
 # The get_analysis_service function will be provided by main.py through dependency injection.
 # This approach allows service configuration and initialization to be centralized.
 def get_analysis_service() -> TonalAnalysisService:
-    raise NotImplementedError(
-        T("errors.dependency_not_implemented")
-    )
+    raise NotImplementedError(T("errors.dependency_not_implemented"))
 
 
 router = APIRouter()
@@ -26,7 +24,7 @@ router = APIRouter()
 async def analyze_progression(
     request: ProgressionAnalysisRequest,
     service: TonalAnalysisService = Depends(get_analysis_service),
-    lang: Optional[str] = Query(None, description="Language for the response (en, pt_br)")
+    lang: Optional[str] = Query(None, description="Language for the response (en, pt_br)"),
 ) -> ProgressionAnalysisResponse:
     """
     Receives a list of chords and optionally a list of tonalities to test.
@@ -39,9 +37,10 @@ async def analyze_progression(
     """
     # Set locale based on query parameter
     from core.i18n.locale_manager import locale_manager
+
     if lang:
         locale_manager.set_locale(lang)
-    
+
     try:
         result: ProgressionAnalysisResponse = service.analyze_progression(request)
         if result.error:

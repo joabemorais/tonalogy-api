@@ -67,10 +67,16 @@ class SatisfactionEvaluator:
             explanation_for_P = parent_explanation.clone()
             explanation_for_P.add_step(
                 formal_rule_applied=T("analysis.rules.p_in_l"),
-                observation=T("analysis.messages.chord_fulfills_function",
-                             chord_name=p_chord.name,
-                             function_name=translate_function(current_state.associated_tonal_function.name, locale_manager.current_locale),
-                             tonality_name=translate_tonality(current_tonality.tonality_name, locale_manager.current_locale)),
+                observation=T(
+                    "analysis.messages.chord_fulfills_function",
+                    chord_name=p_chord.name,
+                    function_name=translate_function(
+                        current_state.associated_tonal_function.name, locale_manager.current_locale
+                    ),
+                    tonality_name=translate_tonality(
+                        current_tonality.tonality_name, locale_manager.current_locale
+                    ),
+                ),
                 evaluated_functional_state=current_state,
                 processed_chord=p_chord,
                 tonality_used_in_step=current_tonality,
@@ -81,7 +87,12 @@ class SatisfactionEvaluator:
                 path_copy.add_step(
                     next_state,
                     current_tonality,
-                    T("analysis.rules.direct_transition", function=translate_function(next_state.associated_tonal_function.name, locale_manager.current_locale)),
+                    T(
+                        "analysis.rules.direct_transition",
+                        function=translate_function(
+                            next_state.associated_tonal_function.name, locale_manager.current_locale
+                        ),
+                    ),
                 )
                 continuations.append((path_copy, explanation_for_P.clone()))
 
@@ -102,10 +113,16 @@ class SatisfactionEvaluator:
                 explanation_for_P = parent_explanation.clone()
                 explanation_for_P.add_step(
                     formal_rule_applied=T("analysis.rules.p_in_l"),
-                    observation=T("analysis.messages.chord_fulfills_function",
-                                 chord_name=p_chord.name,
-                                 function_name=translate_function(next_state.associated_tonal_function.name, locale_manager.current_locale),
-                                 tonality_name=translate_tonality(current_tonality.tonality_name, locale_manager.current_locale)),
+                    observation=T(
+                        "analysis.messages.chord_fulfills_function",
+                        chord_name=p_chord.name,
+                        function_name=translate_function(
+                            next_state.associated_tonal_function.name, locale_manager.current_locale
+                        ),
+                        tonality_name=translate_tonality(
+                            current_tonality.tonality_name, locale_manager.current_locale
+                        ),
+                    ),
                     evaluated_functional_state=next_state,
                     processed_chord=p_chord,
                     tonality_used_in_step=current_tonality,
@@ -115,7 +132,12 @@ class SatisfactionEvaluator:
                 path_copy.add_step(
                     next_state,
                     current_tonality,
-                    T("analysis.rules.direct_transition", function=translate_function(next_state.associated_tonal_function.name, locale_manager.current_locale)),
+                    T(
+                        "analysis.rules.direct_transition",
+                        function=translate_function(
+                            next_state.associated_tonal_function.name, locale_manager.current_locale
+                        ),
+                    ),
                 )
                 continuations.append((path_copy, explanation_for_P.clone()))
 
@@ -213,9 +235,16 @@ class SatisfactionEvaluator:
                     path_copy.add_step(
                         next_state,
                         l_prime_tonality,
-                        T("analysis.rules.transition_to", 
-                          function=translate_function(next_state.associated_tonal_function.name, locale_manager.current_locale), 
-                          tonality=translate_tonality(l_prime_tonality.tonality_name, locale_manager.current_locale)),
+                        T(
+                            "analysis.rules.transition_to",
+                            function=translate_function(
+                                next_state.associated_tonal_function.name,
+                                locale_manager.current_locale,
+                            ),
+                            tonality=translate_tonality(
+                                l_prime_tonality.tonality_name, locale_manager.current_locale
+                            ),
+                        ),
                     )
                     pivots.append((path_copy, explanation_for_pivot.clone()))
 
@@ -232,7 +261,10 @@ class SatisfactionEvaluator:
         explanation_before_reanchor = parent_explanation.clone()
         explanation_before_reanchor.add_step(
             formal_rule_applied=T("analysis.rules.reanchor_attempt"),
-            observation=T("analysis.messages.reanchor_attempt_observation", remaining_chords=[c.name for c in remaining_chords]),
+            observation=T(
+                "analysis.messages.reanchor_attempt_observation",
+                remaining_chords=[c.name for c in remaining_chords],
+            ),
         )
 
         tonalities_to_try = [self.original_tonality] + [
@@ -250,7 +282,12 @@ class SatisfactionEvaluator:
             reanchor_path.add_step(
                 tonic_start_state,
                 l_star_tonality,
-                T("analysis.rules.reanchoring_in", tonality=translate_tonality(l_star_tonality.tonality_name, locale_manager.current_locale)),
+                T(
+                    "analysis.rules.reanchoring_in",
+                    tonality=translate_tonality(
+                        l_star_tonality.tonality_name, locale_manager.current_locale
+                    ),
+                ),
             )
 
             # Recursive call to solve the subproblem.

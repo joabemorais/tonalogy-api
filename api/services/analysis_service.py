@@ -91,7 +91,9 @@ class TonalAnalysisService:
             if success and tonalities_to_test:
                 # Translate the identified tonality name
                 original_tonality = tonalities_to_test[0].tonality_name
-                identified_tonality = translate_tonality(original_tonality, locale_manager.current_locale)
+                identified_tonality = translate_tonality(
+                    original_tonality, locale_manager.current_locale
+                )
 
             explanation_steps_api: List[ExplanationStepAPI] = []
             for step in explanation.steps:
@@ -100,8 +102,7 @@ class TonalAnalysisService:
                     state = step.evaluated_functional_state
                     # Translate the function name
                     translated_function = translate_function(
-                        state.associated_tonal_function.name, 
-                        locale_manager.current_locale
+                        state.associated_tonal_function.name, locale_manager.current_locale
                     )
                     evaluated_state_str = f"{translated_function} ({state.state_id})"
 
@@ -111,8 +112,7 @@ class TonalAnalysisService:
                     processed_chord=step.processed_chord.name if step.processed_chord else None,
                     tonality_used_in_step=(
                         translate_tonality(
-                            step.tonality_used_in_step.tonality_name, 
-                            locale_manager.current_locale
+                            step.tonality_used_in_step.tonality_name, locale_manager.current_locale
                         )
                         if step.tonality_used_in_step
                         else None

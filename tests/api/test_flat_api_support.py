@@ -20,14 +20,14 @@ class TestFlatAPISupport:
         # Create a progression using flat notation
         request_data = {
             "chords": ["Bb", "Eb", "F", "Bb"],  # Simple I-IV-V-I in Bb Major
-            "tonalities_to_test": []
+            "tonalities_to_test": [],
         }
 
         response = client.post("/analyze", json=request_data)
-        
+
         assert response.status_code == 200
         data = response.json()
-        
+
         # The analysis should work and return valid results
         assert "is_tonal_progression" in data
         assert "explanation_details" in data
@@ -37,14 +37,14 @@ class TestFlatAPISupport:
         # Create a progression mixing flats and sharps
         request_data = {
             "chords": ["Bb", "F#", "Gm", "Eb"],  # Mix of flats and sharps
-            "tonalities_to_test": []
+            "tonalities_to_test": [],
         }
 
         response = client.post("/analyze", json=request_data)
-        
+
         assert response.status_code == 200
         data = response.json()
-        
+
         # The analysis should work without errors
         assert "is_tonal_progression" in data
         assert "explanation_details" in data
@@ -54,11 +54,11 @@ class TestFlatAPISupport:
         # Create a progression using flat notation
         request_data = {
             "chords": ["Bb", "Cm", "Dm", "Eb", "F"],  # Progression in Bb Major
-            "tonalities_to_test": []
+            "tonalities_to_test": [],
         }
 
         response = client.post("/visualize", json=request_data)
-        
+
         # Should return a PNG image (or appropriate visualization response)
         assert response.status_code == 200
         # The response should be binary data (PNG image)
@@ -69,11 +69,11 @@ class TestFlatAPISupport:
         # Test with invalid flat combinations
         request_data = {
             "chords": ["Cb", "Fb", "E#"],  # Invalid/unusual notations
-            "tonalities_to_test": []
+            "tonalities_to_test": [],
         }
 
         response = client.post("/analyze", json=request_data)
-        
+
         # Should either work gracefully or return a meaningful error
         # The implementation should not crash
         assert response.status_code in [200, 400, 422]  # Accept various reasonable responses

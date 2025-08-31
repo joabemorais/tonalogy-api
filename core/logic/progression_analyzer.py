@@ -31,14 +31,14 @@ class ProgressionAnalyzer:
         failure_explanation = Explanation()
         if not input_chord_sequence:
             failure_explanation.add_step(
-                formal_rule_applied=T("analysis.rules.failure"), 
-                observation=T("analysis.messages.input_empty")
+                formal_rule_applied=T("analysis.rules.failure"),
+                observation=T("analysis.messages.input_empty"),
             )
             return False, failure_explanation
         if not tonalities_to_test:
             failure_explanation.add_step(
-                formal_rule_applied=T("analysis.rules.failure"), 
-                observation=T("analysis.messages.tonalities_empty")
+                formal_rule_applied=T("analysis.rules.failure"),
+                observation=T("analysis.messages.tonalities_empty"),
             )
             return False, failure_explanation
 
@@ -66,9 +66,11 @@ class ProgressionAnalyzer:
         ):
             failure_explanation.add_step(
                 formal_rule_applied=T("analysis.rules.overall_failure"),
-                observation=T("analysis.messages.final_chord_not_tonic", 
-                             chord_name=reversed_chord_sequence[0].name,
-                             tonality_name=primary_tonality.tonality_name),
+                observation=T(
+                    "analysis.messages.final_chord_not_tonic",
+                    chord_name=reversed_chord_sequence[0].name,
+                    tonality_name=primary_tonality.tonality_name,
+                ),
             )
             return False, failure_explanation
 
@@ -77,8 +79,10 @@ class ProgressionAnalyzer:
         initial_explanation = Explanation()
         initial_explanation.add_step(
             formal_rule_applied=T("analysis.rules.analysis_start"),
-            observation=T("analysis.messages.testing_progression", 
-                         tonality_name=primary_tonality.tonality_name),
+            observation=T(
+                "analysis.messages.testing_progression",
+                tonality_name=primary_tonality.tonality_name,
+            ),
             tonality_used_in_step=primary_tonality,
         )
 
@@ -94,8 +98,10 @@ class ProgressionAnalyzer:
         if success:
             final_explanation.add_step(
                 formal_rule_applied=T("analysis.rules.overall_success"),
-                observation=T("analysis.messages.progression_identified", 
-                             tonality_name=primary_tonality.tonality_name),
+                observation=T(
+                    "analysis.messages.progression_identified",
+                    tonality_name=primary_tonality.tonality_name,
+                ),
                 tonality_used_in_step=primary_tonality,
             )
             return True, final_explanation

@@ -4,12 +4,12 @@ Tests for Unicode musical symbols support.
 
 import pytest
 from core.domain.models import (
-    Chord, 
-    to_unicode_symbols, 
-    from_unicode_symbols, 
-    SHARP_SYMBOL, 
+    Chord,
+    to_unicode_symbols,
+    from_unicode_symbols,
+    SHARP_SYMBOL,
     FLAT_SYMBOL,
-    normalize_note_name
+    normalize_note_name,
 )
 
 
@@ -35,7 +35,7 @@ class TestUnicodeSymbolSupport:
     def test_roundtrip_conversion(self) -> None:
         """Test that ASCII -> Unicode -> ASCII preserves the original."""
         test_chords = ["C#", "Bb", "F#m", "Ebdim", "G#", "Db"]
-        
+
         for chord in test_chords:
             unicode_version = to_unicode_symbols(chord)
             back_to_ascii = from_unicode_symbols(unicode_version)
@@ -92,10 +92,10 @@ class TestUnicodeSymbolSupport:
     def test_mixed_notation_handling(self) -> None:
         """Test that mixed ASCII and Unicode notation works."""
         progression = [
-            Chord("C#"),                    # ASCII sharp
-            Chord(f"E{FLAT_SYMBOL}"),      # Unicode flat
-            Chord("F"),                     # Natural
-            Chord(f"B{FLAT_SYMBOL}m")      # Unicode flat minor
+            Chord("C#"),  # ASCII sharp
+            Chord(f"E{FLAT_SYMBOL}"),  # Unicode flat
+            Chord("F"),  # Natural
+            Chord(f"B{FLAT_SYMBOL}m"),  # Unicode flat minor
         ]
 
         # All chords should parse correctly

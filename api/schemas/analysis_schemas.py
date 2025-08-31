@@ -35,9 +35,7 @@ class ExplanationStepAPI(BaseModel):
     formal_rule_applied: Optional[str] = Field(
         None, description=T("schemas.explanation_step.formal_rule_applied.description")
     )
-    observation: str = Field(
-        ..., description=T("schemas.explanation_step.observation.description")
-    )
+    observation: str = Field(..., description=T("schemas.explanation_step.observation.description"))
     processed_chord: Optional[str] = Field(
         None, description=T("schemas.explanation_step.processed_chord.description")
     )
@@ -54,11 +52,12 @@ class ExplanationStepAPI(BaseModel):
     def from_domain_step(cls, orm_obj) -> "ExplanationStepResponse":
         """Convert from domain ExplanationStep to response DTO."""
         from core.domain.models import ExplanationStep
-        
+
         # Get the current locale for translations
         from core.i18n.locale_manager import locale_manager
+
         current_locale = locale_manager.current_locale
-        
+
         return cls(
             formal_rule_applied=orm_obj.formal_rule_applied,
             observation=orm_obj.observation,
@@ -90,4 +89,6 @@ class ProgressionAnalysisResponse(BaseModel):
     explanation_details: List[ExplanationStepAPI] = Field(
         [], description=T("schemas.progression_analysis_response.explanation_details.description")
     )
-    error: Optional[str] = Field(None, description=T("schemas.progression_analysis_response.error.description"))
+    error: Optional[str] = Field(
+        None, description=T("schemas.progression_analysis_response.error.description")
+    )

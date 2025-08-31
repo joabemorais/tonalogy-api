@@ -21,7 +21,7 @@ class TestFlatSupport:
         """Test that natural and sharp notes are preserved unchanged."""
         natural_notes = ["C", "D", "E", "F", "G", "A", "B"]
         sharp_notes = ["C#", "D#", "F#", "G#", "A#"]
-        
+
         for note in natural_notes + sharp_notes:
             assert normalize_note_name(note) == note
 
