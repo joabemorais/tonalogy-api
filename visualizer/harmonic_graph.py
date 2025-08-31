@@ -5,6 +5,7 @@ import graphviz
 
 from .styles import SVG_TEMPLATES
 from .svg_factory import SvgFactory
+from core.i18n import T
 
 
 class HarmonicGraph:
@@ -49,11 +50,12 @@ class HarmonicGraph:
     ) -> None:
         shape_variants = SVG_TEMPLATES.get(shape_name)
         if not shape_variants:
-            raise ValueError(f"Shape '{shape_name}' not found in SVG_TEMPLATES.")
+            raise ValueError(T("errors.shape_not_found", shape_name=shape_name))
 
         svg_template = shape_variants.get(style_variant)
         if not svg_template:
-            raise ValueError(f"Style variant '{style_variant}' not found for shape '{shape_name}'.")
+            raise ValueError(T("errors.style_variant_not_found", 
+                              style_variant=style_variant, shape_name=shape_name))
 
         image_path = self.svg_factory.create_styled_image_file(
             node_id, svg_template, fill, stroke, penwidth
@@ -165,7 +167,7 @@ class HarmonicGraph:
         current_theme = theme if theme is not None else self.theme
         color = current_theme.get(color_key)
         if not color:
-            raise ValueError(f"Color key '{color_key}' not found in theme.")
+            raise ValueError(T("errors.color_key_not_found", color_key=color_key))
         double_line_color = f"{color}:invis:{color}"
         self.connect_nodes(from_node, to_node, color=double_line_color, penwidth="3", **kwargs)
 
@@ -181,7 +183,7 @@ class HarmonicGraph:
         current_theme = theme if theme is not None else self.theme
         color = current_theme.get(color_key)
         if not color:
-            raise ValueError(f"Color key '{color_key}' not found in theme.")
+            raise ValueError(T("errors.color_key_not_found", color_key=color_key))
         self.connect_nodes(from_node, to_node, color=color, penwidth="2", **kwargs)
 
     def align_nodes_in_ranks(self, *ranks: Any) -> None:
