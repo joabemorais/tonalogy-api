@@ -10,6 +10,8 @@ from core.domain.models import (
     TonalFunction,
     Tonality,
 )
+from core.i18n import T, translate_function, translate_tonality
+from core.i18n.locale_manager import locale_manager
 
 # A constant to prevent infinite recursion in edge cases or complex progressions.
 MAX_RECURSION_DEPTH = 25
@@ -64,8 +66,11 @@ class SatisfactionEvaluator:
         ):
             explanation_for_P = parent_explanation.clone()
             explanation_for_P.add_step(
-                formal_rule_applied="P in L",
-                observation=f"Chord '{p_chord.name}' fulfills function '{current_state.associated_tonal_function.name}' in '{current_tonality.tonality_name}'.",
+                formal_rule_applied=T("analysis.rules.p_in_l"),
+                observation=T("analysis.messages.chord_fulfills_function",
+                             chord_name=p_chord.name,
+                             function_name=translate_function(current_state.associated_tonal_function.name, locale_manager.current_locale),
+                             tonality_name=translate_tonality(current_tonality.tonality_name, locale_manager.current_locale)),
                 evaluated_functional_state=current_state,
                 processed_chord=p_chord,
                 tonality_used_in_step=current_tonality,
@@ -76,7 +81,7 @@ class SatisfactionEvaluator:
                 path_copy.add_step(
                     next_state,
                     current_tonality,
-                    f"Direct transition to {next_state.associated_tonal_function.name}",
+                    T("analysis.rules.direct_transition", function=translate_function(next_state.associated_tonal_function.name, locale_manager.current_locale)),
                 )
                 continuations.append((path_copy, explanation_for_P.clone()))
 
@@ -96,8 +101,11 @@ class SatisfactionEvaluator:
             ):
                 explanation_for_P = parent_explanation.clone()
                 explanation_for_P.add_step(
-                    formal_rule_applied="P in L",
-                    observation=f"Chord '{p_chord.name}' fulfills function '{next_state.associated_tonal_function.name}' in '{current_tonality.tonality_name}'.",
+                    formal_rule_applied=T("analysis.rules.p_in_l"),
+                    observation=T("analysis.messages.chord_fulfills_function",
+                                 chord_name=p_chord.name,
+                                 function_name=translate_function(next_state.associated_tonal_function.name, locale_manager.current_locale),
+                                 tonality_name=translate_tonality(current_tonality.tonality_name, locale_manager.current_locale)),
                     evaluated_functional_state=next_state,
                     processed_chord=p_chord,
                     tonality_used_in_step=current_tonality,
@@ -107,7 +115,7 @@ class SatisfactionEvaluator:
                 path_copy.add_step(
                     next_state,
                     current_tonality,
-                    f"Direct transition to {next_state.associated_tonal_function.name}",
+                    T("analysis.rules.direct_transition", function=translate_function(next_state.associated_tonal_function.name, locale_manager.current_locale)),
                 )
                 continuations.append((path_copy, explanation_for_P.clone()))
 
@@ -189,7 +197,7 @@ class SatisfactionEvaluator:
                     else "a transitional role"
                 )
                 explanation_for_pivot.add_step(
-                    formal_rule_applied="Pivot Modulation (Eq.5)",
+                    formal_rule_applied=T("analysis.rules.pivot_modulation"),
                     observation=(
                         f"Chord '{p_chord.name}' acts as pivot. It has function '{functions_str}' in '{current_tonality.tonality_name}' "
                         f"and becomes the new TONIC in '{l_prime_tonality.tonality_name}'. "
@@ -205,7 +213,9 @@ class SatisfactionEvaluator:
                     path_copy.add_step(
                         next_state,
                         l_prime_tonality,
-                        f"Transition to {next_state.associated_tonal_function.name} in {l_prime_tonality.tonality_name}",
+                        T("analysis.rules.transition_to", 
+                          function=translate_function(next_state.associated_tonal_function.name, locale_manager.current_locale), 
+                          tonality=translate_tonality(l_prime_tonality.tonality_name, locale_manager.current_locale)),
                     )
                     pivots.append((path_copy, explanation_for_pivot.clone()))
 
@@ -221,8 +231,8 @@ class SatisfactionEvaluator:
         """
         explanation_before_reanchor = parent_explanation.clone()
         explanation_before_reanchor.add_step(
-            formal_rule_applied="Re-anchor Attempt (Eq.4B)",
-            observation=f"Path extension failed. Attempting to re-evaluate remaining sequence '{[c.name for c in remaining_chords]}' from a new context.",
+            formal_rule_applied=T("analysis.rules.reanchor_attempt"),
+            observation=T("analysis.messages.reanchor_attempt_observation", remaining_chords=[c.name for c in remaining_chords]),
         )
 
         tonalities_to_try = [self.original_tonality] + [
@@ -240,7 +250,7 @@ class SatisfactionEvaluator:
             reanchor_path.add_step(
                 tonic_start_state,
                 l_star_tonality,
-                f"Re-anchoring in {l_star_tonality.tonality_name}",
+                T("analysis.rules.reanchoring_in", tonality=translate_tonality(l_star_tonality.tonality_name, locale_manager.current_locale)),
             )
 
             # Recursive call to solve the subproblem.
@@ -280,8 +290,8 @@ class SatisfactionEvaluator:
         if not remaining_chords:
             final_explanation = parent_explanation.clone()
             final_explanation.add_step(
-                formal_rule_applied="End of Sequence",
-                observation="End of sequence. All chords have been successfully processed.",
+                formal_rule_applied=T("analysis.rules.end_of_sequence"),
+                observation=T("analysis.messages.end_of_sequence_observation"),
             )
             return True, final_explanation, current_path
 
