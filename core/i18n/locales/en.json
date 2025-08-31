@@ -1,0 +1,141 @@
+{
+  "api": {
+    "title": "Tonalogy API",
+    "description": "An API for analysis and visualization of tonal harmonic progressions using Kripke Semantics.",
+    "welcome_message": "Welcome to Tonalogy API. Visit /docs to see the API documentation."
+  },
+  "endpoints": {
+    "analyze": {
+      "summary": "Analyzes a Tonal Harmonic Progression",
+      "description": "Receives a list of chords and optionally a list of tonalities to test.\n\n- **chords**: A list of strings, where each string is a chord (e.g., \"C\", \"G7\", \"Am\").\n- **tonalities_to_test**: (Optional) A list of tonality names (e.g., \"C Major\") to limit the analysis.\n\nReturns a detailed analysis indicating whether the progression is tonal, in which tonality it was identified, and the formal steps of the analysis."
+    },
+    "visualize": {
+      "summary": "Analyzes and Visualizes a Tonal Harmonic Progression",
+      "description": "Receives a list of chords, analyzes the progression and returns a visual diagram of the analysis.",
+      "responses": {
+        "200": "Returns the generated PNG image of the analysis.",
+        "400": "Invalid request, e.g.: non-tonal progression."
+      }
+    }
+  },
+  "schemas": {
+    "progression_analysis_request": {
+      "chords": {
+        "description": "A list of chords to be analyzed."
+      },
+      "tonalities_to_test": {
+        "description": "Optional. A list of tonalities to be tested."
+      },
+      "theme": {
+        "description": "Theme mode for visualization - 'light' or 'dark'."
+      }
+    },
+    "explanation_step": {
+      "formal_rule_applied": {
+        "description": "The formal model rule that was applied."
+      },
+      "observation": {
+        "description": "A readable description of what happened in this step."
+      },
+      "processed_chord": {
+        "description": "The chord that was processed in this step."
+      },
+      "tonality_used_in_step": {
+        "description": "The tonality in use during this step."
+      },
+      "evaluated_functional_state": {
+        "description": "The evaluated functional state (e.g., 'TONIC (s_t)')."
+      }
+    },
+    "progression_analysis_response": {
+      "is_tonal_progression": {
+        "description": "True if the progression is tonal, false otherwise."
+      },
+      "identified_tonality": {
+        "description": "The tonality in which the progression was identified as tonal."
+      },
+      "explanation_details": {
+        "description": "A detailed list of analysis steps."
+      },
+      "error": {
+        "description": "An error message, if any."
+      }
+    }
+  },
+  "errors": {
+    "chord_list_empty": "Chord list cannot be empty.",
+    "progression_not_tonal": "The progression is not tonal.",
+    "image_not_found": "Image file not found after generation.",
+    "internal_server_error": "An internal server error occurred: {error}",
+    "internal_visualization_error": "An internal error occurred during visualization: {error}",
+    "cannot_visualize_non_tonal": "Cannot visualize a non-tonal progression.",
+    "cannot_visualize_no_tonality": "Cannot visualize a progression without an identified tonality.",
+    "fatal_config_error": "FATAL ERROR: Could not load configuration files. {error}",
+    "dependency_not_implemented": "Dependency not implemented. This will be overridden by the main app.",
+    "shape_not_found": "Shape '{shape_name}' not found in SVG_TEMPLATES.",
+    "style_variant_not_found": "Style variant '{style_variant}' not found for shape '{shape_name}'.",
+    "color_key_not_found": "Color key '{color_key}' not found in theme.",
+    "invalid_tonality": "Invalid tonality: {root_note}"
+  },
+  "analysis": {
+    "messages": {
+      "input_empty": "Input chord sequence is empty.",
+      "tonalities_empty": "List of tonalities to test is empty.",
+      "missing_tonic_state": "Kripke structure configuration is missing a TONIC state.",
+      "final_chord_not_tonic": "The progression's final chord '{chord_name}' is not a tonic in the most likely tonality '{tonality_name}'. Analysis cannot proceed.",
+      "testing_progression": "Testing progression with primary tonality: '{tonality_name}'.",
+      "progression_identified": "Progression identified as tonal, anchored in '{tonality_name}'.",
+      "no_valid_path": "No valid analytical path found for the progression.",
+      "chord_fulfills_function": "Chord '{chord_name}' fulfills function '{function_name}' in '{tonality_name}'.",
+      "end_of_sequence_observation": "End of sequence. All chords have been successfully processed.",
+      "reanchor_attempt_observation": "Path extension failed. Attempting to re-evaluate remaining sequence '{remaining_chords}' from a new context."
+    },
+    "rules": {
+      "analysis_start": "Analysis Start",
+      "overall_success": "Overall Success",
+      "overall_failure": "Overall Failure",
+      "failure": "Failure",
+      "p_in_l": "P in L",
+      "pivot_modulation": "Pivot Modulation (Eq.5)",
+      "reanchor_attempt": "Re-anchor Attempt (Eq.4B)",
+      "end_of_sequence": "End of Sequence",
+      "configuration_error": "Configuration Error",
+      "direct_transition": "Direct transition to {function}",
+      "transition_to": "Transition to {function} in {tonality}",
+      "reanchoring_in": "Re-anchoring in {tonality}"
+    }
+  },
+  "music": {
+    "tonalities": {
+      "C Major": "C Major",
+      "C minor": "C minor",
+      "C# Major": "C# Major",
+      "C# minor": "C# minor",
+      "D Major": "D Major",
+      "D minor": "D minor",
+      "D# Major": "D# Major",
+      "D# minor": "D# minor",
+      "E Major": "E Major",
+      "E minor": "E minor",
+      "F Major": "F Major",
+      "F minor": "F minor",
+      "F# Major": "F# Major",
+      "F# minor": "F# minor",
+      "G Major": "G Major",
+      "G minor": "G minor",
+      "G# Major": "G# Major",
+      "G# minor": "G# minor",
+      "A Major": "A Major",
+      "A minor": "A minor",
+      "A# Major": "A# Major",
+      "A# minor": "A# minor",
+      "B Major": "B Major",
+      "B minor": "B minor"
+    },
+    "functions": {
+      "TONIC": "TONIC",
+      "DOMINANT": "DOMINANT", 
+      "SUBDOMINANT": "SUBDOMINANT"
+    }
+  }
+}
