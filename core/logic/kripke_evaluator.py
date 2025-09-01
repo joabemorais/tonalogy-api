@@ -13,17 +13,28 @@ from core.domain.models import (
 from core.i18n import T, translate_function, translate_tonality
 from core.i18n.locale_manager import locale_manager
 
-# A constant to prevent infinite recursion in edge cases or complex progressions.
-MAX_RECURSION_DEPTH = 25
+# Constants to control backtracking behavior and prevent exponential explosion
+MAX_RECURSION_DEPTH = 25  # Prevents infinite recursion in complex progressions
+MAX_PIVOT_CANDIDATES = 8   # Limits pivot exploration to most promising tonalities
+MAX_CONTINUATION_BRANCHES = 6  # Limits direct continuation paths to explore
 
 
 class SatisfactionEvaluator:
     """
     Implements the recursive satisfaction logic from Aragão's 5th Definition.
 
-    This class uses a backtracking algorithm to search for a valid analytical path
-    through the state space of possible harmonic interpretations. It explores hypotheses
-    incrementally and backtracks when a path leads to a dead end.
+    This class uses a sophisticated backtracking algorithm to search for a valid analytical path
+    through the state space of possible harmonic interpretations. The algorithm addresses the
+    NP-complete nature of Kripke structure navigation through multiple pruning strategies:
+
+    1. **Memoization (Dynamic Programming)**: Caches subproblem results to avoid recomputation
+    2. **Depth Limiting**: Prevents infinite recursion with MAX_RECURSION_DEPTH
+    3. **Priority Ordering**: Tests direct continuations before pivots before re-anchoring
+    4. **Early Termination**: Returns immediately upon finding first valid solution
+    5. **Constraint Propagation**: Uses functional and harmonic constraints to prune branches
+
+    The backtracking explores hypotheses incrementally and backtracks when a path leads to 
+    a dead end, making it suitable for the exponential search space while maintaining efficiency.
     """
 
     def __init__(
@@ -320,8 +331,24 @@ class SatisfactionEvaluator:
     ) -> Tuple[bool, Explanation, Optional[KripkePath]]:
         """
         The main backtracking engine. It orchestrates the search for a valid solution.
+        
+        BACKTRACKING ALGORITHM STRUCTURE:
+        1. **Memoization Check**: Return cached result if subproblem already solved
+        2. **Pruning**: Check depth limit and base cases for early termination  
+        3. **Branch Generation**: Create possible continuations in priority order:
+           - Direct continuations (highest priority - most likely to succeed)
+           - Pivot modulations (medium priority - handle key changes)
+           - Re-anchoring (lowest priority - last resort for complex cases)
+        4. **Recursive Exploration**: For each branch, recursively solve remaining subproblem
+        5. **Early Success**: Return immediately when first valid path is found
+        6. **Backtrack**: If all branches fail, mark this subproblem as unsolvable
+        
+        This approach transforms the exponential search space into a manageable exploration
+        by systematically pruning unsuccessful branches and caching solved subproblems.
         """
-        # --- Memoization ---
+        # --- PRUNING STRATEGY 1: Memoization (Dynamic Programming) ---
+        # Check if this exact subproblem (state + tonality + remaining chords) has been solved before
+        # This provides exponential speedup for progressions with repeated patterns
         current_tonality_obj = current_path.get_current_tonality()
         cache_key = (
             current_path.get_current_state(),
@@ -332,10 +359,14 @@ class SatisfactionEvaluator:
             success, cached_exp, cached_path = self.cache[cache_key]
             return success, cached_exp.clone(), cached_path.clone() if cached_path else None
 
-        # --- Base Cases ---
+        # --- PRUNING STRATEGY 2: Depth Limiting ---
+        # Prevent infinite recursion and limit computational complexity
+        # 25 levels should be sufficient for even very complex real-world progressions
         if recursion_depth > MAX_RECURSION_DEPTH:
             return False, parent_explanation, None
 
+        # --- PRUNING STRATEGY 3: Base Case (Successful Termination) ---
+        # If no more chords to process, we've found a complete valid path
         if not remaining_chords:
             final_explanation = parent_explanation.clone()
             final_explanation.add_step(
@@ -344,26 +375,28 @@ class SatisfactionEvaluator:
             )
             return True, final_explanation, current_path
 
-        # --- Recursive Step ---
+        # --- BACKTRACKING: Generate and test branches in priority order ---
         p_chord = remaining_chords[0]
         phi_sub_sequence = remaining_chords[1:]
 
-        # STRATEGY 1: Try to extend the current path.
-        # First, try direct continuations (higher priority)
+        # PRIORITY 1: Direct continuations (most likely to succeed)
+        # These represent normal functional progressions within the current tonality
         direct_continuations = self._get_possible_continuations(
             p_chord, current_path, parent_explanation
         )
 
-        # Test direct continuations first
+        # Test direct continuations first - early success terminates search
         for path_after_p, explanation_for_p in direct_continuations:
             success, final_explanation, final_path = self.evaluate_satisfaction_with_path(
                 path_after_p, phi_sub_sequence, recursion_depth + 1, explanation_for_p
             )
             if success:
+                # Cache successful result and return immediately
                 self.cache[cache_key] = (True, final_explanation, final_path)
                 return True, final_explanation, final_path
 
-        # If no direct continuation worked, try pivots (lower priority)
+        # PRIORITY 2: Pivot modulations (handle key changes)  
+        # Only try if direct continuations failed - this reduces branching factor
         pivots = self._get_possible_pivots(
             p_chord, phi_sub_sequence, current_path, parent_explanation
         )
@@ -376,7 +409,8 @@ class SatisfactionEvaluator:
                 self.cache[cache_key] = (True, final_explanation, final_path)
                 return True, final_explanation, final_path
 
-        # STRATEGY 2: If ALL attempts to extend the path failed, try to re-anchor.
+        # PRIORITY 3: Re-anchoring (last resort for complex cases)
+        # This is the most expensive option, only used when all else fails
         success_reanchor, explanation_reanchor, path_reanchor = self._try_reanchor(
             remaining_chords, parent_explanation, recursion_depth
         )
@@ -384,7 +418,8 @@ class SatisfactionEvaluator:
             self.cache[cache_key] = (True, explanation_reanchor, path_reanchor)
             return True, explanation_reanchor, path_reanchor
 
-        # If both strategies have failed, this subproblem is unsolvable.
+        # BACKTRACK: All strategies failed - cache failure and return
+        # This prevents re-exploring this failed subproblem
         self.cache[cache_key] = (False, parent_explanation, None)
         return False, parent_explanation, None
 

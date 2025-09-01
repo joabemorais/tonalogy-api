@@ -28,6 +28,9 @@ class ProgressionAnalyzer:
         Checks if a chord sequence is a valid tonal progression.
         The analysis starts from the most likely tonality and explores
         other possibilities recursively.
+        
+        Uses backtracking with intelligent pruning strategies to handle
+        the NP-complete nature of Kripke structure navigation efficiently.
         """
         failure_explanation = Explanation()
         if not input_chord_sequence:
@@ -43,14 +46,30 @@ class ProgressionAnalyzer:
             )
             return False, failure_explanation
 
+        # Early pruning: For very long progressions, apply length-based heuristics
+        if len(input_chord_sequence) > 20:
+            # Log warning for complex progression
+            failure_explanation.add_step(
+                formal_rule_applied=T("analysis.rules.complexity_warning"),
+                observation=T("analysis.messages.long_progression_warning", 
+                            length=len(input_chord_sequence)),
+            )
+
         # The primary candidate is the first in the ranked list. This is our "home base" and starting point.
+        # PRUNING STRATEGY 1: Start with most likely tonality (heuristic ordering)
         primary_tonality = tonalities_to_test[0]
 
         # Create the evaluator ONCE with the fixed primary (original) tonality.
+        # The evaluator uses multiple pruning techniques:
+        # - Memoization (Dynamic Programming) to avoid recomputing subproblems
+        # - Depth limiting to prevent infinite recursion  
+        # - Priority ordering (direct continuation > pivot > re-anchoring)
         evaluator = SatisfactionEvaluator(
             self.kripke_config, self.all_available_tonalities, primary_tonality
         )
 
+        # PRUNING STRATEGY 2: Reverse analysis (work backwards from cadential goal)
+        # This significantly reduces the search space by starting from the resolution
         reversed_chord_sequence = list(reversed(input_chord_sequence))
         initial_state = self.kripke_config.get_state_by_tonal_function(TonalFunction.TONIC)
 
@@ -61,6 +80,8 @@ class ProgressionAnalyzer:
             )
             return False, failure_explanation
 
+        # PRUNING STRATEGY 3: Hard constraint - last chord must be tonic
+        # This eliminates entire branches of the search tree early
         # The analysis MUST begin with the last chord being a tonic in the primary tonality.
         if not primary_tonality.chord_fulfills_function(
             reversed_chord_sequence[0], TonalFunction.TONIC
