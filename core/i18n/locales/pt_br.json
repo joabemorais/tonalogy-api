@@ -1,0 +1,142 @@
+{
+  "api": {
+    "title": "Tonalogy API",
+    "description": "Uma API para análise e visualização de progressões harmônicas tonais usando Semântica Kripke.",
+    "welcome_message": "Bem-vindo à Tonalogy API. Visite /docs para ver a documentação da API."
+  },
+  "endpoints": {
+    "analyze": {
+      "summary": "Analisa uma Progressão Harmônica Tonal",
+      "description": "Recebe uma lista de acordes e opcionalmente uma lista de tonalidades para testar.\n\n- **chords**: Uma lista de strings, onde cada string é um acorde (por exemplo, \"C\", \"G7\", \"Am\").\n- **tonalities_to_test**: (Opcional) Uma lista de nomes de tonalidades (por exemplo, \"C Major\") para limitar a análise.\n\nRetorna uma análise detalhada indicando se a progressão é tonal, em qual tonalidade foi identificada, e os passos formais da análise."
+    },
+    "visualize": {
+      "summary": "Analisa e Visualiza uma Progressão Harmônica Tonal",
+      "description": "Recebe uma lista de acordes, analisa a progressão e retorna um diagrama visual da análise.",
+      "responses": {
+        "200": "Retorna a imagem PNG gerada da análise.",
+        "400": "Requisição inválida, por exemplo: progressão não-tonal."
+      }
+    }
+  },
+  "schemas": {
+    "progression_analysis_request": {
+      "chords": {
+        "description": "Uma lista de acordes a serem analisados."
+      },
+      "tonalities_to_test": {
+        "description": "Opcional. Uma lista de tonalidades a serem testadas."
+      },
+      "theme": {
+        "description": "Modo do tema para visualização - 'light' ou 'dark'."
+      }
+    },
+    "explanation_step": {
+      "formal_rule_applied": {
+        "description": "A regra do modelo formal que foi aplicada."
+      },
+      "observation": {
+        "description": "Uma descrição legível do que aconteceu neste passo."
+      },
+      "processed_chord": {
+        "description": "O acorde que foi processado neste passo."
+      },
+      "tonality_used_in_step": {
+        "description": "A tonalidade em uso durante este passo."
+      },
+      "evaluated_functional_state": {
+        "description": "O estado funcional avaliado (por exemplo, 'TONIC (s_t)')."
+      }
+    },
+    "progression_analysis_response": {
+      "is_tonal_progression": {
+        "description": "True se a progressão é tonal, false caso contrário."
+      },
+      "identified_tonality": {
+        "description": "A tonalidade na qual a progressão foi identificada como tonal."
+      },
+      "explanation_details": {
+        "description": "Uma lista detalhada dos passos da análise."
+      },
+      "error": {
+        "description": "Uma mensagem de erro, se houver."
+      }
+    }
+  },
+  "errors": {
+    "chord_list_empty": "A lista de acordes não pode estar vazia.",
+    "progression_not_tonal": "A progressão não é tonal.",
+    "image_not_found": "Arquivo de imagem não encontrado após a geração.",
+    "internal_server_error": "Ocorreu um erro interno do servidor: {error}",
+    "internal_visualization_error": "Ocorreu um erro interno durante a visualização: {error}",
+    "cannot_visualize_non_tonal": "Não é possível visualizar uma progressão não-tonal.",
+    "cannot_visualize_no_tonality": "Não é possível visualizar uma progressão sem uma tonalidade identificada.",
+    "fatal_config_error": "ERRO FATAL: Não foi possível carregar os arquivos de configuração. {error}",
+    "dependency_not_implemented": "Dependência não implementada. Isso será sobrescrito pela aplicação principal.",
+    "shape_not_found": "Forma '{shape_name}' não encontrada em SVG_TEMPLATES.",
+    "style_variant_not_found": "Variante de estilo '{style_variant}' não encontrada para a forma '{shape_name}'.",
+    "color_key_not_found": "Chave de cor '{color_key}' não encontrada no tema.",
+    "invalid_tonality": "Tonalidade inválida: {root_note}"
+  },
+  "analysis": {
+    "messages": {
+      "input_empty": "A sequência de acordes de entrada está vazia.",
+      "tonalities_empty": "A lista de tonalidades para testar está vazia.",
+      "missing_tonic_state": "A configuração da estrutura Kripke está faltando um estado TONIC.",
+      "final_chord_not_tonic": "O acorde final da progressão '{chord_name}' não é uma tônica na tonalidade mais provável '{tonality_name}'. A análise não pode prosseguir.",
+      "testing_progression": "Testando progressão com tonalidade primária: '{tonality_name}'.",
+      "progression_identified": "Progressão identificada como tonal, ancorada em '{tonality_name}'.",
+      "no_valid_path": "Nenhum caminho analítico válido encontrado para a progressão.",
+      "chord_fulfills_function": "Acorde '{chord_name}' cumpre função '{function_name}' em '{tonality_name}'.",
+      "pivot_chord_observation": "Acorde '{chord_name}' atua como pivô. Ele tem função '{functions_str}' em '{current_tonality}' e se torna a nova TÔNICA em '{target_tonality}'. (Reforçado pelo próximo acorde: {reinforcement_status})",
+      "end_of_sequence_observation": "Fim da sequência. Todos os acordes foram processados com sucesso.",
+      "reanchor_attempt_observation": "Extensão do caminho falhou. Tentando reavaliar a sequência restante '{remaining_chords}' a partir de um novo contexto."
+    },
+    "rules": {
+      "analysis_start": "Início da Análise",
+      "overall_success": "Sucesso Geral",
+      "overall_failure": "Falha Geral",
+      "failure": "Falha",
+      "p_in_l": "P em L",
+      "pivot_modulation": "Modulação por Pivô (Eq.5)",
+      "reanchor_attempt": "Tentativa de Re-ancoragem (Eq.4B)",
+      "end_of_sequence": "Final da Sequência",
+      "configuration_error": "Erro de Configuração",
+      "direct_transition": "Transição direta para {function}",
+      "transition_to": "Transição para {function} em {tonality}",
+      "reanchoring_in": "Re-ancorando em {tonality}"
+    }
+  },
+  "music": {
+    "tonalities": {
+      "C Major": "Dó Maior",
+      "C minor": "Dó menor",
+      "C# Major": "Dó# Maior",
+      "C# minor": "Dó# menor",
+      "D Major": "Ré Maior",
+      "D minor": "Ré menor",
+      "D# Major": "Ré# Maior",
+      "D# minor": "Ré# menor",
+      "E Major": "Mi Maior",
+      "E minor": "Mi menor",
+      "F Major": "Fá Maior",
+      "F minor": "Fá menor",
+      "F# Major": "Fá# Maior",
+      "F# minor": "Fá# menor",
+      "G Major": "Sol Maior",
+      "G minor": "Sol menor",
+      "G# Major": "Sol# Maior",
+      "G# minor": "Sol# menor",
+      "A Major": "Lá Maior",
+      "A minor": "Lá menor",
+      "A# Major": "Lá# Maior",
+      "A# minor": "Lá# menor",
+      "B Major": "Si Maior",
+      "B minor": "Si menor"
+    },
+    "functions": {
+      "TONIC": "TÔNICA",
+      "DOMINANT": "DOMINANTE", 
+      "SUBDOMINANT": "SUBDOMINANTE"
+    }
+  }
+}

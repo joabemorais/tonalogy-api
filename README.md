@@ -4,6 +4,10 @@
   A powerful API for harmonic progression analysis and tonal structure visualization using modal logic and Kripke structures.
 </p>
 
+<p align="center">
+  <img src="./docs/demo.gif" alt="Tonalogy API Demo" width="500">
+</p>
+
 ## 📜 About The Project
 
 **Tonalogy API** is a tool for musicians, students, and music theory researchers. It takes a sequence of chords and, using a model based on Kripke structures, analyzes the possible tonalities and the stability of the harmonic progression. Its key feature is the ability to not only analyze but also **generate elegant and informative vector visualizations (SVG)** of the harmonic path, making complex music theory concepts much easier to understand.
@@ -20,7 +24,8 @@
 
 -   **Harmonic Analysis:** Evaluates chord progressions to determine their tonal characteristics.
 -   **Kripke Model:** Uses modal logic to model the "possible worlds" of a harmonic progression.
--   **Graphic Visualization:** Generates SVG graphs that represent the tonal journey of the chords.
+-   **Graphic Visualization:** Generates PNG graphs that represent the tonal journey of the chords.
+-   **Dark & Light Themes:** Support for both light and dark visualization themes with automatic color adaptation.
 -   **RESTful API:** A simple, HTTP-based interface for easy integration with other applications.
 
 ### 🛠️ Tech Stack
@@ -148,7 +153,7 @@ You can interact with the API using any HTTP client. Here are some examples with
 
 ### 1. Analyze a Progression
 
-Send a list of chords to the `/api/analysis/` endpoint to receive a detailed analysis.
+Send a list of chords to the `/analyze` endpoint to receive a detailed analysis.
 
 **Request:**
 ```sh
@@ -188,9 +193,9 @@ curl -X 'POST' \
 
 ### 2. Generate a Visualization
 
-Send a list of chords to `/api/visualizer/` to generate an SVG graph of the analysis.
+Send a list of chords to `/visualize` to generate a PNG graph of the analysis.
 
-**Request:**
+**Request (Light Theme - Default):**
 ```sh
 curl -X 'POST' \
   'http://localhost:8000/visualize' \
@@ -204,14 +209,55 @@ curl -X 'POST' \
     "G",
     "C"
   ],
-  "tonalities_to_test": []
+  "tonalities_to_test": [],
+  "theme": "light"
+}'
+```
+
+**Request (Dark Theme):**
+```sh
+curl -X 'POST' \
+  'http://localhost:8000/visualize' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "chords": [
+    "Em",
+    "A",
+    "Dm",
+    "G",
+    "C"
+  ],
+  "tonalities_to_test": [],
+  "theme": "dark"
 }'
 ```
 
 **Expected Response:**
-Image of the generated SVG graph. No JSON, just the png file, as shown below:
+Image of the generated PNG graph. No JSON, just the png file, as shown below:
 
-![Example SVG Visualization](./docs/example_svg_output.png)
+![Example PNG Visualization](./docs/example_svg_output_light_theme.png)
+
+... Or in the dark theme:
+
+![Example PNG Visualization](./docs/example_svg_output_dark_theme.png)
+
+### 🎨 Visualization Themes
+
+The API supports both light and dark themes for visualizations:
+
+- **Light Theme (default)**: Clean background with darker elements, ideal for documents and presentations
+- **Dark Theme**: Dark background with bright elements, perfect for modern interfaces and reduced eye strain
+
+**Theme Parameter:**
+- `"light"` - Light theme (default if not specified)
+- `"dark"` - Dark theme
+
+The theme affects all visual elements including:
+- Background colors
+- Node colors (automatically adjusted per tonality)
+- Edge colors and connecting lines
+- Text labels
 
 
 ### 📚 Interactive API Documentation
@@ -230,6 +276,57 @@ To ensure code integrity and validate new features, run the test suite with Pyte
 ```sh
 pytest
 ```
+
+---
+
+## 🌍 Internationalization (i18n)
+
+The Tonalogy API supports multiple languages with automatic detection and manual override:
+
+### Supported Languages
+- **English** (`en`) - Default
+- **Portuguese Brazilian** (`pt_br`)
+
+### Usage Examples
+
+```bash
+# Using query parameter
+curl "http://localhost:8000/analyze?lang=pt_br" \
+  -H "Content-Type: application/json" \
+  -d '{"chords": ["C", "F", "G", "C"]}'
+
+# Using Accept-Language header  
+curl -H "Accept-Language: pt-BR" \
+  "http://localhost:8000/analyze" \
+  -H "Content-Type: application/json" \
+  -d '{"chords": ["C", "F", "G", "C"]}'
+```
+
+**English Response:**
+```json
+{
+  "is_tonal_progression": true,
+  "identified_tonality": "C Major",
+  "explanation_details": [
+    {"formal_rule_applied": "Analysis Start", "observation": "Testing progression with primary tonality: 'C Major'."},
+    {"formal_rule_applied": "P in L", "observation": "Chord 'C' fulfills function 'TONIC' in 'C Major'."}
+  ]
+}
+```
+
+**Portuguese Response:**
+```json
+{
+  "is_tonal_progression": true,
+  "identified_tonality": "Dó Maior",
+  "explanation_details": [
+    {"formal_rule_applied": "Início da Análise", "observation": "Testando progressão com tonalidade primária: 'Dó Maior'."},
+    {"formal_rule_applied": "P em L", "observation": "O acorde 'C' cumpre a função 'TÔNICA' em 'Dó Maior'."}
+  ]
+}
+```
+
+For detailed technical documentation, see [`docs/i18n.md`](./docs/i18n.md).
 
 ---
 

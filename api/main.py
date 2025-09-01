@@ -2,17 +2,32 @@ from pathlib import Path
 from typing import Dict
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 
 from api.endpoints import analysis, visualizer
 from api.services.analysis_service import TonalAnalysisService
 from core.config.knowledge_base import TonalKnowledgeBase
+from core.i18n import T
+
+try:
+    from core.i18n.middleware import I18nMiddleware
+
+    MIDDLEWARE_AVAILABLE = True
+except ImportError:
+    MIDDLEWARE_AVAILABLE = False
 
 app = FastAPI(
-    title="Tonalogy API",
-    description="An API for analysis and visualization of tonal harmonic progressions using Kripke Semantics.",
+    title=T("api.title"),
+    description=T("api.description"),
     version="2.0.0",
 )
+
+# Add i18n middleware (temporarily disabled for testing)
+# if MIDDLEWARE_AVAILABLE:
+#     try:
+#         app.add_middleware(I18nMiddleware)
+#     except Exception as e:
+#         print(f"Warning: Could not add I18nMiddleware: {e}")
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 KRIPKE_CONFIG_PATH = BASE_DIR / "core" / "config" / "data" / "kripke_structure.json"
@@ -23,7 +38,7 @@ try:
         KRIPKE_CONFIG_PATH, TONALITIES_CONFIG_PATH
     )
 except IOError as e:
-    print(f"FATAL ERROR: Could not load configuration files. {e}")
+    print(T("errors.fatal_config_error", error=str(e)))
     raise e
 
 tonal_analysis_service: TonalAnalysisService = TonalAnalysisService(knowledge_base)
@@ -45,7 +60,7 @@ app.include_router(visualizer.router)
 # --- Root Route ---
 @app.get("/", tags=["Root"])
 async def read_root() -> Dict[str, str]:
-    return {"message": "Welcome to Tonalogy API. Visit /docs to see the API documentation."}
+    return {"message": T("api.welcome_message")}
 
 
 def main() -> None:

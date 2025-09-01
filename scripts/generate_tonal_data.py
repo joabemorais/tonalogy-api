@@ -45,6 +45,7 @@ from pathlib import Path
 from typing import Any, Dict, List, TypedDict
 
 from core.domain.models import NOTE_NAMES
+from core.i18n import T
 
 
 class DegreeInfo(TypedDict):
@@ -68,7 +69,7 @@ class TonalityGenerator:
 
     def __init__(self, root_note: str):
         if root_note not in self.NOTE_NAMES:
-            raise ValueError(f"Invalid tonality: {root_note}")
+            raise ValueError(T("errors.invalid_tonality", root_note=root_note))
         self.root_note = root_note
         self.tonality_name: str = ""
         self.scales: Dict[str, List[str]] = {}
