@@ -94,6 +94,7 @@ def sample_detailed_step(
         tonality_used_in_step=c_major_tonality,
         formal_rule_applied="Eq.3 (P in L)",
         observation="Chord C fulfills Tonic in C Major.",
+        pivot_target_tonality=None,
     )
 
 
@@ -106,6 +107,7 @@ def sample_detailed_step_minimal() -> DetailedExplanationStep:
         evaluated_functional_state=None,
         processed_chord=None,
         tonality_used_in_step=None,
+        pivot_target_tonality=None,
     )
 
 

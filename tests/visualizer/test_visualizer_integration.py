@@ -11,7 +11,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from api.schemas.analysis_schemas import ExplanationStepAPI, ProgressionAnalysisResponse
-from api.services.visualizer_service import VisualizerService
+from api.services.visualizer_service import VisualizerService, _extract_pivot_target_tonality
 
 
 class TestVisualizerIntegration:
@@ -93,7 +93,7 @@ class TestVisualizerIntegration:
         service = VisualizerService()
 
         # Mock the theme function
-        def theme_side_effect(tonality: str) -> Dict[str, Any]:
+        def theme_side_effect(tonality: str, theme_mode: str = "light") -> Dict[str, Any]:
             return mock_theme_data.get(tonality, {})
 
         with patch(
@@ -153,7 +153,7 @@ class TestVisualizerIntegration:
         extended_mock_data = {**mock_theme_data}
         extended_mock_data["D minor"] = mock_theme_data["F Major"]  # D minor uses F Major theme
 
-        def theme_side_effect(tonality: str) -> Dict[str, Any]:
+        def theme_side_effect(tonality: str, theme_mode: str = "light") -> Dict[str, Any]:
             return extended_mock_data.get(tonality, {})
 
         with patch(
@@ -173,9 +173,15 @@ class TestVisualizerIntegration:
                 assert mock_graph.add_secondary_chord_with_theme.call_count > 0
 
                 # Verify pivot target tonality extraction worked
-                target_tonality = service._extract_pivot_target_tonality(
-                    "Chord 'Dm' acts as pivot. It has function 'SUBDOMINANT' in 'C Major' and becomes the new TONIC in 'D minor'. (Reinforced by next chord: True)"
+                step = ExplanationStepAPI(
+                    formal_rule_applied="P in L",
+                    observation="Chord 'Dm' acts as pivot. It has function 'SUBDOMINANT' in 'C Major' and becomes the new TONIC in 'D minor'. (Reinforced by next chord: True)",
+                    processed_chord=None,
+                    tonality_used_in_step=None,
+                    evaluated_functional_state=None,
+                    pivot_target_tonality="D minor",
                 )
+                target_tonality = _extract_pivot_target_tonality(step)
                 assert target_tonality == "D minor"
 
     def test_complete_workflow_secondary_dominants(
@@ -214,7 +220,7 @@ class TestVisualizerIntegration:
 
         service = VisualizerService()
 
-        def theme_side_effect(tonality: str) -> Dict[str, Any]:
+        def theme_side_effect(tonality: str, theme_mode: str = "light") -> Dict[str, Any]:
             return mock_theme_data.get(tonality, {})
 
         with patch(
@@ -266,7 +272,7 @@ class TestVisualizerIntegration:
         extended_mock_data = {**mock_theme_data}
         extended_mock_data["A minor"] = mock_theme_data["C Major"]
 
-        def theme_side_effect(tonality: str) -> Dict[str, Any]:
+        def theme_side_effect(tonality: str, theme_mode: str = "light") -> Dict[str, Any]:
             return extended_mock_data.get(tonality, {})
 
         with patch(

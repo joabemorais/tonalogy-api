@@ -25,12 +25,17 @@ class NodeInfo:
     step: ExplanationStepAPI
 
 
-class VisualizerService:
-    def _extract_pivot_target_tonality(self, observation: str) -> Optional[str]:
-        """Extract the target tonality from a pivot modulation observation."""
-        match = re.search(r"becomes the new TONIC in '([^']+)'", observation)
-        return match.group(1) if match else None
+def _is_pivot_modulation(step: ExplanationStepAPI) -> bool:
+    """Check if a step represents a pivot modulation using structured data."""
+    return step.rule_type == "pivot_modulation"
 
+
+def _extract_pivot_target_tonality(step: ExplanationStepAPI) -> Optional[str]:
+    """Extract the target tonality from pivot modulation using structured data."""
+    return step.pivot_target_tonality
+
+
+class VisualizerService:
     def create_graph_from_analysis(
         self, analysis_data: ProgressionAnalysisResponse, theme_mode: ThemeMode = "light"
     ) -> str:
@@ -41,7 +46,18 @@ class VisualizerService:
         if tonality_name is None:
             raise ValueError(T("errors.cannot_visualize_no_tonality"))
 
-        theme = get_theme_for_tonality(tonality_name, theme_mode)
+        # Get the raw (untranslated) tonality name for comparisons
+        raw_tonality_name = None
+        for step in analysis_data.explanation_details:
+            if step.raw_tonality_used_in_step:
+                raw_tonality_name = step.raw_tonality_used_in_step
+                break
+
+        # Fallback if no raw tonality found
+        if raw_tonality_name is None:
+            raw_tonality_name = tonality_name
+
+        theme = get_theme_for_tonality(raw_tonality_name, theme_mode)
         output_filename = TEMP_IMAGE_DIR / str(uuid.uuid4())
         graph = HarmonicGraph(theme=theme, temp_dir=TEMP_IMAGE_DIR)
 
@@ -49,17 +65,14 @@ class VisualizerService:
         secondary_tonalities = set()
         for step in analysis_data.explanation_details:
             # Regular secondary tonalities
-            if step.tonality_used_in_step and step.tonality_used_in_step != tonality_name:
-                secondary_tonalities.add(step.tonality_used_in_step)
+            raw_tonality = step.raw_tonality_used_in_step or step.tonality_used_in_step
+            if raw_tonality and raw_tonality != raw_tonality_name:
+                secondary_tonalities.add(raw_tonality)
 
             # Pivot target tonalities
-            if (
-                step.formal_rule_applied
-                and "Pivot" in step.formal_rule_applied
-                and step.observation
-            ):
-                target_tonality = self._extract_pivot_target_tonality(step.observation)
-                if target_tonality and target_tonality != tonality_name:
+            if _is_pivot_modulation(step):
+                target_tonality = _extract_pivot_target_tonality(step)
+                if target_tonality and target_tonality != raw_tonality_name:
                     secondary_tonalities.add(target_tonality)
 
         # Create themes for secondary tonalities
@@ -93,16 +106,17 @@ class VisualizerService:
             chord_display = to_unicode_symbols(chord)
 
             function = "TONIC"
-            if step.evaluated_functional_state:
-                # Extract function from strings like "TONIC (s_t)", "DOMINANT (s_d)", etc.
+            if step.tonal_function:
+                # Use the structured non-translated function field
+                function = step.tonal_function
+            elif step.evaluated_functional_state:
+                # Fallback: Extract function from translated string
                 function = step.evaluated_functional_state.split(" ")[0]
 
             shape = function_to_shape.get(function, "circle")
-            is_primary = (
-                step.tonality_used_in_step is not None
-                and step.tonality_used_in_step == tonality_name
-            )
-            is_pivot = step.formal_rule_applied and "Pivot" in step.formal_rule_applied
+            raw_tonality = step.raw_tonality_used_in_step or step.tonality_used_in_step
+            is_primary = raw_tonality is not None and raw_tonality == raw_tonality_name
+            is_pivot = _is_pivot_modulation(step)
 
             main_node = NodeInfo(f"{chord}_main_{i}", chord_display, function, shape, step)
             main_world_nodes.append(main_node)
@@ -117,12 +131,12 @@ class VisualizerService:
             else:
                 # Non-diatonic chords - use the correct theme for secondary tonality
                 target_tonality = None
-                if is_pivot and step.observation:
-                    # For pivots, extract the target tonality from the observation
-                    target_tonality = self._extract_pivot_target_tonality(step.observation)
-                elif step.tonality_used_in_step and step.tonality_used_in_step != tonality_name:
-                    # For regular secondary chords, use the tonality from the step
-                    target_tonality = step.tonality_used_in_step
+                if is_pivot:
+                    # For pivots, extract the target tonality from structured data
+                    target_tonality = _extract_pivot_target_tonality(step)
+                elif raw_tonality and raw_tonality != raw_tonality_name:
+                    # For regular secondary chords, use the raw tonality from the step
+                    target_tonality = raw_tonality
 
                 if target_tonality and target_tonality in secondary_themes:
                     secondary_theme = secondary_themes[target_tonality]
@@ -156,12 +170,12 @@ class VisualizerService:
 
                 # Use the correct theme for secondary tonality
                 target_tonality = None
-                if is_pivot and step.observation:
-                    # For pivots, extract the target tonality from the observation
-                    target_tonality = self._extract_pivot_target_tonality(step.observation)
-                elif step.tonality_used_in_step and step.tonality_used_in_step != tonality_name:
-                    # For regular secondary chords, use the tonality from the step
-                    target_tonality = step.tonality_used_in_step
+                if is_pivot:
+                    # For pivots, extract the target tonality from structured data
+                    target_tonality = _extract_pivot_target_tonality(step)
+                elif raw_tonality and raw_tonality != raw_tonality_name:
+                    # For regular secondary chords, use the raw tonality from the step
+                    target_tonality = raw_tonality
 
                 if target_tonality and target_tonality in secondary_themes:
                     secondary_theme = secondary_themes[target_tonality]
@@ -193,11 +207,9 @@ class VisualizerService:
 
                 # Determine the appropriate stroke color based on the node's tonality
                 step = current_main_node.step
-                is_primary = (
-                    step.tonality_used_in_step is not None
-                    and step.tonality_used_in_step == tonality_name
-                )
-                is_pivot = step.formal_rule_applied and "Pivot" in step.formal_rule_applied
+                raw_tonality = step.raw_tonality_used_in_step or step.tonality_used_in_step
+                is_primary = raw_tonality is not None and raw_tonality == raw_tonality_name
+                is_pivot = _is_pivot_modulation(step)
 
                 if is_primary:
                     # Use primary theme stroke color
@@ -205,10 +217,10 @@ class VisualizerService:
                 else:
                     # Use secondary theme stroke color
                     target_tonality = None
-                    if is_pivot and step.observation:
-                        target_tonality = self._extract_pivot_target_tonality(step.observation)
-                    elif step.tonality_used_in_step and step.tonality_used_in_step != tonality_name:
-                        target_tonality = step.tonality_used_in_step
+                    if is_pivot:
+                        target_tonality = _extract_pivot_target_tonality(step)
+                    elif raw_tonality and raw_tonality != raw_tonality_name:
+                        target_tonality = raw_tonality
 
                     if target_tonality and target_tonality in secondary_themes:
                         secondary_theme = secondary_themes[target_tonality]
@@ -231,8 +243,16 @@ class VisualizerService:
                 if (
                     prev_main
                     and curr_main
-                    and prev_main.step.tonality_used_in_step == tonality_name
-                    and curr_main.step.tonality_used_in_step == tonality_name
+                    and (
+                        prev_main.step.raw_tonality_used_in_step
+                        or prev_main.step.tonality_used_in_step
+                    )
+                    == raw_tonality_name
+                    and (
+                        curr_main.step.raw_tonality_used_in_step
+                        or curr_main.step.tonality_used_in_step
+                    )
+                    == raw_tonality_name
                 ):
                     # Como a lista foi revertida, curr_main é cronologicamente anterior a prev_main
                     # Para cadências, queremos: curr_main (anterior) -> prev_main (posterior)
@@ -266,36 +286,27 @@ class VisualizerService:
 
                         # Check current possible node for pivot target tonality
                         curr_step = curr_possible.step
-                        if (
-                            curr_step.formal_rule_applied
-                            and "Pivot" in curr_step.formal_rule_applied
-                            and curr_step.observation
-                        ):
-                            target_tonality_for_cadence = self._extract_pivot_target_tonality(
-                                curr_step.observation
-                            )
-                        elif (
-                            curr_step.tonality_used_in_step
-                            and curr_step.tonality_used_in_step in secondary_themes
-                        ):
-                            target_tonality_for_cadence = curr_step.tonality_used_in_step
+                        curr_raw_tonality = (
+                            curr_step.raw_tonality_used_in_step or curr_step.tonality_used_in_step
+                        )
+                        if _is_pivot_modulation(curr_step):
+                            target_tonality_for_cadence = _extract_pivot_target_tonality(curr_step)
+                        elif curr_raw_tonality and curr_raw_tonality in secondary_themes:
+                            target_tonality_for_cadence = curr_raw_tonality
 
                         # Fallback to previous possible node
                         if not target_tonality_for_cadence:
                             prev_step = prev_possible.step
-                            if (
-                                prev_step.formal_rule_applied
-                                and "Pivot" in prev_step.formal_rule_applied
-                                and prev_step.observation
-                            ):
-                                target_tonality_for_cadence = self._extract_pivot_target_tonality(
-                                    prev_step.observation
+                            prev_raw_tonality = (
+                                prev_step.raw_tonality_used_in_step
+                                or prev_step.tonality_used_in_step
+                            )
+                            if _is_pivot_modulation(prev_step):
+                                target_tonality_for_cadence = _extract_pivot_target_tonality(
+                                    prev_step
                                 )
-                            elif (
-                                prev_step.tonality_used_in_step
-                                and prev_step.tonality_used_in_step in secondary_themes
-                            ):
-                                target_tonality_for_cadence = prev_step.tonality_used_in_step
+                            elif prev_raw_tonality and prev_raw_tonality in secondary_themes:
+                                target_tonality_for_cadence = prev_raw_tonality
 
                         if (
                             target_tonality_for_cadence
@@ -322,36 +333,27 @@ class VisualizerService:
 
                         # Check current possible node for pivot target tonality
                         curr_step = curr_possible.step
-                        if (
-                            curr_step.formal_rule_applied
-                            and "Pivot" in curr_step.formal_rule_applied
-                            and curr_step.observation
-                        ):
-                            target_tonality_for_plagal = self._extract_pivot_target_tonality(
-                                curr_step.observation
-                            )
-                        elif (
-                            curr_step.tonality_used_in_step
-                            and curr_step.tonality_used_in_step in secondary_themes
-                        ):
-                            target_tonality_for_plagal = curr_step.tonality_used_in_step
+                        curr_raw_tonality = (
+                            curr_step.raw_tonality_used_in_step or curr_step.tonality_used_in_step
+                        )
+                        if _is_pivot_modulation(curr_step):
+                            target_tonality_for_plagal = _extract_pivot_target_tonality(curr_step)
+                        elif curr_raw_tonality and curr_raw_tonality in secondary_themes:
+                            target_tonality_for_plagal = curr_raw_tonality
 
                         # Fallback to previous possible node
                         if not target_tonality_for_plagal:
                             prev_step = prev_possible.step
-                            if (
-                                prev_step.formal_rule_applied
-                                and "Pivot" in prev_step.formal_rule_applied
-                                and prev_step.observation
-                            ):
-                                target_tonality_for_plagal = self._extract_pivot_target_tonality(
-                                    prev_step.observation
+                            prev_raw_tonality = (
+                                prev_step.raw_tonality_used_in_step
+                                or prev_step.tonality_used_in_step
+                            )
+                            if _is_pivot_modulation(prev_step):
+                                target_tonality_for_plagal = _extract_pivot_target_tonality(
+                                    prev_step
                                 )
-                            elif (
-                                prev_step.tonality_used_in_step
-                                and prev_step.tonality_used_in_step in secondary_themes
-                            ):
-                                target_tonality_for_plagal = prev_step.tonality_used_in_step
+                            elif prev_raw_tonality and prev_raw_tonality in secondary_themes:
+                                target_tonality_for_plagal = prev_raw_tonality
 
                         if (
                             target_tonality_for_plagal
@@ -386,25 +388,44 @@ class VisualizerService:
         if tonality_name is None:
             raise ValueError(T("errors.cannot_visualize_no_tonality"))
 
-        theme = get_theme_for_tonality(tonality_name, theme_mode)
+        # Get the raw (untranslated) tonality name for comparisons
+        raw_tonality_name = None
+        for step in analysis_data.explanation_details:
+            if step.raw_tonality_used_in_step:
+                raw_tonality_name = step.raw_tonality_used_in_step
+                break
+
+        # Fallback if no raw tonality found
+        if raw_tonality_name is None:
+            raw_tonality_name = tonality_name
+
+        theme = get_theme_for_tonality(raw_tonality_name, theme_mode)
         graph = HarmonicGraph(theme=theme, temp_dir=TEMP_IMAGE_DIR)
 
-        # Process the analysis the same way as create_graph_from_analysis, but return DOT source
+        # Identify secondary tonalities used in the progression (same logic as create_graph_from_analysis)
         secondary_tonalities = set()
         for step in analysis_data.explanation_details:
-            if step.tonality_used_in_step and step.tonality_used_in_step != tonality_name:
-                secondary_tonalities.add(step.tonality_used_in_step)
+            # Regular secondary tonalities
+            raw_tonality = step.raw_tonality_used_in_step or step.tonality_used_in_step
+            if raw_tonality and raw_tonality != raw_tonality_name:
+                secondary_tonalities.add(raw_tonality)
 
-        secondary_themes: Dict[str, Dict[str, str]] = {}
-        for sec_tonality in secondary_tonalities:
-            secondary_themes[sec_tonality] = get_theme_for_tonality(sec_tonality, theme_mode)
+            # Pivot target tonalities
+            if _is_pivot_modulation(step):
+                target_tonality = _extract_pivot_target_tonality(step)
+                if target_tonality and target_tonality != raw_tonality_name:
+                    secondary_tonalities.add(target_tonality)
 
-        function_to_shape = {
-            "TONIC": "house",
-            "DOMINANT": "circle",
-            "SUBDOMINANT": "circle",
-        }
+        # Create themes for secondary tonalities
+        secondary_themes = {}
+        for secondary_tonality in secondary_tonalities:
+            secondary_themes[secondary_tonality] = get_theme_for_tonality(
+                secondary_tonality, theme_mode
+            )
 
+        function_to_shape = {"TONIC": "house", "DOMINANT": "circle", "SUBDOMINANT": "cds"}
+
+        # Determine the style for primary chords based on the tonality mode
         is_minor_tonality = "minor" in tonality_name.lower()
         primary_style_variant = "dashed_filled" if is_minor_tonality else "solid_filled"
 
@@ -414,8 +435,9 @@ class VisualizerService:
         relevant_steps.reverse()
 
         main_world_nodes: List[Optional[NodeInfo]] = []
+        possible_world_nodes: List[Optional[NodeInfo]] = [None] * len(relevant_steps)
 
-        # Process nodes (simplified version)
+        # 1. FIRST PASS: Classify and create nodes for each world (same logic as create_graph_from_analysis)
         for i, step in enumerate(relevant_steps):
             chord = step.processed_chord
             if chord is None:
@@ -425,24 +447,97 @@ class VisualizerService:
             chord_display = to_unicode_symbols(chord)
 
             function = "TONIC"
-            if step.evaluated_functional_state:
+            if step.tonal_function:
+                # Use the structured non-translated function field
+                function = step.tonal_function
+            elif step.evaluated_functional_state:
+                # Fallback: Extract function from translated string
                 function = step.evaluated_functional_state.split(" ")[0]
 
             shape = function_to_shape.get(function, "circle")
-            is_primary = (
-                step.tonality_used_in_step is not None
-                and step.tonality_used_in_step == tonality_name
-            )
+            raw_tonality = step.raw_tonality_used_in_step or step.tonality_used_in_step
+            is_primary = raw_tonality is not None and raw_tonality == raw_tonality_name
+            is_pivot = _is_pivot_modulation(step)
 
             main_node = NodeInfo(f"{chord}_main_{i}", chord_display, function, shape, step)
             main_world_nodes.append(main_node)
-
             if is_primary:
+                # Apply the style determined by the tonality's mode
                 graph.add_primary_chord(
                     main_node.node_id,
                     main_node.chord,
                     shape=main_node.shape,
                     style_variant=primary_style_variant,
                 )
+            else:
+                # Non-diatonic chords - use the correct theme for secondary tonality
+                target_tonality = None
+                if is_pivot:
+                    # For pivots, extract the target tonality from structured data
+                    target_tonality = _extract_pivot_target_tonality(step)
+                elif raw_tonality and raw_tonality != raw_tonality_name:
+                    # For regular secondary chords, use the raw tonality from the step
+                    target_tonality = raw_tonality
+
+                if target_tonality and target_tonality in secondary_themes:
+                    secondary_theme = secondary_themes[target_tonality]
+                    graph.add_secondary_chord_with_theme(
+                        main_node.node_id,
+                        main_node.chord,
+                        secondary_theme,
+                        shape=main_node.shape,
+                        style_variant="dashed_filled",
+                    )
+                else:
+                    # Fallback to original placeholder chord method
+                    graph.add_placeholder_chord(
+                        main_node.node_id,
+                        main_node.chord,
+                        shape=main_node.shape,
+                        style_variant="dashed_filled",
+                    )
+
+            if not is_primary or is_pivot:
+                secondary_function = "TONIC" if is_pivot else function
+                secondary_shape = function_to_shape.get(secondary_function, "circle")
+                possible_node = NodeInfo(
+                    f"{chord}_possible_{i}",
+                    chord_display,
+                    secondary_function,
+                    secondary_shape,
+                    step,
+                )
+                possible_world_nodes[i] = possible_node
+
+                # Use the correct theme for secondary tonality
+                target_tonality = None
+                if is_pivot:
+                    # For pivots, extract the target tonality from structured data
+                    target_tonality = _extract_pivot_target_tonality(step)
+                elif raw_tonality and raw_tonality != raw_tonality_name:
+                    # For regular secondary chords, use the raw tonality from the step
+                    target_tonality = raw_tonality
+
+                if target_tonality and target_tonality in secondary_themes:
+                    secondary_theme = secondary_themes[target_tonality]
+                    graph.add_secondary_chord_with_theme(
+                        possible_node.node_id,
+                        possible_node.chord,
+                        secondary_theme,
+                        shape=possible_node.shape,
+                        style_variant="dashed_filled",
+                    )
+                else:
+                    # Fallback to original secondary chord method
+                    graph.add_secondary_chord(
+                        possible_node.node_id,
+                        possible_node.chord,
+                        shape=possible_node.shape,
+                        style_variant="dashed_filled",
+                    )
+
+        # Build the invisible chain for horizontal layout
+        main_ids = [n.node_id for n in main_world_nodes if n]
+        graph.build_progression_chain(main_ids)
 
         return graph.get_dot_source()
