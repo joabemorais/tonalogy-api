@@ -46,6 +46,20 @@ class ExplanationStepAPI(BaseModel):
     evaluated_functional_state: Optional[str] = Field(
         None, description=T("schemas.explanation_step.evaluated_functional_state.description")
     )
+    
+    # Structured metadata fields for language-agnostic processing
+    rule_type: Optional[str] = Field(
+        None, description="Type of rule applied (e.g., 'pivot_modulation') - not translated"
+    )
+    tonal_function: Optional[str] = Field(
+        None, description="Raw tonal function (TONIC, DOMINANT, SUBDOMINANT) - not translated"
+    )
+    pivot_target_tonality: Optional[str] = Field(
+        None, description="Target tonality for pivot modulations - not translated"
+    )
+    raw_tonality_used_in_step: Optional[str] = Field(
+        None, description="Original tonality name without translation"
+    )
 
     model_config = ConfigDict(from_attributes=True)
 
