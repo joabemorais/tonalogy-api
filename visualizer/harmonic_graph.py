@@ -1,7 +1,9 @@
 from pathlib import Path
-from typing import Any, Dict, Set, Union
+from typing import Any, Dict, Optional, Set, Union
 
 import graphviz
+
+from core.i18n import T
 
 from .styles import SVG_TEMPLATES
 from .svg_factory import SvgFactory
@@ -49,11 +51,17 @@ class HarmonicGraph:
     ) -> None:
         shape_variants = SVG_TEMPLATES.get(shape_name)
         if not shape_variants:
-            raise ValueError(f"Shape '{shape_name}' not found in SVG_TEMPLATES.")
+            raise ValueError(T("errors.shape_not_found", shape_name=shape_name))
 
         svg_template = shape_variants.get(style_variant)
         if not svg_template:
-            raise ValueError(f"Style variant '{style_variant}' not found for shape '{shape_name}'.")
+            raise ValueError(
+                T(
+                    "errors.style_variant_not_found",
+                    style_variant=style_variant,
+                    shape_name=shape_name,
+                )
+            )
 
         image_path = self.svg_factory.create_styled_image_file(
             node_id, svg_template, fill, stroke, penwidth
@@ -159,13 +167,13 @@ class HarmonicGraph:
         from_node: str,
         to_node: str,
         color_key: str,
-        theme: Dict[str, Any] = None,
+        theme: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> None:
         current_theme = theme if theme is not None else self.theme
         color = current_theme.get(color_key)
         if not color:
-            raise ValueError(f"Color key '{color_key}' not found in theme.")
+            raise ValueError(T("errors.color_key_not_found", color_key=color_key))
         double_line_color = f"{color}:invis:{color}"
         self.connect_nodes(from_node, to_node, color=double_line_color, penwidth="3", **kwargs)
 
@@ -174,14 +182,14 @@ class HarmonicGraph:
         from_node: str,
         to_node: str,
         color_key: str,
-        theme: Dict[str, Any] = None,
+        theme: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> None:
         """Connects two nodes with a single arrow (for plagal cadence)."""
         current_theme = theme if theme is not None else self.theme
         color = current_theme.get(color_key)
         if not color:
-            raise ValueError(f"Color key '{color_key}' not found in theme.")
+            raise ValueError(T("errors.color_key_not_found", color_key=color_key))
         self.connect_nodes(from_node, to_node, color=color, penwidth="2", **kwargs)
 
     def align_nodes_in_ranks(self, *ranks: Any) -> None:
@@ -196,7 +204,9 @@ class HarmonicGraph:
             from_node = node_ids[i]
             to_node = node_ids[i + 1]
             if tuple(sorted((from_node, to_node))) not in self.existing_connections:
-                self.connect_nodes(from_node, to_node, style="dotted", arrowhead="none", color="#888888")
+                self.connect_nodes(
+                    from_node, to_node, style="dotted", arrowhead="none", color="#888888"
+                )
 
     def render(self, filename: Path) -> str:
         output_path = filename.with_suffix(".png")
@@ -211,4 +221,4 @@ class HarmonicGraph:
 
     def get_dot_source(self) -> str:
         """Returns the DOT source code of the graph for testing purposes."""
-        return self.dot.source
+        return str(self.dot.source)

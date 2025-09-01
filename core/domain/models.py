@@ -9,7 +9,7 @@ NOTE_MAP = {name: i for i, name in enumerate(NOTE_NAMES)}
 
 # Musical symbols Unicode constants
 SHARP_SYMBOL = "\uE10C"  # ♯ (Unicode E10C for MuseJazz font)
-FLAT_SYMBOL = "\uE10D"   # ♭ (Unicode E10D for MuseJazz font)
+FLAT_SYMBOL = "\uE10D"  # ♭ (Unicode E10D for MuseJazz font)
 
 # Enharmonic equivalents mapping: flat to sharp
 ENHARMONIC_MAP = {
@@ -26,23 +26,23 @@ ENHARMONIC_MAP = {
     # Unicode symbol variants
     f"D{FLAT_SYMBOL}": "C#",
     f"E{FLAT_SYMBOL}": "D#",
-    f"G{FLAT_SYMBOL}": "F#", 
+    f"G{FLAT_SYMBOL}": "F#",
     f"A{FLAT_SYMBOL}": "G#",
     f"B{FLAT_SYMBOL}": "A#",
     f"C{FLAT_SYMBOL}": "B",
     f"F{FLAT_SYMBOL}": "E",
     f"E{SHARP_SYMBOL}": "F",
-    f"B{SHARP_SYMBOL}": "C"
+    f"B{SHARP_SYMBOL}": "C",
 }
 
 
 def normalize_note_name(note_name: str) -> str:
     """
     Normalizes a note name by converting flat notation to sharp notation.
-    
+
     Args:
         note_name: The note name (e.g., "Bb", "A#", "C")
-    
+
     Returns:
         The normalized note name using sharp notation
     """
@@ -52,10 +52,10 @@ def normalize_note_name(note_name: str) -> str:
 def to_unicode_symbols(chord_name: str) -> str:
     """
     Converts ASCII sharp (#) and flat (b) symbols to Unicode musical symbols.
-    
+
     Args:
         chord_name: Chord name with ASCII symbols (e.g., "C#", "Bb")
-    
+
     Returns:
         Chord name with Unicode musical symbols (e.g., "C♯", "B♭")
     """
@@ -68,10 +68,10 @@ def to_unicode_symbols(chord_name: str) -> str:
 def from_unicode_symbols(chord_name: str) -> str:
     """
     Converts Unicode musical symbols to ASCII sharp (#) and flat (b) symbols.
-    
+
     Args:
         chord_name: Chord name with Unicode symbols (e.g., "C♯", "B♭")
-    
+
     Returns:
         Chord name with ASCII symbols (e.g., "C#", "Bb")
     """
@@ -113,7 +113,7 @@ class Chord:
         """
         # First normalize Unicode symbols to ASCII for consistent processing
         normalized_name = from_unicode_symbols(self.name)
-        
+
         # Updated regex to match both sharp (#) and flat (b) notations
         match = re.match(r"([A-G][#b]?)", normalized_name)
         if not match:
@@ -189,17 +189,17 @@ class Tonality:
         This method supports enharmonic equivalence by comparing chord notes.
         """
         function_chords = self.function_to_chords_map.get(target_function, {})
-        
+
         # First try direct comparison (for exact matches)
         if test_chord in function_chords:
             return True
-        
+
         # If no direct match, check for enharmonic equivalence by comparing notes
         test_chord_notes = test_chord.notes
         for chord in function_chords.keys():
             if chord.notes == test_chord_notes:
                 return True
-        
+
         return False
 
     def get_chord_origin_for_function(

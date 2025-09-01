@@ -1,6 +1,8 @@
-from typing import Any, List, Optional, Literal
+from typing import Any, List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
+
+from core.i18n import T, translate_function, translate_tonality
 
 
 class ProgressionAnalysisRequest(BaseModel):
@@ -11,17 +13,17 @@ class ProgressionAnalysisRequest(BaseModel):
     chords: List[str] = Field(
         ...,
         min_length=1,
-        description="A list of chords to be analyzed.",
+        description=T("schemas.progression_analysis_request.chords.description"),
         json_schema_extra={"example": ["Em", "A", "Dm", "G", "C"]},
     )
     tonalities_to_test: Optional[List[str]] = Field(
         None,
-        description="Optional. A list of tonalities to be tested.",
+        description=T("schemas.progression_analysis_request.tonalities_to_test.description"),
         json_schema_extra={"example": []},
     )
     theme: Optional[Literal["light", "dark"]] = Field(
         "light",
-        description="Theme mode for visualization - 'light' or 'dark'.",
+        description=T("schemas.progression_analysis_request.theme.description"),
         json_schema_extra={"example": "light"},
     )
 
@@ -32,37 +34,40 @@ class ExplanationStepAPI(BaseModel):
     """
 
     formal_rule_applied: Optional[str] = Field(
-        None, description="The formal model rule that was applied."
+        None, description=T("schemas.explanation_step.formal_rule_applied.description")
     )
-    observation: str = Field(
-        ..., description="A readable description of what happened in this step."
-    )
+    observation: str = Field(..., description=T("schemas.explanation_step.observation.description"))
     processed_chord: Optional[str] = Field(
-        None, description="The chord that was processed in this step."
+        None, description=T("schemas.explanation_step.processed_chord.description")
     )
     tonality_used_in_step: Optional[str] = Field(
-        None, description="The tonality in use during this step."
+        None, description=T("schemas.explanation_step.tonality_used_in_step.description")
     )
     evaluated_functional_state: Optional[str] = Field(
-        None, description="The evaluated functional state (e.g., 'TONIC (s_t)')."
+        None, description=T("schemas.explanation_step.evaluated_functional_state.description")
     )
 
     model_config = ConfigDict(from_attributes=True)
 
     @classmethod
-    def from_orm(cls, orm_obj: Any) -> "ExplanationStepAPI":
-        """Converts an ORM-like object to the Pydantic schema."""
+    def from_domain_step(cls, orm_obj: Any) -> "ExplanationStepAPI":
+        """Convert from domain ExplanationStep to response DTO."""
+        # Get the current locale for translations
+        from core.i18n.locale_manager import locale_manager
+
+        current_locale = locale_manager.current_locale
+
         return cls(
             formal_rule_applied=orm_obj.formal_rule_applied,
             observation=orm_obj.observation,
             processed_chord=orm_obj.processed_chord.name if orm_obj.processed_chord else None,
             tonality_used_in_step=(
-                orm_obj.tonality_used_in_step.tonality_name
+                translate_tonality(orm_obj.tonality_used_in_step.tonality_name, current_locale)
                 if orm_obj.tonality_used_in_step
                 else None
             ),
             evaluated_functional_state=(
-                f"{orm_obj.evaluated_functional_state.associated_tonal_function.name} ({orm_obj.evaluated_functional_state.state_id})"
+                f"{translate_function(orm_obj.evaluated_functional_state.associated_tonal_function.name, current_locale)} ({orm_obj.evaluated_functional_state.state_id})"
                 if orm_obj.evaluated_functional_state
                 else None
             ),
@@ -75,12 +80,14 @@ class ProgressionAnalysisResponse(BaseModel):
     """
 
     is_tonal_progression: bool = Field(
-        ..., description="True if the progression is tonal, false otherwise."
+        ..., description=T("schemas.progression_analysis_response.is_tonal_progression.description")
     )
     identified_tonality: Optional[str] = Field(
-        None, description="The tonality in which the progression was identified as tonal."
+        None, description=T("schemas.progression_analysis_response.identified_tonality.description")
     )
     explanation_details: List[ExplanationStepAPI] = Field(
-        [], description="A detailed list of analysis steps."
+        [], description=T("schemas.progression_analysis_response.explanation_details.description")
     )
-    error: Optional[str] = Field(None, description="An error message, if any.")
+    error: Optional[str] = Field(
+        None, description=T("schemas.progression_analysis_response.error.description")
+    )

@@ -5,7 +5,7 @@ Tests the complete flow from analysis data to image generation.
 
 import tempfile
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Generator
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -18,7 +18,7 @@ class TestVisualizerIntegration:
     """Integration tests for the complete visualizer workflow."""
 
     @pytest.fixture
-    def temp_images_dir(self) -> Path:
+    def temp_images_dir(self) -> Generator[Path, None, None]:
         """Create a temporary directory for image output."""
         with tempfile.TemporaryDirectory() as temp_dir:
             yield Path(temp_dir)

@@ -293,7 +293,7 @@ class TestHarmonicGraph:
         """Test aligning nodes with empty ranks."""
         # GIVEN
         rank1 = ["C_main_1"]
-        rank2 = []  # Empty rank
+        rank2: list[str] = []  # Empty rank
 
         # WHEN
         harmonic_graph.align_nodes_in_ranks(rank1, rank2)
@@ -330,7 +330,7 @@ class TestHarmonicGraph:
     def test_build_progression_chain_empty_list(self, harmonic_graph: HarmonicGraph) -> None:
         """Test building progression chain with empty node list."""
         # GIVEN
-        node_ids = []
+        node_ids: list[str] = []
 
         # WHEN
         harmonic_graph.build_progression_chain(node_ids)

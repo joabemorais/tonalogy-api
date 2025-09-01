@@ -8,6 +8,8 @@ from api.schemas.analysis_schemas import (
 )
 from core.config.knowledge_base import TonalKnowledgeBase
 from core.domain.models import Chord, Explanation, Tonality
+from core.i18n import T, translate_function, translate_tonality
+from core.i18n.locale_manager import locale_manager
 from core.logic.candidate_processor import CandidateProcessor
 from core.logic.progression_analyzer import ProgressionAnalyzer
 
@@ -44,7 +46,7 @@ class TonalAnalysisService:
                     is_tonal_progression=False,
                     identified_tonality=None,
                     explanation_details=[],
-                    error="Chord list cannot be empty.",
+                    error=T("errors.chord_list_empty"),
                 )
 
             input_chords: List[Chord] = [Chord(c) for c in request.chords]
@@ -86,23 +88,31 @@ class TonalAnalysisService:
 
             identified_tonality: Optional[str] = None
             if success and tonalities_to_test:
-                identified_tonality = tonalities_to_test[0].tonality_name
+                # Translate the identified tonality name
+                original_tonality = tonalities_to_test[0].tonality_name
+                identified_tonality = translate_tonality(
+                    original_tonality, locale_manager.current_locale
+                )
 
             explanation_steps_api: List[ExplanationStepAPI] = []
             for step in explanation.steps:
                 evaluated_state_str = None
                 if step.evaluated_functional_state:
                     state = step.evaluated_functional_state
-                    evaluated_state_str = (
-                        f"{state.associated_tonal_function.name} ({state.state_id})"
+                    # Translate the function name
+                    translated_function = translate_function(
+                        state.associated_tonal_function.name, locale_manager.current_locale
                     )
+                    evaluated_state_str = f"{translated_function} ({state.state_id})"
 
                 api_step = ExplanationStepAPI(
                     formal_rule_applied=step.formal_rule_applied,
                     observation=step.observation,
                     processed_chord=step.processed_chord.name if step.processed_chord else None,
                     tonality_used_in_step=(
-                        step.tonality_used_in_step.tonality_name
+                        translate_tonality(
+                            step.tonality_used_in_step.tonality_name, locale_manager.current_locale
+                        )
                         if step.tonality_used_in_step
                         else None
                     ),

@@ -6,8 +6,9 @@ from typing import Dict, List, Optional
 
 from api.schemas.analysis_schemas import ExplanationStepAPI, ProgressionAnalysisResponse
 from core.domain.models import to_unicode_symbols
+from core.i18n import T
 from visualizer.harmonic_graph import HarmonicGraph
-from visualizer.theming import get_theme_for_tonality, ThemeMode
+from visualizer.theming import ThemeMode, get_theme_for_tonality
 
 TEMP_IMAGE_DIR = Path(__file__).resolve().parent.parent.parent / "temp_images"
 TEMP_IMAGE_DIR.mkdir(exist_ok=True)
@@ -34,11 +35,11 @@ class VisualizerService:
         self, analysis_data: ProgressionAnalysisResponse, theme_mode: ThemeMode = "light"
     ) -> str:
         if not analysis_data.is_tonal_progression:
-            raise ValueError("Cannot visualize a non-tonal progression.")
+            raise ValueError(T("errors.cannot_visualize_non_tonal"))
 
         tonality_name = analysis_data.identified_tonality
         if tonality_name is None:
-            raise ValueError("Cannot visualize a progression without an identified tonality.")
+            raise ValueError(T("errors.cannot_visualize_no_tonality"))
 
         theme = get_theme_for_tonality(tonality_name, theme_mode)
         output_filename = TEMP_IMAGE_DIR / str(uuid.uuid4())
@@ -64,7 +65,9 @@ class VisualizerService:
         # Create themes for secondary tonalities
         secondary_themes = {}
         for secondary_tonality in secondary_tonalities:
-            secondary_themes[secondary_tonality] = get_theme_for_tonality(secondary_tonality, theme_mode)
+            secondary_themes[secondary_tonality] = get_theme_for_tonality(
+                secondary_tonality, theme_mode
+            )
 
         function_to_shape = {"TONIC": "house", "DOMINANT": "circle", "SUBDOMINANT": "cds"}
 
@@ -143,7 +146,11 @@ class VisualizerService:
                 secondary_function = "TONIC" if is_pivot else function
                 secondary_shape = function_to_shape.get(secondary_function, "circle")
                 possible_node = NodeInfo(
-                    f"{chord}_possible_{i}", chord_display, secondary_function, secondary_shape, step
+                    f"{chord}_possible_{i}",
+                    chord_display,
+                    secondary_function,
+                    secondary_shape,
+                    step,
                 )
                 possible_world_nodes[i] = possible_node
 
@@ -183,7 +190,7 @@ class VisualizerService:
                 graph.align_nodes_in_ranks(
                     [current_main_node.node_id, current_possible_node.node_id]
                 )
-                
+
                 # Determine the appropriate stroke color based on the node's tonality
                 step = current_main_node.step
                 is_primary = (
@@ -191,7 +198,7 @@ class VisualizerService:
                     and step.tonality_used_in_step == tonality_name
                 )
                 is_pivot = step.formal_rule_applied and "Pivot" in step.formal_rule_applied
-                
+
                 if is_primary:
                     # Use primary theme stroke color
                     color = theme["primary_stroke"]
@@ -202,13 +209,13 @@ class VisualizerService:
                         target_tonality = self._extract_pivot_target_tonality(step.observation)
                     elif step.tonality_used_in_step and step.tonality_used_in_step != tonality_name:
                         target_tonality = step.tonality_used_in_step
-                    
+
                     if target_tonality and target_tonality in secondary_themes:
                         secondary_theme = secondary_themes[target_tonality]
                         color = secondary_theme["primary_stroke"]
                     else:
                         color = theme["secondary_stroke"]
-                
+
                 graph.connect_nodes(
                     current_main_node.node_id,
                     current_possible_node.node_id,
@@ -229,7 +236,7 @@ class VisualizerService:
                 ):
                     # Como a lista foi revertida, curr_main é cronologicamente anterior a prev_main
                     # Para cadências, queremos: curr_main (anterior) -> prev_main (posterior)
-                    # Mas nos índices: prev_main[i-1] -> curr_main[i] 
+                    # Mas nos índices: prev_main[i-1] -> curr_main[i]
                     if prev_main.function == "SUBDOMINANT" and curr_main.function == "DOMINANT":
                         graph.connect_nodes(
                             prev_main.node_id,
@@ -255,7 +262,7 @@ class VisualizerService:
                     # Mas nos índices: prev_possible[i-1] -> curr_possible[i]
                     if prev_possible.function == "DOMINANT" and curr_possible.function == "TONIC":
                         # Determine which secondary theme to use based on target tonality
-                        secondary_tonality = None
+                        target_tonality_for_cadence: Optional[str] = None
 
                         # Check current possible node for pivot target tonality
                         curr_step = curr_possible.step
@@ -264,34 +271,37 @@ class VisualizerService:
                             and "Pivot" in curr_step.formal_rule_applied
                             and curr_step.observation
                         ):
-                            secondary_tonality = self._extract_pivot_target_tonality(
+                            target_tonality_for_cadence = self._extract_pivot_target_tonality(
                                 curr_step.observation
                             )
                         elif (
                             curr_step.tonality_used_in_step
                             and curr_step.tonality_used_in_step in secondary_themes
                         ):
-                            secondary_tonality = curr_step.tonality_used_in_step
+                            target_tonality_for_cadence = curr_step.tonality_used_in_step
 
                         # Fallback to previous possible node
-                        if not secondary_tonality:
+                        if not target_tonality_for_cadence:
                             prev_step = prev_possible.step
                             if (
                                 prev_step.formal_rule_applied
                                 and "Pivot" in prev_step.formal_rule_applied
                                 and prev_step.observation
                             ):
-                                secondary_tonality = self._extract_pivot_target_tonality(
+                                target_tonality_for_cadence = self._extract_pivot_target_tonality(
                                     prev_step.observation
                                 )
                             elif (
                                 prev_step.tonality_used_in_step
                                 and prev_step.tonality_used_in_step in secondary_themes
                             ):
-                                secondary_tonality = prev_step.tonality_used_in_step
+                                target_tonality_for_cadence = prev_step.tonality_used_in_step
 
-                        if secondary_tonality and secondary_tonality in secondary_themes:
-                            secondary_theme = secondary_themes[secondary_tonality]
+                        if (
+                            target_tonality_for_cadence
+                            and target_tonality_for_cadence in secondary_themes
+                        ):
+                            secondary_theme = secondary_themes[target_tonality_for_cadence]
                             graph.connect_with_double_arrow(
                                 prev_possible.node_id,
                                 curr_possible.node_id,
@@ -302,10 +312,13 @@ class VisualizerService:
                             graph.connect_with_double_arrow(
                                 prev_possible.node_id, curr_possible.node_id, "secondary_stroke"
                             )
-                    
-                    elif prev_possible.function == "SUBDOMINANT" and curr_possible.function == "TONIC":
+
+                    elif (
+                        prev_possible.function == "SUBDOMINANT"
+                        and curr_possible.function == "TONIC"
+                    ):
                         # Determine which secondary theme to use based on target tonality
-                        secondary_tonality = None
+                        target_tonality_for_plagal: Optional[str] = None
 
                         # Check current possible node for pivot target tonality
                         curr_step = curr_possible.step
@@ -314,34 +327,37 @@ class VisualizerService:
                             and "Pivot" in curr_step.formal_rule_applied
                             and curr_step.observation
                         ):
-                            secondary_tonality = self._extract_pivot_target_tonality(
+                            target_tonality_for_plagal = self._extract_pivot_target_tonality(
                                 curr_step.observation
                             )
                         elif (
                             curr_step.tonality_used_in_step
                             and curr_step.tonality_used_in_step in secondary_themes
                         ):
-                            secondary_tonality = curr_step.tonality_used_in_step
+                            target_tonality_for_plagal = curr_step.tonality_used_in_step
 
                         # Fallback to previous possible node
-                        if not secondary_tonality:
+                        if not target_tonality_for_plagal:
                             prev_step = prev_possible.step
                             if (
                                 prev_step.formal_rule_applied
                                 and "Pivot" in prev_step.formal_rule_applied
                                 and prev_step.observation
                             ):
-                                secondary_tonality = self._extract_pivot_target_tonality(
+                                target_tonality_for_plagal = self._extract_pivot_target_tonality(
                                     prev_step.observation
                                 )
                             elif (
                                 prev_step.tonality_used_in_step
                                 and prev_step.tonality_used_in_step in secondary_themes
                             ):
-                                secondary_tonality = prev_step.tonality_used_in_step
+                                target_tonality_for_plagal = prev_step.tonality_used_in_step
 
-                        if secondary_tonality and secondary_tonality in secondary_themes:
-                            secondary_theme = secondary_themes[secondary_tonality]
+                        if (
+                            target_tonality_for_plagal
+                            and target_tonality_for_plagal in secondary_themes
+                        ):
+                            secondary_theme = secondary_themes[target_tonality_for_plagal]
                             graph.connect_with_single_arrow(
                                 prev_possible.node_id,
                                 curr_possible.node_id,
@@ -364,11 +380,11 @@ class VisualizerService:
     ) -> str:
         """Get the DOT source code for testing purposes."""
         if not analysis_data.is_tonal_progression:
-            raise ValueError("Cannot visualize a non-tonal progression.")
+            raise ValueError(T("errors.cannot_visualize_non_tonal"))
 
         tonality_name = analysis_data.identified_tonality
         if tonality_name is None:
-            raise ValueError("Cannot visualize a progression without an identified tonality.")
+            raise ValueError(T("errors.cannot_visualize_no_tonality"))
 
         theme = get_theme_for_tonality(tonality_name, theme_mode)
         graph = HarmonicGraph(theme=theme, temp_dir=TEMP_IMAGE_DIR)
@@ -420,7 +436,7 @@ class VisualizerService:
 
             main_node = NodeInfo(f"{chord}_main_{i}", chord_display, function, shape, step)
             main_world_nodes.append(main_node)
-            
+
             if is_primary:
                 graph.add_primary_chord(
                     main_node.node_id,

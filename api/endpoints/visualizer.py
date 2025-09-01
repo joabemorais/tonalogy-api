@@ -7,6 +7,7 @@ from api.endpoints.analysis import get_analysis_service
 from api.schemas.analysis_schemas import ProgressionAnalysisRequest
 from api.services.analysis_service import TonalAnalysisService
 from api.services.visualizer_service import VisualizerService
+from core.i18n import T
 
 router = APIRouter()
 
@@ -18,14 +19,14 @@ def get_visualizer_service() -> VisualizerService:
 
 @router.post(
     "/visualize",
-    summary="Analyzes and Visualizes a Tonal Harmonic Progression",
+    summary=T("endpoints.visualize.summary"),
     tags=["Visualization"],
     responses={
         200: {
             "content": {"image/png": {}},
-            "description": "Returns the generated PNG image of the analysis.",
+            "description": T("endpoints.visualize.responses.200"),
         },
-        400: {"description": "Invalid request, e.g.: non-tonal progression."},
+        400: {"description": T("endpoints.visualize.responses.400")},
     },
 )
 async def visualize_progression(
@@ -40,9 +41,10 @@ async def visualize_progression(
     analysis_result = analysis_service.analyze_progression(request)
 
     if not analysis_result.is_tonal_progression:
-        raise HTTPException(
-            status_code=400, detail=f"The progression is not tonal. {analysis_result.error or ''}"
-        )
+        error_detail = T("errors.progression_not_tonal")
+        if analysis_result.error:
+            error_detail += f" {analysis_result.error}"
+        raise HTTPException(status_code=400, detail=error_detail)
 
     try:
         image_path = visualizer_service.create_graph_from_analysis(
@@ -50,7 +52,7 @@ async def visualize_progression(
         )
 
         if not os.path.exists(image_path):
-            raise HTTPException(status_code=500, detail="Image file not found after generation.")
+            raise HTTPException(status_code=500, detail=T("errors.image_not_found"))
 
         return FileResponse(image_path, media_type="image/png")
 
@@ -58,5 +60,5 @@ async def visualize_progression(
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"An internal error occurred during visualization: {e}"
+            status_code=500, detail=T("errors.internal_visualization_error", error=str(e))
         )

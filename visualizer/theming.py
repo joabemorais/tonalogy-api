@@ -57,7 +57,7 @@ def _load_themes_from_csv(file_path: Path, mode: ThemeMode = "light") -> Dict[st
     try:
         df = pd.read_csv(file_path)
         themes = {}
-        
+
         # Choose secondary colors based on theme mode
         if mode == "dark":
             secondary_fill = "#4a556880"  # Dark secondary with alpha
@@ -69,7 +69,7 @@ def _load_themes_from_csv(file_path: Path, mode: ThemeMode = "light") -> Dict[st
             secondary_stroke = "#ffa94d"
             secondary_text_color = "#e8590c"
             annotation_gray = "#555555"
-        
+
         for _, row in df.iterrows():
             key_name = row["Key"]
             themes[key_name] = {
@@ -98,11 +98,11 @@ def get_theme_for_tonality(tonality_name: str, mode: ThemeMode = "light") -> dic
     """
     Fetches the theme for a tonality. If the tonality is minor,
     it uses the theme of its relative major.
-    
+
     Args:
         tonality_name: The name of the tonality (e.g., "C Major", "A minor")
         mode: Theme mode - "light" or "dark"
-    
+
     Returns:
         Theme dictionary with color configuration
     """

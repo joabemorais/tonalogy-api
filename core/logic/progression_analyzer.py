@@ -1,6 +1,8 @@
 from typing import List, Tuple
 
 from core.domain.models import Chord, Explanation, KripkeStructureConfig, TonalFunction, Tonality
+from core.i18n import T, translate_tonality
+from core.i18n.locale_manager import locale_manager
 from core.logic.kripke_evaluator import SatisfactionEvaluator
 
 
@@ -30,12 +32,14 @@ class ProgressionAnalyzer:
         failure_explanation = Explanation()
         if not input_chord_sequence:
             failure_explanation.add_step(
-                formal_rule_applied="Failure", observation="Input chord sequence is empty."
+                formal_rule_applied=T("analysis.rules.failure"),
+                observation=T("analysis.messages.input_empty"),
             )
             return False, failure_explanation
         if not tonalities_to_test:
             failure_explanation.add_step(
-                formal_rule_applied="Failure", observation="List of tonalities to test is empty."
+                formal_rule_applied=T("analysis.rules.failure"),
+                observation=T("analysis.messages.tonalities_empty"),
             )
             return False, failure_explanation
 
@@ -52,8 +56,8 @@ class ProgressionAnalyzer:
 
         if not initial_state:
             failure_explanation.add_step(
-                formal_rule_applied="Configuration Error",
-                observation="Kripke structure configuration is missing a TONIC state.",
+                formal_rule_applied=T("analysis.rules.configuration_error"),
+                observation=T("analysis.messages.missing_tonic_state"),
             )
             return False, failure_explanation
 
@@ -62,8 +66,12 @@ class ProgressionAnalyzer:
             reversed_chord_sequence[0], TonalFunction.TONIC
         ):
             failure_explanation.add_step(
-                formal_rule_applied="Overall Failure",
-                observation=f"The progression's final chord '{reversed_chord_sequence[0].name}' is not a tonic in the most likely tonality '{primary_tonality.tonality_name}'. Analysis cannot proceed.",
+                formal_rule_applied=T("analysis.rules.overall_failure"),
+                observation=T(
+                    "analysis.messages.final_chord_not_tonic",
+                    chord_name=reversed_chord_sequence[0].name,
+                    tonality_name=primary_tonality.tonality_name,
+                ),
             )
             return False, failure_explanation
 
@@ -71,8 +79,11 @@ class ProgressionAnalyzer:
         # The evaluator's internal logic (pivots, re-anchoring) is responsible for exploring other tonalities.
         initial_explanation = Explanation()
         initial_explanation.add_step(
-            formal_rule_applied="Analysis Start",
-            observation=f"Testing progression with primary tonality: '{primary_tonality.tonality_name}'.",
+            formal_rule_applied=T("analysis.rules.analysis_start"),
+            observation=T(
+                "analysis.messages.testing_progression",
+                tonality_name=primary_tonality.tonality_name,
+            ),
             tonality_used_in_step=primary_tonality,
         )
 
@@ -87,15 +98,20 @@ class ProgressionAnalyzer:
 
         if success:
             final_explanation.add_step(
-                formal_rule_applied="Overall Success",
-                observation=f"Progression identified as tonal, anchored in '{primary_tonality.tonality_name}'.",
+                formal_rule_applied=T("analysis.rules.overall_success"),
+                observation=T(
+                    "analysis.messages.progression_identified",
+                    tonality_name=translate_tonality(
+                        primary_tonality.tonality_name, locale_manager.current_locale
+                    ),
+                ),
                 tonality_used_in_step=primary_tonality,
             )
             return True, final_explanation
 
         # If the single, comprehensive analysis fails, then no solution was found.
         failure_explanation.add_step(
-            formal_rule_applied="Overall Failure",
-            observation="No valid analytical path found for the progression.",
+            formal_rule_applied=T("analysis.rules.overall_failure"),
+            observation=T("analysis.messages.no_valid_path"),
         )
         return False, failure_explanation
