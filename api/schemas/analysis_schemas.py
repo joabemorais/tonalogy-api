@@ -46,7 +46,7 @@ class ExplanationStepAPI(BaseModel):
     evaluated_functional_state: Optional[str] = Field(
         None, description=T("schemas.explanation_step.evaluated_functional_state.description")
     )
-    
+
     # Structured metadata fields for language-agnostic processing
     rule_type: Optional[str] = Field(
         None, description="Type of rule applied (e.g., 'pivot_modulation') - not translated"

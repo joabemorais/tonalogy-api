@@ -15,7 +15,7 @@ from core.i18n.locale_manager import locale_manager
 
 # Constants to control backtracking behavior and prevent exponential explosion
 MAX_RECURSION_DEPTH = 25  # Prevents infinite recursion in complex progressions
-MAX_PIVOT_CANDIDATES = 8   # Limits pivot exploration to most promising tonalities
+MAX_PIVOT_CANDIDATES = 8  # Limits pivot exploration to most promising tonalities
 MAX_CONTINUATION_BRANCHES = 6  # Limits direct continuation paths to explore
 
 
@@ -33,7 +33,7 @@ class SatisfactionEvaluator:
     4. **Early Termination**: Returns immediately upon finding first valid solution
     5. **Constraint Propagation**: Uses functional and harmonic constraints to prune branches
 
-    The backtracking explores hypotheses incrementally and backtracks when a path leads to 
+    The backtracking explores hypotheses incrementally and backtracks when a path leads to
     a dead end, making it suitable for the exponential search space while maintaining efficiency.
     """
 
@@ -331,10 +331,10 @@ class SatisfactionEvaluator:
     ) -> Tuple[bool, Explanation, Optional[KripkePath]]:
         """
         The main backtracking engine. It orchestrates the search for a valid solution.
-        
+
         BACKTRACKING ALGORITHM STRUCTURE:
         1. **Memoization Check**: Return cached result if subproblem already solved
-        2. **Pruning**: Check depth limit and base cases for early termination  
+        2. **Pruning**: Check depth limit and base cases for early termination
         3. **Branch Generation**: Create possible continuations in priority order:
            - Direct continuations (highest priority - most likely to succeed)
            - Pivot modulations (medium priority - handle key changes)
@@ -342,7 +342,7 @@ class SatisfactionEvaluator:
         4. **Recursive Exploration**: For each branch, recursively solve remaining subproblem
         5. **Early Success**: Return immediately when first valid path is found
         6. **Backtrack**: If all branches fail, mark this subproblem as unsolvable
-        
+
         This approach transforms the exponential search space into a manageable exploration
         by systematically pruning unsuccessful branches and caching solved subproblems.
         """
@@ -395,7 +395,7 @@ class SatisfactionEvaluator:
                 self.cache[cache_key] = (True, final_explanation, final_path)
                 return True, final_explanation, final_path
 
-        # PRIORITY 2: Pivot modulations (handle key changes)  
+        # PRIORITY 2: Pivot modulations (handle key changes)
         # Only try if direct continuations failed - this reduces branching factor
         pivots = self._get_possible_pivots(
             p_chord, phi_sub_sequence, current_path, parent_explanation

@@ -110,16 +110,21 @@ class TonalAnalysisService:
                 # Determine rule type and extract pivot target
                 rule_type = None
                 pivot_target_tonality = None
-                if step.formal_rule_applied and ("Pivot" in step.formal_rule_applied or "Pivô" in step.formal_rule_applied):
+                if step.formal_rule_applied and (
+                    "Pivot" in step.formal_rule_applied or "Pivô" in step.formal_rule_applied
+                ):
                     rule_type = "pivot_modulation"
                     # Extract target tonality from observation using both patterns
                     import re
+
                     if step.observation:
                         # English pattern
                         match = re.search(r"becomes the new TONIC in '([^']+)'", step.observation)
                         if not match:
-                            # Portuguese pattern  
-                            match = re.search(r"torna-se a nova TÔNICA em '([^']+)'", step.observation)
+                            # Portuguese pattern
+                            match = re.search(
+                                r"torna-se a nova TÔNICA em '([^']+)'", step.observation
+                            )
                         if match:
                             pivot_target_tonality = match.group(1)
 

@@ -52,7 +52,7 @@ class VisualizerService:
             if step.raw_tonality_used_in_step:
                 raw_tonality_name = step.raw_tonality_used_in_step
                 break
-        
+
         # Fallback if no raw tonality found
         if raw_tonality_name is None:
             raw_tonality_name = tonality_name
@@ -82,11 +82,7 @@ class VisualizerService:
                 secondary_tonality, theme_mode
             )
 
-        function_to_shape = {
-            "TONIC": "house", 
-            "DOMINANT": "circle", 
-            "SUBDOMINANT": "cds"
-        }
+        function_to_shape = {"TONIC": "house", "DOMINANT": "circle", "SUBDOMINANT": "cds"}
 
         # Determine the style for primary chords based on the tonality mode
         is_minor_tonality = "minor" in tonality_name.lower()
@@ -119,10 +115,7 @@ class VisualizerService:
 
             shape = function_to_shape.get(function, "circle")
             raw_tonality = step.raw_tonality_used_in_step or step.tonality_used_in_step
-            is_primary = (
-                raw_tonality is not None
-                and raw_tonality == raw_tonality_name
-            )
+            is_primary = raw_tonality is not None and raw_tonality == raw_tonality_name
             is_pivot = _is_pivot_modulation(step)
 
             main_node = NodeInfo(f"{chord}_main_{i}", chord_display, function, shape, step)
@@ -215,10 +208,7 @@ class VisualizerService:
                 # Determine the appropriate stroke color based on the node's tonality
                 step = current_main_node.step
                 raw_tonality = step.raw_tonality_used_in_step or step.tonality_used_in_step
-                is_primary = (
-                    raw_tonality is not None
-                    and raw_tonality == raw_tonality_name
-                )
+                is_primary = raw_tonality is not None and raw_tonality == raw_tonality_name
                 is_pivot = _is_pivot_modulation(step)
 
                 if is_primary:
@@ -253,8 +243,16 @@ class VisualizerService:
                 if (
                     prev_main
                     and curr_main
-                    and (prev_main.step.raw_tonality_used_in_step or prev_main.step.tonality_used_in_step) == raw_tonality_name
-                    and (curr_main.step.raw_tonality_used_in_step or curr_main.step.tonality_used_in_step) == raw_tonality_name
+                    and (
+                        prev_main.step.raw_tonality_used_in_step
+                        or prev_main.step.tonality_used_in_step
+                    )
+                    == raw_tonality_name
+                    and (
+                        curr_main.step.raw_tonality_used_in_step
+                        or curr_main.step.tonality_used_in_step
+                    )
+                    == raw_tonality_name
                 ):
                     # Como a lista foi revertida, curr_main é cronologicamente anterior a prev_main
                     # Para cadências, queremos: curr_main (anterior) -> prev_main (posterior)
@@ -288,25 +286,26 @@ class VisualizerService:
 
                         # Check current possible node for pivot target tonality
                         curr_step = curr_possible.step
-                        curr_raw_tonality = curr_step.raw_tonality_used_in_step or curr_step.tonality_used_in_step
+                        curr_raw_tonality = (
+                            curr_step.raw_tonality_used_in_step or curr_step.tonality_used_in_step
+                        )
                         if _is_pivot_modulation(curr_step):
                             target_tonality_for_cadence = _extract_pivot_target_tonality(curr_step)
-                        elif (
-                            curr_raw_tonality
-                            and curr_raw_tonality in secondary_themes
-                        ):
+                        elif curr_raw_tonality and curr_raw_tonality in secondary_themes:
                             target_tonality_for_cadence = curr_raw_tonality
 
                         # Fallback to previous possible node
                         if not target_tonality_for_cadence:
                             prev_step = prev_possible.step
-                            prev_raw_tonality = prev_step.raw_tonality_used_in_step or prev_step.tonality_used_in_step
+                            prev_raw_tonality = (
+                                prev_step.raw_tonality_used_in_step
+                                or prev_step.tonality_used_in_step
+                            )
                             if _is_pivot_modulation(prev_step):
-                                target_tonality_for_cadence = _extract_pivot_target_tonality(prev_step)
-                            elif (
-                                prev_raw_tonality
-                                and prev_raw_tonality in secondary_themes
-                            ):
+                                target_tonality_for_cadence = _extract_pivot_target_tonality(
+                                    prev_step
+                                )
+                            elif prev_raw_tonality and prev_raw_tonality in secondary_themes:
                                 target_tonality_for_cadence = prev_raw_tonality
 
                         if (
@@ -334,25 +333,26 @@ class VisualizerService:
 
                         # Check current possible node for pivot target tonality
                         curr_step = curr_possible.step
-                        curr_raw_tonality = curr_step.raw_tonality_used_in_step or curr_step.tonality_used_in_step
+                        curr_raw_tonality = (
+                            curr_step.raw_tonality_used_in_step or curr_step.tonality_used_in_step
+                        )
                         if _is_pivot_modulation(curr_step):
                             target_tonality_for_plagal = _extract_pivot_target_tonality(curr_step)
-                        elif (
-                            curr_raw_tonality
-                            and curr_raw_tonality in secondary_themes
-                        ):
+                        elif curr_raw_tonality and curr_raw_tonality in secondary_themes:
                             target_tonality_for_plagal = curr_raw_tonality
 
                         # Fallback to previous possible node
                         if not target_tonality_for_plagal:
                             prev_step = prev_possible.step
-                            prev_raw_tonality = prev_step.raw_tonality_used_in_step or prev_step.tonality_used_in_step
+                            prev_raw_tonality = (
+                                prev_step.raw_tonality_used_in_step
+                                or prev_step.tonality_used_in_step
+                            )
                             if _is_pivot_modulation(prev_step):
-                                target_tonality_for_plagal = _extract_pivot_target_tonality(prev_step)
-                            elif (
-                                prev_raw_tonality
-                                and prev_raw_tonality in secondary_themes
-                            ):
+                                target_tonality_for_plagal = _extract_pivot_target_tonality(
+                                    prev_step
+                                )
+                            elif prev_raw_tonality and prev_raw_tonality in secondary_themes:
                                 target_tonality_for_plagal = prev_raw_tonality
 
                         if (
@@ -394,7 +394,7 @@ class VisualizerService:
             if step.raw_tonality_used_in_step:
                 raw_tonality_name = step.raw_tonality_used_in_step
                 break
-        
+
         # Fallback if no raw tonality found
         if raw_tonality_name is None:
             raw_tonality_name = tonality_name
@@ -423,11 +423,7 @@ class VisualizerService:
                 secondary_tonality, theme_mode
             )
 
-        function_to_shape = {
-            "TONIC": "house", 
-            "DOMINANT": "circle", 
-            "SUBDOMINANT": "cds"
-        }
+        function_to_shape = {"TONIC": "house", "DOMINANT": "circle", "SUBDOMINANT": "cds"}
 
         # Determine the style for primary chords based on the tonality mode
         is_minor_tonality = "minor" in tonality_name.lower()
@@ -460,10 +456,7 @@ class VisualizerService:
 
             shape = function_to_shape.get(function, "circle")
             raw_tonality = step.raw_tonality_used_in_step or step.tonality_used_in_step
-            is_primary = (
-                raw_tonality is not None
-                and raw_tonality == raw_tonality_name
-            )
+            is_primary = raw_tonality is not None and raw_tonality == raw_tonality_name
             is_pivot = _is_pivot_modulation(step)
 
             main_node = NodeInfo(f"{chord}_main_{i}", chord_display, function, shape, step)
