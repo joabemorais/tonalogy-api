@@ -97,13 +97,31 @@ class TonalAnalysisService:
             explanation_steps_api: List[ExplanationStepAPI] = []
             for step in explanation.steps:
                 evaluated_state_str = None
+                raw_tonal_function = None
                 if step.evaluated_functional_state:
                     state = step.evaluated_functional_state
+                    raw_tonal_function = state.associated_tonal_function.name
                     # Translate the function name
                     translated_function = translate_function(
-                        state.associated_tonal_function.name, locale_manager.current_locale
+                        raw_tonal_function, locale_manager.current_locale
                     )
                     evaluated_state_str = f"{translated_function} ({state.state_id})"
+
+                # Determine rule type and extract pivot target
+                rule_type = None
+                pivot_target_tonality = None
+                if step.formal_rule_applied and ("Pivot" in step.formal_rule_applied or "Pivô" in step.formal_rule_applied):
+                    rule_type = "pivot_modulation"
+                    # Extract target tonality from observation using both patterns
+                    import re
+                    if step.observation:
+                        # English pattern
+                        match = re.search(r"becomes the new TONIC in '([^']+)'", step.observation)
+                        if not match:
+                            # Portuguese pattern  
+                            match = re.search(r"torna-se a nova TÔNICA em '([^']+)'", step.observation)
+                        if match:
+                            pivot_target_tonality = match.group(1)
 
                 api_step = ExplanationStepAPI(
                     formal_rule_applied=step.formal_rule_applied,
@@ -117,6 +135,15 @@ class TonalAnalysisService:
                         else None
                     ),
                     evaluated_functional_state=evaluated_state_str,
+                    # Structured metadata fields
+                    rule_type=rule_type,
+                    tonal_function=raw_tonal_function,
+                    pivot_target_tonality=pivot_target_tonality,
+                    raw_tonality_used_in_step=(
+                        step.tonality_used_in_step.tonality_name
+                        if step.tonality_used_in_step
+                        else None
+                    ),
                 )
                 explanation_steps_api.append(api_step)
 
