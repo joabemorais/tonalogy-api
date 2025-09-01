@@ -12,15 +12,16 @@ try:
 except ImportError:
     # Fallback for when FastAPI is not available
     FASTAPI_AVAILABLE = False
-    
+
     class Request:  # type: ignore
         pass
-    
+
     class Response:  # type: ignore
         pass
-    
+
     class BaseHTTPMiddleware:  # type: ignore
         pass
+
 
 from .locale_manager import locale_manager
 

@@ -4,12 +4,8 @@ from unittest.mock import MagicMock, patch
 import pandas as pd
 import pytest
 
-from visualizer.theming import (
-    DEFAULT_LIGHT_THEME as DEFAULT_THEME,
-    RELATIVE_MAJOR_MAP,
-    _load_themes_from_csv,
-    get_theme_for_tonality,
-)
+from visualizer.theming import DEFAULT_LIGHT_THEME as DEFAULT_THEME
+from visualizer.theming import RELATIVE_MAJOR_MAP, _load_themes_from_csv, get_theme_for_tonality
 
 
 class TestTheming:

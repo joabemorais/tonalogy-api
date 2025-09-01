@@ -297,7 +297,10 @@ class VisualizerService:
                             ):
                                 target_tonality_for_cadence = prev_step.tonality_used_in_step
 
-                        if target_tonality_for_cadence and target_tonality_for_cadence in secondary_themes:
+                        if (
+                            target_tonality_for_cadence
+                            and target_tonality_for_cadence in secondary_themes
+                        ):
                             secondary_theme = secondary_themes[target_tonality_for_cadence]
                             graph.connect_with_double_arrow(
                                 prev_possible.node_id,
@@ -350,7 +353,10 @@ class VisualizerService:
                             ):
                                 target_tonality_for_plagal = prev_step.tonality_used_in_step
 
-                        if target_tonality_for_plagal and target_tonality_for_plagal in secondary_themes:
+                        if (
+                            target_tonality_for_plagal
+                            and target_tonality_for_plagal in secondary_themes
+                        ):
                             secondary_theme = secondary_themes[target_tonality_for_plagal]
                             graph.connect_with_single_arrow(
                                 prev_possible.node_id,
