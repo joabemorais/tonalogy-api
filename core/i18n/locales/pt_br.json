@@ -86,9 +86,10 @@
       "testing_progression": "Testando progressão com tonalidade primária: '{tonality_name}'.",
       "progression_identified": "Progressão identificada como tonal, ancorada em '{tonality_name}'.",
       "no_valid_path": "Nenhum caminho analítico válido encontrado para a progressão.",
-      "chord_fulfills_function": "O acorde '{chord_name}' cumpre a função '{function_name}' em '{tonality_name}'.",
-      "end_of_sequence_observation": "Final da sequência. Todos os acordes foram processados com sucesso.",
-      "reanchor_attempt_observation": "Extensão do caminho falhou. Tentando re-avaliar a sequência restante '{remaining_chords}' a partir de um novo contexto."
+      "chord_fulfills_function": "Acorde '{chord_name}' cumpre função '{function_name}' em '{tonality_name}'.",
+      "pivot_chord_observation": "Acorde '{chord_name}' atua como pivô. Ele tem função '{functions_str}' em '{current_tonality}' e se torna a nova TÔNICA em '{target_tonality}'. (Reforçado pelo próximo acorde: {reinforcement_status})",
+      "end_of_sequence_observation": "Fim da sequência. Todos os acordes foram processados com sucesso.",
+      "reanchor_attempt_observation": "Extensão do caminho falhou. Tentando reavaliar a sequência restante '{remaining_chords}' a partir de um novo contexto."
     },
     "rules": {
       "analysis_start": "Início da Análise",

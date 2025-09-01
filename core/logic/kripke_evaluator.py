@@ -214,16 +214,28 @@ class SatisfactionEvaluator:
             if pivot_valid:
                 explanation_for_pivot = parent_explanation.clone()
                 functions_str = (
-                    ", ".join([f.name for f in p_functions_in_L])
+                    ", ".join(
+                        [
+                            translate_function(f.name, locale_manager.current_locale)
+                            for f in p_functions_in_L
+                        ]
+                    )
                     if p_functions_in_L
                     else "a transitional role"
                 )
                 explanation_for_pivot.add_step(
                     formal_rule_applied=T("analysis.rules.pivot_modulation"),
-                    observation=(
-                        f"Chord '{p_chord.name}' acts as pivot. It has function '{functions_str}' in '{current_tonality.tonality_name}' "
-                        f"and becomes the new TONIC in '{l_prime_tonality.tonality_name}'. "
-                        f"(Reinforced by next chord: {tonicization_reinforced})"
+                    observation=T(
+                        "analysis.messages.pivot_chord_observation",
+                        chord_name=p_chord.name,
+                        functions_str=functions_str,
+                        current_tonality=translate_tonality(
+                            current_tonality.tonality_name, locale_manager.current_locale
+                        ),
+                        target_tonality=translate_tonality(
+                            l_prime_tonality.tonality_name, locale_manager.current_locale
+                        ),
+                        reinforcement_status=tonicization_reinforced,
                     ),
                     evaluated_functional_state=current_state,
                     processed_chord=p_chord,

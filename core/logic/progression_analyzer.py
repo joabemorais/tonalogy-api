@@ -1,7 +1,8 @@
 from typing import List, Tuple
 
 from core.domain.models import Chord, Explanation, KripkeStructureConfig, TonalFunction, Tonality
-from core.i18n import T
+from core.i18n import T, translate_tonality
+from core.i18n.locale_manager import locale_manager
 from core.logic.kripke_evaluator import SatisfactionEvaluator
 
 
@@ -100,7 +101,9 @@ class ProgressionAnalyzer:
                 formal_rule_applied=T("analysis.rules.overall_success"),
                 observation=T(
                     "analysis.messages.progression_identified",
-                    tonality_name=primary_tonality.tonality_name,
+                    tonality_name=translate_tonality(
+                        primary_tonality.tonality_name, locale_manager.current_locale
+                    ),
                 ),
                 tonality_used_in_step=primary_tonality,
             )

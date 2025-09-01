@@ -87,6 +87,7 @@
       "progression_identified": "Progression identified as tonal, anchored in '{tonality_name}'.",
       "no_valid_path": "No valid analytical path found for the progression.",
       "chord_fulfills_function": "Chord '{chord_name}' fulfills function '{function_name}' in '{tonality_name}'.",
+      "pivot_chord_observation": "Chord '{chord_name}' acts as pivot. It has function '{functions_str}' in '{current_tonality}' and becomes the new TONIC in '{target_tonality}'. (Reinforced by next chord: {reinforcement_status})",
       "end_of_sequence_observation": "End of sequence. All chords have been successfully processed.",
       "reanchor_attempt_observation": "Path extension failed. Attempting to re-evaluate remaining sequence '{remaining_chords}' from a new context."
     },
