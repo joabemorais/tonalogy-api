@@ -251,6 +251,7 @@ class SatisfactionEvaluator:
                     evaluated_functional_state=current_state,
                     processed_chord=p_chord,
                     tonality_used_in_step=current_tonality,
+                    pivot_target_tonality=l_prime_tonality,  # Add structured pivot target
                 )
                 # Generate a new potential path for each successor of the new tonic state.
                 for next_state in self.kripke_config.get_successors_of_state(new_tonic_state):
