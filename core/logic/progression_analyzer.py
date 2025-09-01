@@ -28,7 +28,7 @@ class ProgressionAnalyzer:
         Checks if a chord sequence is a valid tonal progression.
         The analysis starts from the most likely tonality and explores
         other possibilities recursively.
-        
+
         Uses backtracking with intelligent pruning strategies to handle
         the NP-complete nature of Kripke structure navigation efficiently.
         """
@@ -51,8 +51,9 @@ class ProgressionAnalyzer:
             # Log warning for complex progression
             failure_explanation.add_step(
                 formal_rule_applied=T("analysis.rules.complexity_warning"),
-                observation=T("analysis.messages.long_progression_warning", 
-                            length=len(input_chord_sequence)),
+                observation=T(
+                    "analysis.messages.long_progression_warning", length=len(input_chord_sequence)
+                ),
             )
 
         # The primary candidate is the first in the ranked list. This is our "home base" and starting point.
@@ -62,7 +63,7 @@ class ProgressionAnalyzer:
         # Create the evaluator ONCE with the fixed primary (original) tonality.
         # The evaluator uses multiple pruning techniques:
         # - Memoization (Dynamic Programming) to avoid recomputing subproblems
-        # - Depth limiting to prevent infinite recursion  
+        # - Depth limiting to prevent infinite recursion
         # - Priority ordering (direct continuation > pivot > re-anchoring)
         evaluator = SatisfactionEvaluator(
             self.kripke_config, self.all_available_tonalities, primary_tonality

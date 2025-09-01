@@ -307,6 +307,7 @@ class DetailedExplanationStep:
     tonality_used_in_step: Optional[Tonality]
     formal_rule_applied: str
     observation: str
+    pivot_target_tonality: Optional[Tonality] = None  # Target tonality for pivot modulations
 
 
 @dataclass
@@ -322,6 +323,7 @@ class Explanation:
         evaluated_functional_state: Optional[KripkeState] = None,
         processed_chord: Optional[Chord] = None,
         tonality_used_in_step: Optional[Tonality] = None,
+        pivot_target_tonality: Optional[Tonality] = None,
     ) -> None:
         """Adds a new detailed step to the explanation."""
         step = DetailedExplanationStep(
@@ -330,6 +332,7 @@ class Explanation:
             tonality_used_in_step,
             formal_rule_applied,
             observation,
+            pivot_target_tonality,
         )
         self.steps.append(step)
 

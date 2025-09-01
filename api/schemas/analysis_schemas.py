@@ -47,6 +47,12 @@ class ExplanationStepAPI(BaseModel):
         None, description=T("schemas.explanation_step.evaluated_functional_state.description")
     )
 
+    # Structured metadata fields for language-agnostic processing
+    rule_type: Optional[str] = None
+    tonal_function: Optional[str] = None
+    pivot_target_tonality: Optional[str] = None
+    raw_tonality_used_in_step: Optional[str] = None
+
     model_config = ConfigDict(from_attributes=True)
 
     @classmethod
@@ -71,6 +77,10 @@ class ExplanationStepAPI(BaseModel):
                 if orm_obj.evaluated_functional_state
                 else None
             ),
+            rule_type=None,
+            tonal_function=None,
+            pivot_target_tonality=None,
+            raw_tonality_used_in_step=None,
         )
 
 
