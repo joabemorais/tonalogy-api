@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from api.schemas.analysis_schemas import ExplanationStepAPI, ProgressionAnalysisResponse
-from api.services.visualizer_service import VisualizerService
+from api.services.visualizer_service import VisualizerService, _extract_pivot_target_tonality
 from visualizer.harmonic_graph import HarmonicGraph
 
 
@@ -29,6 +29,10 @@ class TestVisualizerService:
                 processed_chord="C",
                 tonality_used_in_step="C Major",
                 evaluated_functional_state="TONIC (s_t)",
+                rule_type=None,
+                tonal_function=None,
+                pivot_target_tonality=None,
+                raw_tonality_used_in_step=None,
             ),
             ExplanationStepAPI(
                 formal_rule_applied="P in L",
@@ -36,6 +40,10 @@ class TestVisualizerService:
                 processed_chord="G",
                 tonality_used_in_step="C Major",
                 evaluated_functional_state="DOMINANT (s_d)",
+                rule_type=None,
+                tonal_function=None,
+                pivot_target_tonality=None,
+                raw_tonality_used_in_step=None,
             ),
         ]
         return ProgressionAnalysisResponse(
@@ -108,9 +116,19 @@ class TestVisualizerService:
         self, visualizer_service: VisualizerService
     ) -> None:
         """Test successful extraction of target tonality from pivot observation."""
-        observation = "Chord 'Dm' acts as pivot. It has function 'SUBDOMINANT' in 'C Major' and becomes the new TONIC in 'D minor'. (Reinforced by next chord: True)"
+        step = ExplanationStepAPI(
+            formal_rule_applied="P in L",
+            observation="Chord 'Dm' acts as pivot. It has function 'SUBDOMINANT' in 'C Major' and becomes the new TONIC in 'D minor'. (Reinforced by next chord: True)",
+            processed_chord=None,
+            tonality_used_in_step=None,
+            evaluated_functional_state=None,
+            rule_type=None,
+            tonal_function=None,
+            pivot_target_tonality="D minor",
+            raw_tonality_used_in_step=None,
+        )
 
-        result = visualizer_service._extract_pivot_target_tonality(observation)
+        result = _extract_pivot_target_tonality(step)
 
         assert result == "D minor"
 
@@ -118,9 +136,19 @@ class TestVisualizerService:
         self, visualizer_service: VisualizerService
     ) -> None:
         """Test extraction when observation doesn't contain target tonality pattern."""
-        observation = "Regular chord analysis without pivot information."
+        step = ExplanationStepAPI(
+            formal_rule_applied="P in L",
+            observation="Regular chord analysis without pivot information.",
+            processed_chord=None,
+            tonality_used_in_step=None,
+            evaluated_functional_state=None,
+            rule_type=None,
+            tonal_function=None,
+            pivot_target_tonality=None,
+            raw_tonality_used_in_step=None,
+        )
 
-        result = visualizer_service._extract_pivot_target_tonality(observation)
+        result = _extract_pivot_target_tonality(step)
 
         assert result is None
 
@@ -128,7 +156,19 @@ class TestVisualizerService:
         self, visualizer_service: VisualizerService
     ) -> None:
         """Test extraction with empty observation string."""
-        result = visualizer_service._extract_pivot_target_tonality("")
+        step = ExplanationStepAPI(
+            formal_rule_applied="P in L",
+            observation="",
+            processed_chord=None,
+            tonality_used_in_step=None,
+            evaluated_functional_state=None,
+            rule_type=None,
+            tonal_function=None,
+            pivot_target_tonality=None,
+            raw_tonality_used_in_step=None,
+        )
+
+        result = _extract_pivot_target_tonality(step)
 
         assert result is None
 
