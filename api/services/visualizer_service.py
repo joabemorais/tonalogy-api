@@ -281,7 +281,7 @@ class VisualizerService:
                             target_tonality_for_cadence = curr_step.tonality_used_in_step
 
                         # Fallback to previous possible node
-                        if not secondary_tonality:
+                        if not target_tonality_for_cadence:
                             prev_step = prev_possible.step
                             if (
                                 prev_step.formal_rule_applied
@@ -295,10 +295,10 @@ class VisualizerService:
                                 prev_step.tonality_used_in_step
                                 and prev_step.tonality_used_in_step in secondary_themes
                             ):
-                                secondary_tonality = prev_step.tonality_used_in_step
+                                target_tonality_for_cadence = prev_step.tonality_used_in_step
 
-                        if secondary_tonality and secondary_tonality in secondary_themes:
-                            secondary_theme = secondary_themes[secondary_tonality]
+                        if target_tonality_for_cadence and target_tonality_for_cadence in secondary_themes:
+                            secondary_theme = secondary_themes[target_tonality_for_cadence]
                             graph.connect_with_double_arrow(
                                 prev_possible.node_id,
                                 curr_possible.node_id,
@@ -324,34 +324,34 @@ class VisualizerService:
                             and "Pivot" in curr_step.formal_rule_applied
                             and curr_step.observation
                         ):
-                            target_tonality_for_cadence = self._extract_pivot_target_tonality(
+                            target_tonality_for_plagal = self._extract_pivot_target_tonality(
                                 curr_step.observation
                             )
                         elif (
                             curr_step.tonality_used_in_step
                             and curr_step.tonality_used_in_step in secondary_themes
                         ):
-                            target_tonality_for_cadence = curr_step.tonality_used_in_step
+                            target_tonality_for_plagal = curr_step.tonality_used_in_step
 
                         # Fallback to previous possible node
-                        if not secondary_tonality:
+                        if not target_tonality_for_plagal:
                             prev_step = prev_possible.step
                             if (
                                 prev_step.formal_rule_applied
                                 and "Pivot" in prev_step.formal_rule_applied
                                 and prev_step.observation
                             ):
-                                target_tonality_for_cadence = self._extract_pivot_target_tonality(
+                                target_tonality_for_plagal = self._extract_pivot_target_tonality(
                                     prev_step.observation
                                 )
                             elif (
                                 prev_step.tonality_used_in_step
                                 and prev_step.tonality_used_in_step in secondary_themes
                             ):
-                                secondary_tonality = prev_step.tonality_used_in_step
+                                target_tonality_for_plagal = prev_step.tonality_used_in_step
 
-                        if secondary_tonality and secondary_tonality in secondary_themes:
-                            secondary_theme = secondary_themes[secondary_tonality]
+                        if target_tonality_for_plagal and target_tonality_for_plagal in secondary_themes:
+                            secondary_theme = secondary_themes[target_tonality_for_plagal]
                             graph.connect_with_single_arrow(
                                 prev_possible.node_id,
                                 curr_possible.node_id,
