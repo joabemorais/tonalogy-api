@@ -221,7 +221,7 @@ class TestVisualizerService:
 
         # Verify
         assert result == "/fake/path/image.png"
-        mock_get_theme.assert_called_with("C Major")
+        mock_get_theme.assert_called_with("C Major", "light")
         mock_harmonic_graph_class.assert_called_once()
         mock_graph_instance.add_primary_chord.assert_called()
         mock_graph_instance.render.assert_called_once()
@@ -250,7 +250,7 @@ class TestVisualizerService:
             "annotation_gray": "#555555",
         }
 
-        def theme_side_effect(tonality: str) -> Dict[str, Any]:
+        def theme_side_effect(tonality: str, theme_mode: str = "light") -> Dict[str, Any]:
             if tonality == "C Major":
                 return primary_theme
             elif tonality == "D minor":
@@ -269,8 +269,8 @@ class TestVisualizerService:
         assert result == "/fake/path/image.png"
         # Check that secondary tonality was detected and used
         assert mock_get_theme.call_count >= 2  # Called for both primary and secondary
-        mock_get_theme.assert_any_call("C Major")
-        mock_get_theme.assert_any_call("D minor")
+        mock_get_theme.assert_any_call("C Major", "light")
+        mock_get_theme.assert_any_call("D minor", "light")
 
         # Verify that secondary chord with theme was called
         assert mock_graph_instance.add_secondary_chord_with_theme.call_count > 0
@@ -299,7 +299,7 @@ class TestVisualizerService:
             "annotation_gray": "#555555",
         }
 
-        def theme_side_effect(tonality: str) -> Dict[str, Any]:
+        def theme_side_effect(tonality: str, theme_mode: str = "light") -> Dict[str, Any]:
             if tonality == "D Major":
                 return primary_theme
             elif tonality == "E minor":
@@ -317,8 +317,8 @@ class TestVisualizerService:
         # Verify
         assert result == "/fake/path/image.png"
         # Check that secondary theme was used for E minor tonality
-        mock_get_theme.assert_any_call("D Major")
-        mock_get_theme.assert_any_call("E minor")
+        mock_get_theme.assert_any_call("D Major", "light")
+        mock_get_theme.assert_any_call("E minor", "light")
 
         # Verify that secondary chord with specific theme was called
         assert mock_graph_instance.add_secondary_chord_with_theme.call_count > 0

@@ -93,7 +93,7 @@ class TestVisualizerIntegration:
         service = VisualizerService()
 
         # Mock the theme function
-        def theme_side_effect(tonality: str) -> Dict[str, Any]:
+        def theme_side_effect(tonality: str, theme_mode: str = "light") -> Dict[str, Any]:
             return mock_theme_data.get(tonality, {})
 
         with patch(
@@ -153,7 +153,7 @@ class TestVisualizerIntegration:
         extended_mock_data = {**mock_theme_data}
         extended_mock_data["D minor"] = mock_theme_data["F Major"]  # D minor uses F Major theme
 
-        def theme_side_effect(tonality: str) -> Dict[str, Any]:
+        def theme_side_effect(tonality: str, theme_mode: str = "light") -> Dict[str, Any]:
             return extended_mock_data.get(tonality, {})
 
         with patch(
@@ -220,7 +220,7 @@ class TestVisualizerIntegration:
 
         service = VisualizerService()
 
-        def theme_side_effect(tonality: str) -> Dict[str, Any]:
+        def theme_side_effect(tonality: str, theme_mode: str = "light") -> Dict[str, Any]:
             return mock_theme_data.get(tonality, {})
 
         with patch(
@@ -272,7 +272,7 @@ class TestVisualizerIntegration:
         extended_mock_data = {**mock_theme_data}
         extended_mock_data["A minor"] = mock_theme_data["C Major"]
 
-        def theme_side_effect(tonality: str) -> Dict[str, Any]:
+        def theme_side_effect(tonality: str, theme_mode: str = "light") -> Dict[str, Any]:
             return extended_mock_data.get(tonality, {})
 
         with patch(

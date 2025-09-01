@@ -44,6 +44,7 @@ def test_analyze_progression_success_with_all_tonalities(mock_knowledge_base: Ma
         tonality_used_in_step=mock_knowledge_base.all_tonalities[0],  # C Major
         evaluated_functional_state=None,
         processed_chord=None,
+        pivot_target_tonality=None,
     )
     success_explanation.steps.append(final_step)
     mock_analyzer_instance.check_tonal_progression.return_value = (True, success_explanation)
