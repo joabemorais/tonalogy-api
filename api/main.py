@@ -3,6 +3,7 @@ from typing import Dict
 
 import uvicorn
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 
 from api.endpoints import analysis, visualizer
 from api.services.analysis_service import TonalAnalysisService
@@ -20,6 +21,19 @@ app = FastAPI(
     title=T("api.title"),
     description=T("api.description"),
     version="2.0.0",
+)
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://tonalogy-interface.onrender.com",  # Production frontend
+        "http://localhost:3000",  # Local development
+        "http://127.0.0.1:3000",  # Alternative local address
+    ],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
 )
 
 # Add i18n middleware (temporarily disabled for testing)
@@ -61,6 +75,13 @@ app.include_router(visualizer.router)
 @app.get("/", tags=["Root"])
 async def read_root() -> Dict[str, str]:
     return {"message": T("api.welcome_message")}
+
+
+# --- Health Check Route ---
+@app.get("/health", tags=["Health"])
+async def health_check() -> Dict[str, str]:
+    """Health check endpoint for deployment verification."""
+    return {"status": "healthy", "message": "API is running"}
 
 
 def main() -> None:
