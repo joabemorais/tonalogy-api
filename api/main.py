@@ -27,7 +27,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://tonalogy-interface.onrender.com",  # Production frontend
+        "https://tonalogy.onrender.com",
         "http://localhost:3000",  # Local development
         "http://127.0.0.1:3000",  # Alternative local address
     ],
