@@ -261,6 +261,19 @@ class SatisfactionEvaluator:
                     if p_functions_in_L
                     else "a transitional role"
                 )
+                
+                # Find the correct state for the pivot chord's function in the current tonality
+                pivot_state = None
+                if p_functions_in_L:
+                    # Use the first (primary) function of the pivot chord in the current tonality
+                    primary_function = p_functions_in_L[0]
+                    # Find the state that corresponds to this function
+                    pivot_state = self.kripke_config.get_state_by_tonal_function(primary_function)
+                
+                # Fallback to current_state if no specific function state found
+                if pivot_state is None:
+                    pivot_state = current_state
+                
                 explanation_for_pivot.add_step(
                     formal_rule_applied=T("analysis.rules.pivot_modulation"),
                     observation=T(
@@ -275,7 +288,7 @@ class SatisfactionEvaluator:
                         ),
                         reinforcement_status=tonicization_reinforced,
                     ),
-                    evaluated_functional_state=current_state,
+                    evaluated_functional_state=pivot_state,
                     processed_chord=p_chord,
                     tonality_used_in_step=current_tonality,
                     pivot_target_tonality=l_prime_tonality,  # Add structured pivot target
