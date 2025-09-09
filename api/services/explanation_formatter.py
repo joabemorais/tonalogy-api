@@ -114,32 +114,41 @@ class ExplanationFormatter:
 
     def _describe_functional_progression(self, steps: List[ExplanationStepAPI]) -> str:
         """Describe the functional harmonic progression in narrative form."""
-        if not steps:
+        if not steps or not self._chord_sequence_cache:
             return ""
         
-        # Group consecutive chords by tonality
-        tonality_groups = self._group_by_tonality(steps)
+        # Create a mapping of chord -> function from the analysis steps
+        chord_to_function = {}
+        current_tonality = None
         
-        descriptions = []
-        for tonality, chord_functions in tonality_groups:
-            if len(chord_functions) == 1:
-                chord, function = chord_functions[0]
-                descriptions.append(T(
-                    "explanation.formatter.single_function",
-                    chord=chord,
-                    function=function.lower(),
-                    tonality=tonality
-                ))
-            else:
-                # Describe the functional sequence
-                function_sequence = self._describe_function_sequence(chord_functions, tonality)
-                descriptions.append(function_sequence)
+        for step in steps:
+            if step.processed_chord and step.evaluated_functional_state:
+                function = step.evaluated_functional_state.split(" ")[0]  # Extract function name
+                chord_to_function[step.processed_chord] = function
+                if step.tonality_used_in_step:
+                    current_tonality = step.tonality_used_in_step
         
-        # Add transitional phrases between different tonalities
-        if len(descriptions) > 1:
-            return self._connect_descriptions_with_transitions(descriptions)
+        # Build the functional sequence using the original chord order
+        chord_functions = []
+        for chord in self._chord_sequence_cache:
+            if chord in chord_to_function:
+                chord_functions.append((chord, chord_to_function[chord]))
         
-        return " ".join(descriptions)
+        if not chord_functions:
+            return ""
+        
+        # Describe the sequence maintaining original order
+        if len(chord_functions) == 1:
+            chord, function = chord_functions[0]
+            return T(
+                "explanation.formatter.single_function",
+                chord=chord,
+                function=function.lower(),
+                tonality=current_tonality or "unknown"
+            )
+        else:
+            # Describe the functional sequence
+            return self._describe_function_sequence(chord_functions, current_tonality or "unknown")
 
     def _connect_descriptions_with_transitions(self, descriptions: List[str]) -> str:
         """Connect multiple tonality descriptions with smooth transitions."""
@@ -207,70 +216,101 @@ class ExplanationFormatter:
         
         # Build the sequence using original order
         ordered_sequence = []
-        ordered_functions = []
         
         for chord in self._chord_sequence_cache:
             if chord in chord_to_function:
                 func = chord_to_function[chord]
                 ordered_sequence.append((chord, func))
-                ordered_functions.append(func)
         
-        # Check for cadences at the end using the correct order
-        cadence_description = self._identify_cadences(ordered_functions)
-        
-        if cadence_description:
-            chord_sequence = " → ".join([f"{c} ({f.lower()})" for c, f in ordered_sequence])
+        # Use the new pattern identification system
+        return self._identify_progression_patterns(ordered_sequence, tonality)
+
+    def _identify_progression_patterns(self, chord_functions: List[Tuple[str, str]], tonality: str) -> str:
+        """Identify and describe common harmonic patterns including all types of cadences."""
+        if len(chord_functions) < 2:
+            chord_sequence = " → ".join([f"{c} ({f.lower()})" for c, f in chord_functions])
             return T(
-                "explanation.formatter.progression_with_cadence",
+                "explanation.formatter.functional_progression",
+                tonality=tonality,
+                chord_sequence=chord_sequence
+            )
+        
+        # Identify all cadences in the progression
+        cadences_description = self._identify_all_cadences(chord_functions)
+        chord_sequence = " → ".join([f"{c} ({f.lower()})" for c, f in chord_functions])
+        
+        if cadences_description:
+            return T(
+                "explanation.formatter.progression_with_cadences",
                 tonality=tonality,
                 chord_sequence=chord_sequence,
-                cadence_description=cadence_description
+                cadences_description=cadences_description
             )
         else:
-            chord_sequence = " → ".join([f"{c} ({f.lower()})" for c, f in ordered_sequence])
+            # Generic functional progression without specific cadences
             return T(
                 "explanation.formatter.functional_progression",
                 tonality=tonality,
                 chord_sequence=chord_sequence
             )
 
-    def _identify_progression_patterns(self, chord_functions: List[Tuple[str, str]], tonality: str) -> str:
-        """Identify and describe common harmonic patterns."""
-        functions = [func for _, func in chord_functions]
-        
-        # Check for cadences at the end of the progression only
-        cadence_description = self._identify_cadences(functions)
-        
-        if cadence_description:
-            # Build description with cadence information
-            chord_sequence = " → ".join([f"{c} ({f.lower()})" for c, f in chord_functions])
-            return T(
-                "explanation.formatter.progression_with_cadence",
-                tonality=tonality,
-                chord_sequence=chord_sequence,
-                cadence_description=cadence_description
-            )
-        else:
-            # Generic functional progression without specific cadence
-            return T(
-                "explanation.formatter.functional_progression",
-                tonality=tonality,
-                chord_sequence=" → ".join([f"{c} ({f.lower()})" for c, f in chord_functions])
-            )
-
-    def _identify_cadences(self, functions: List[str]) -> str:
-        """Identify cadences at the end of the progression."""
-        if len(functions) < 2:
+    def _identify_all_cadences(self, chord_functions: List[Tuple[str, str]]) -> str:
+        """Identify all types of cadences throughout the progression."""
+        if len(chord_functions) < 2:
             return ""
         
-        # Check the last two functions for cadential motion
-        penultimate = functions[-2]
-        ultimate = functions[-1]
+        functions = [func for _, func in chord_functions]
+        chords = [chord for chord, _ in chord_functions]
+        cadences = []
         
-        if penultimate == "DOMINANT" and ultimate == "TONIC":
-            return T("explanation.formatter.authentic_cadence")
-        elif penultimate == "SUBDOMINANT" and ultimate == "TONIC":
-            return T("explanation.formatter.plagal_cadence")
+        # Check each pair of consecutive chords for cadential motion
+        for i in range(len(functions) - 1):
+            first_func = functions[i]
+            second_func = functions[i + 1]
+            first_chord = chords[i]
+            second_chord = chords[i + 1]
+            
+            # Perfect cadence: Dominant → Tonic
+            if first_func == "DOMINANT" and second_func == "TONIC":
+                cadences.append(T(
+                    "explanation.formatter.perfect_cadence_location",
+                    first_chord=first_chord,
+                    second_chord=second_chord
+                ))
+            
+            # Plagal cadence: Subdominant → Tonic
+            elif first_func == "SUBDOMINANT" and second_func == "TONIC":
+                cadences.append(T(
+                    "explanation.formatter.plagal_cadence_location",
+                    first_chord=first_chord,
+                    second_chord=second_chord
+                ))
+            
+            # Half cadence: Subdominant → Dominant (or any chord → Dominant at phrase end)
+            elif second_func == "DOMINANT" and i == len(functions) - 2:
+                # Half cadence at the end of progression
+                cadences.append(T(
+                    "explanation.formatter.half_cadence_location",
+                    first_chord=first_chord,
+                    second_chord=second_chord
+                ))
+            elif first_func == "SUBDOMINANT" and second_func == "DOMINANT":
+                # Half cadence in middle of progression
+                cadences.append(T(
+                    "explanation.formatter.half_cadence_location",
+                    first_chord=first_chord,
+                    second_chord=second_chord
+                ))
+        
+        if cadences:
+            # Connect multiple cadences with proper grammar
+            if len(cadences) == 1:
+                return cadences[0]
+            elif len(cadences) == 2:
+                return T("explanation.formatter.two_cadences", first=cadences[0], second=cadences[1])
+            else:
+                # Multiple cadences: use commas and "and" for the last one
+                return T("explanation.formatter.multiple_cadences", cadences_list=", ".join(cadences[:-1]), last_cadence=cadences[-1])
         
         return ""
 
