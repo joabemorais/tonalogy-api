@@ -30,6 +30,19 @@ def _is_pivot_modulation(step: ExplanationStepAPI) -> bool:
     return step.rule_type == "pivot_modulation"
 
 
+def _get_secondary_style_variant(target_tonality: str) -> str:
+    """Determine the style variant for secondary chords based on tonality quality.
+    
+    Args:
+        target_tonality: The name of the target tonality (e.g., "G Major", "D minor")
+        
+    Returns:
+        "dashed_filled" for minor tonalities, "solid_filled" for major tonalities
+    """
+    is_minor_secondary = "minor" in target_tonality.lower()
+    return "dashed_filled" if is_minor_secondary else "solid_filled"
+
+
 def _extract_pivot_target_tonality(step: ExplanationStepAPI) -> Optional[str]:
     """Extract the target tonality from pivot modulation using structured data."""
     return step.pivot_target_tonality
@@ -145,7 +158,7 @@ class VisualizerService:
                         main_node.chord,
                         secondary_theme,
                         shape=main_node.shape,
-                        style_variant="dashed_filled",
+                        style_variant=_get_secondary_style_variant(target_tonality),
                     )
                 else:
                     # Fallback to original placeholder chord method
@@ -153,7 +166,7 @@ class VisualizerService:
                         main_node.node_id,
                         main_node.chord,
                         shape=main_node.shape,
-                        style_variant="dashed_filled",
+                        style_variant=_get_secondary_style_variant(target_tonality),
                     )
 
             if not is_primary or is_pivot:
@@ -184,7 +197,7 @@ class VisualizerService:
                         possible_node.chord,
                         secondary_theme,
                         shape=possible_node.shape,
-                        style_variant="dashed_filled",
+                        style_variant=_get_secondary_style_variant(target_tonality),
                     )
                 else:
                     # Fallback to original secondary chord method
@@ -192,7 +205,7 @@ class VisualizerService:
                         possible_node.node_id,
                         possible_node.chord,
                         shape=possible_node.shape,
-                        style_variant="dashed_filled",
+                        style_variant=_get_secondary_style_variant(target_tonality),
                     )
 
         # 2. SECOND PASS: Connect and align the nodes
@@ -486,7 +499,7 @@ class VisualizerService:
                         main_node.chord,
                         secondary_theme,
                         shape=main_node.shape,
-                        style_variant="dashed_filled",
+                        style_variant=_get_secondary_style_variant(target_tonality),
                     )
                 else:
                     # Fallback to original placeholder chord method
@@ -494,7 +507,7 @@ class VisualizerService:
                         main_node.node_id,
                         main_node.chord,
                         shape=main_node.shape,
-                        style_variant="dashed_filled",
+                        style_variant=_get_secondary_style_variant(target_tonality),
                     )
 
             if not is_primary or is_pivot:
@@ -525,7 +538,7 @@ class VisualizerService:
                         possible_node.chord,
                         secondary_theme,
                         shape=possible_node.shape,
-                        style_variant="dashed_filled",
+                        style_variant=_get_secondary_style_variant(target_tonality),
                     )
                 else:
                     # Fallback to original secondary chord method
@@ -533,7 +546,7 @@ class VisualizerService:
                         possible_node.node_id,
                         possible_node.chord,
                         shape=possible_node.shape,
-                        style_variant="dashed_filled",
+                        style_variant=_get_secondary_style_variant(target_tonality),
                     )
 
         # Build the invisible chain for horizontal layout
