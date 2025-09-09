@@ -9,6 +9,10 @@
       "summary": "Analisa uma Progressão Harmônica Tonal",
       "description": "Recebe uma lista de acordes e opcionalmente uma lista de tonalidades para testar.\n\n- **chords**: Uma lista de strings, onde cada string é um acorde (por exemplo, \"C\", \"G7\", \"Am\").\n- **tonalities_to_test**: (Opcional) Uma lista de nomes de tonalidades (por exemplo, \"C Major\") para limitar a análise.\n\nRetorna uma análise detalhada indicando se a progressão é tonal, em qual tonalidade foi identificada, e os passos formais da análise."
     },
+    "explain": {
+      "summary": "Obter Explicação Legível da Análise Harmônica",
+      "description": "🆕 NOVA FUNCIONALIDADE: Analisa progressões de acordes e retorna apenas uma explicação em linguagem natural, perfeita para uso educacional e audiências não-técnicas."
+    },
     "visualize": {
       "summary": "Analisa e Visualiza uma Progressão Harmônica Tonal",
       "description": "Recebe uma lista de acordes, analisa a progressão e retorna um diagrama visual da análise.",
@@ -56,6 +60,9 @@
       },
       "explanation_details": {
         "description": "Uma lista detalhada dos passos da análise."
+      },
+      "human_readable_explanation": {
+        "description": "Uma explicação narrativa em linguagem simples que torna a análise harmônica acessível a todos."
       },
       "error": {
         "description": "Uma mensagem de erro, se houver."
@@ -137,6 +144,24 @@
       "TONIC": "TÔNICA",
       "DOMINANT": "DOMINANTE", 
       "SUBDOMINANT": "SUBDOMINANTE"
+    }
+  },
+  "explanation": {
+    "formatter": {
+      "no_steps_available": "Não há passos de análise disponíveis para esta progressão.",
+      "intro_tonal": "Estamos analisando a progressão de acordes {chord_sequence}. Esta progressão parece ser tonal e está ancorada na tonalidade de {tonality}.",
+      "intro_non_tonal": "Estamos analisando a progressão de acordes {chord_sequence}. Esta progressão não parece seguir padrões tonais tradicionais.",
+      "single_function": "O acorde {chord} serve como {function} em {tonality}.",
+      "simple_progression": "Em {tonality}, temos a progressão: {chord_sequence}.",
+      "functional_progression": "A progressão se move através de {tonality} com a seguinte sequência funcional: {chord_sequence}.",
+      "authentic_cadence_pattern": "Em {tonality}, esta progressão apresenta um padrão de cadência autêntica (resolução dominante para tônica): {chord_sequence}.",
+      "plagal_cadence_pattern": "Em {tonality}, esta progressão apresenta um padrão de cadência plagal (resolução subdominante para tônica): {chord_sequence}.",
+      "pivot_modulation": "O acorde {pivot_chord} atua como pivô, fazendo a transição de {current_tonality} para {target_tonality}.",
+      "conclusion_tonal": "No geral, esta progressão estabelece um centro tonal claro em {tonality}, seguindo convenções harmônicas tradicionais.",
+      "conclusion_non_tonal": "Esta progressão não estabelece um centro tonal claro e pode ser modal, atonal, ou seguir padrões harmônicos não-tradicionais.",
+      "transition_then": "Em seguida,",
+      "transition_afterwards": "Depois disso,",
+      "transition_subsequently": "Posteriormente,"
     }
   }
 }

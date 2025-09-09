@@ -9,6 +9,10 @@
       "summary": "Analyzes a Tonal Harmonic Progression",
       "description": "Receives a list of chords and optionally a list of tonalities to test.\n\n- **chords**: A list of strings, where each string is a chord (e.g., \"C\", \"G7\", \"Am\").\n- **tonalities_to_test**: (Optional) A list of tonality names (e.g., \"C Major\") to limit the analysis.\n\nReturns a detailed analysis indicating whether the progression is tonal, in which tonality it was identified, and the formal steps of the analysis."
     },
+    "explain": {
+      "summary": "Get Human-Readable Harmonic Analysis Explanation",
+      "description": "🆕 NEW FEATURE: Analyzes chord progressions and returns only a natural language explanation, perfect for educational use and non-technical audiences."
+    },
     "visualize": {
       "summary": "Analyzes and Visualizes a Tonal Harmonic Progression",
       "description": "Receives a list of chords, analyzes the progression and returns a visual diagram of the analysis.",
@@ -56,6 +60,9 @@
       },
       "explanation_details": {
         "description": "A detailed list of analysis steps."
+      },
+      "human_readable_explanation": {
+        "description": "A narrative explanation in plain language that makes harmonic analysis accessible to everyone."
       },
       "error": {
         "description": "An error message, if any."
@@ -137,6 +144,24 @@
       "TONIC": "TONIC",
       "DOMINANT": "DOMINANT", 
       "SUBDOMINANT": "SUBDOMINANT"
+    }
+  },
+  "explanation": {
+    "formatter": {
+      "no_steps_available": "No analysis steps are available for this progression.",
+      "intro_tonal": "We're analyzing the chord progression {chord_sequence}. This progression appears to be tonal and is anchored in the key of {tonality}.",
+      "intro_non_tonal": "We're analyzing the chord progression {chord_sequence}. This progression does not appear to follow traditional tonal patterns.",
+      "single_function": "The chord {chord} serves as the {function} in {tonality}.",
+      "simple_progression": "In {tonality}, we have the progression: {chord_sequence}.",
+      "functional_progression": "The progression moves through {tonality} with the following functional sequence: {chord_sequence}.",
+      "authentic_cadence_pattern": "In {tonality}, this progression features an authentic cadence pattern (dominant to tonic resolution): {chord_sequence}.",
+      "plagal_cadence_pattern": "In {tonality}, this progression features a plagal cadence pattern (subdominant to tonic resolution): {chord_sequence}.",
+      "pivot_modulation": "The chord {pivot_chord} acts as a pivot, transitioning from {current_tonality} to {target_tonality}.",
+      "conclusion_tonal": "Overall, this progression establishes a clear tonal center in {tonality}, following traditional harmonic conventions.",
+      "conclusion_non_tonal": "This progression does not establish a clear tonal center and may be modal, atonal, or follow non-traditional harmonic patterns.",
+      "transition_then": "Then,",
+      "transition_afterwards": "Afterwards,",
+      "transition_subsequently": "Subsequently,"
     }
   }
 }
