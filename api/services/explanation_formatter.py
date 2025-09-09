@@ -5,7 +5,7 @@ This service transforms the formal analytical steps into more accessible languag
 
 from typing import List, Optional, Dict, Tuple
 from api.schemas.analysis_schemas import ExplanationStepAPI, ProgressionAnalysisResponse
-from core.i18n import T
+from core.i18n import T, translate_tonality
 from core.i18n.locale_manager import locale_manager
 
 
@@ -178,82 +178,30 @@ class ExplanationFormatter:
                     next_chord = self._chord_sequence_cache[i + 1]
                     if next_chord in chord_info:
                         next_function, next_tonality = chord_info[next_chord]
-                        # Check if the next chord can be the target of this tonicization
-                        if (next_tonality == tonality and next_function in ["TONIC", "SUBDOMINANT"]) or \
-                           (next_tonality == main_tonality and next_function == "SUBDOMINANT"):
-                            target_chord = next_chord
-                
-                if target_chord:
-                    tonicizations.append(T(
-                        "explanation.formatter.secondary_dominant",
-                        dominant_chord=chord,
-                        target_chord=target_chord,
-                        target_tonality=target_tonality,
-                        main_tonality=main_tonality
-                    ))
-            
-            # Additional check: Look for V/V patterns (dominant of dominant)
-            elif function == "DOMINANT" and tonality != main_tonality:
-                # Check if the next chord is the dominant of the main tonality
-                if i + 1 < len(self._chord_sequence_cache):
-                    next_chord = self._chord_sequence_cache[i + 1]
-                    if next_chord in chord_info:
-                        next_function, next_tonality = chord_info[next_chord]
+                        
+                        # Check for V/V pattern specifically (dominant of dominant)
                         if next_function == "DOMINANT" and next_tonality == main_tonality:
-                            # This is likely a V/V pattern
                             tonicizations.append(T(
                                 "explanation.formatter.dominant_of_dominant",
                                 secondary_dominant=chord,
                                 primary_dominant=next_chord,
                                 main_tonality=main_tonality
                             ))
-        
-        # Additional heuristic check for common V/V patterns based on chord relationships
-        tonicizations.extend(self._detect_common_secondary_patterns())
+                        # Check if the next chord can be the target of this tonicization
+                        elif (next_tonality == tonality and next_function in ["TONIC", "SUBDOMINANT"]) or \
+                           (next_tonality == main_tonality and next_function == "SUBDOMINANT"):
+                            target_chord = next_chord
+                            tonicizations.append(T(
+                                "explanation.formatter.secondary_dominant",
+                                dominant_chord=chord,
+                                target_chord=target_chord,
+                                target_tonality=target_tonality,
+                                main_tonality=main_tonality
+                            ))
         
         if tonicizations:
             return " ".join(tonicizations)
         return ""
-
-    def _detect_common_secondary_patterns(self) -> List[str]:
-        """Detect common secondary dominant patterns based on chord relationships."""
-        patterns = []
-        main_tonality = self._main_tonality_cache
-        
-        if not main_tonality or len(self._chord_sequence_cache) < 2:
-            return patterns
-        
-        # Check for V/V in C Major: D → G (in context of C Major)
-        if main_tonality == "C Major":
-            for i in range(len(self._chord_sequence_cache) - 1):
-                current = self._chord_sequence_cache[i]
-                next_chord = self._chord_sequence_cache[i + 1]
-                
-                # D → G pattern (V/V → V in C Major)
-                if current == "D" and next_chord == "G":
-                    patterns.append(T(
-                        "explanation.formatter.dominant_of_dominant_pattern",
-                        secondary_dominant="D",
-                        primary_dominant="G",
-                        main_tonality=main_tonality
-                    ))
-        
-        # Add more patterns for other keys as needed
-        elif main_tonality == "G Major":
-            for i in range(len(self._chord_sequence_cache) - 1):
-                current = self._chord_sequence_cache[i]
-                next_chord = self._chord_sequence_cache[i + 1]
-                
-                # A → D pattern (V/V → V in G Major)
-                if current == "A" and next_chord == "D":
-                    patterns.append(T(
-                        "explanation.formatter.dominant_of_dominant_pattern",
-                        secondary_dominant="A",
-                        primary_dominant="D",
-                        main_tonality=main_tonality
-                    ))
-        
-        return patterns
 
     def _build_functional_description(self, chord_functions: List[Tuple[str, str, str]], main_tonality: str) -> str:
         """Build the main functional description, grouping by primary tonality."""
@@ -445,11 +393,15 @@ class ExplanationFormatter:
         descriptions = []
         for step in pivot_steps:
             if step.pivot_target_tonality and step.processed_chord:
+                # Translate the target tonality to the current locale
+                translated_target = translate_tonality(step.pivot_target_tonality, locale_manager.current_locale)
+                translated_current = translate_tonality(step.tonality_used_in_step, locale_manager.current_locale) if step.tonality_used_in_step else "unknown"
+                
                 descriptions.append(T(
                     "explanation.formatter.pivot_modulation",
                     pivot_chord=step.processed_chord,
-                    current_tonality=step.tonality_used_in_step or "unknown",
-                    target_tonality=step.pivot_target_tonality
+                    current_tonality=translated_current,
+                    target_tonality=translated_target
                 ))
         
         return " ".join(descriptions)
