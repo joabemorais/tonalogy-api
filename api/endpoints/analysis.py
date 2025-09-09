@@ -42,8 +42,8 @@ router = APIRouter()
     "/analyze",
     response_model=ProgressionAnalysisResponse,
     summary=T("endpoints.analyze.summary"),
-    description="Performs comprehensive harmonic analysis of a chord progression using Kripke semantics and modal logic. Returns both technical analysis steps and a human-readable explanation.",
-    response_description="Detailed analysis results including technical steps and narrative explanation",
+    description="🎵 **Comprehensive Harmonic Analysis** - Analyzes chord progressions using Kripke semantics and modal logic. Now includes human-readable explanations perfect for education and non-technical users!",
+    response_description="Complete analysis with technical steps AND natural language explanation",
     tags=["Analysis"],
 )
 async def analyze_progression(
@@ -56,26 +56,34 @@ async def analyze_progression(
     ),
 ) -> ProgressionAnalysisResponse:
     """
-    Performs comprehensive harmonic analysis of a chord progression.
+    🎼 **Complete Harmonic Analysis with Human-Readable Explanations** 🎼
 
-    **New Feature**: Now includes human-readable explanations that make harmonic 
-    analysis accessible to musicians and students without technical background.
+    **🆕 NEW FEATURE**: Now includes natural language explanations alongside technical analysis!
+
+    **What you get:**
+    - **Technical analysis steps** for formal verification and advanced users
+    - **Human-readable explanation** in plain language for students and general users
+    - **Bilingual support** (English/Portuguese) 
+    - **Pattern recognition** for cadences, modulations, and functional progressions
+
+    **Perfect for:**
+    - Music theory education and teaching
+    - Applications requiring both technical and accessible explanations
+    - Musicians wanting to understand harmonic progressions
+    - Developers building music theory tools
 
     **Input Parameters:**
-    - **chords**: A list of chord symbols (e.g., ["C", "Am", "F", "G"])
+    - **chords**: List of chord symbols (e.g., ["C", "Am", "F", "G"])
     - **tonalities_to_test**: (Optional) Limit analysis to specific keys
     - **lang**: Response language (en for English, pt_br for Portuguese)
 
-    **Returns:**
-    - Technical analysis steps for formal verification
-    - **Human-readable explanation** in natural language
-    - Identified tonality and tonal classification
+    **Try these examples:**
+    - **Pop I-vi-IV-V**: ["C", "Am", "F", "G"]  
+    - **Jazz ii-V-I**: ["Dm7", "G7", "Cmaj7"]
+    - **Classical cadence**: ["C", "F", "G", "C"]
+    - **Modal progression**: ["Em", "Am", "D", "G"]
 
-    **Example Usage:**
-    Try these chord progressions:
-    - Classic I-vi-IV-V: ["C", "Am", "F", "G"]  
-    - ii-V-I Jazz: ["Dm", "G7", "C"]
-    - Plagal cadence: ["C", "F", "C"]
+    **💡 Tip**: Use `/explain` endpoint if you only need the human-readable explanation.
     """
     # Set locale based on query parameter
     from core.i18n.locale_manager import locale_manager
@@ -96,10 +104,10 @@ async def analyze_progression(
 @router.post(
     "/explain",
     response_model=HumanReadableExplanationResponse,
-    summary="Get Human-Readable Harmonic Analysis Explanation",
-    description="🆕 **NEW FEATURE**: Analyzes chord progressions and returns only a natural language explanation, perfect for educational use and non-technical audiences.",
-    response_description="Simple, narrative explanation of the harmonic analysis",
-    tags=["Analysis", "Human-Readable"],
+    summary="Get Human-Readable Explanation Only",
+    description="Returns only the natural language explanation from harmonic analysis (subset of /analyze endpoint).",
+    response_description="Simplified response with just the narrative explanation",
+    tags=["Analysis"],
 )
 async def get_human_readable_explanation(
     request: ProgressionAnalysisRequest,
@@ -111,30 +119,16 @@ async def get_human_readable_explanation(
     ),
 ) -> HumanReadableExplanationResponse:
     """
-    🎵 **Human-Readable Harmonic Analysis** 🎵
+    Returns only the human-readable explanation portion of the harmonic analysis.
     
-    This endpoint transforms complex music theory into accessible explanations!
-    Perfect for:
-    - **Music students** learning harmonic analysis
-    - **Teachers** explaining chord progressions
-    - **Applications** that need natural language descriptions
-    - **Musicians** who want to understand their progressions
-
-    **What you get:**
-    - Clear, narrative explanation in everyday language
-    - Identification of common patterns (cadences, modulations)
-    - Key/tonality information
-    - Bilingual support (English/Portuguese)
-
-    **Try these examples:**
-    - **Pop progression**: ["C", "G", "Am", "F"] 
-    - **Jazz ii-V-I**: ["Dm7", "G7", "Cmaj7"]
-    - **Classical cadence**: ["C", "F", "G", "C"]
-    - **Modal progression**: ["Am", "F", "C", "G"]
-
-    **Languages:**
-    - `lang=en` for English explanations
-    - `lang=pt_br` for Portuguese explanations (explicações em português)
+    This is a simplified endpoint that extracts just the narrative explanation 
+    from the full analysis performed by the /analyze endpoint.
+    
+    **Parameters:**
+    - **chords**: List of chord symbols to analyze
+    - **lang**: Language for explanation (en, pt_br)
+    
+    **For full analysis with technical details, use the /analyze endpoint.**
     """
     # Set locale based on query parameter
     from core.i18n.locale_manager import locale_manager

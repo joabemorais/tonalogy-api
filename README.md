@@ -157,6 +157,8 @@ You can interact with the API using any HTTP client. Here are some examples with
 
 Send a list of chords to the `/analyze` endpoint to receive a detailed analysis.
 
+🆕 **NEW FEATURE**: The response now includes `human_readable_explanation` - natural language explanations that make harmonic analysis accessible to everyone!
+
 **Request:**
 ```sh
 curl -X 'POST' \
@@ -175,7 +177,7 @@ curl -X 'POST' \
 }'
 ```
 
-**Expected Response:**
+**Enhanced Response:**
 ```json
 {
   "is_tonal_progression": true,
@@ -188,10 +190,59 @@ curl -X 'POST' \
       "tonality_used_in_step": "C Major",
       "evaluated_functional_state": null
     },
-    // ... rest of the analysis
-  ]
+    // ... rest of the technical analysis steps
+  ],
+  "human_readable_explanation": "We're analyzing the chord progression Em → A → Dm → G → C. This progression appears to be tonal and is anchored in the key of C Major. The progression moves through C Major with the following functional sequence: Em (tonic) → A (dominant) → Dm (subdominant) → G (dominant) → C (tonic). Overall, this progression establishes a clear tonal center in C Major, following traditional harmonic conventions."
 }
 ```
+
+#### New `/explain` Endpoint
+
+For applications that only need human-readable explanations without technical details:
+
+**Request:**
+```sh
+curl -X 'POST' \
+  'http://localhost:8000/explain' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "chords": ["C", "F", "G", "C"]
+}'
+```
+
+**Response:**
+```json
+{
+  "explanation": "We're analyzing the chord progression C → F → G → C. This progression appears to be tonal and is anchored in the key of C Major. In C Major, this progression features an authentic cadence pattern (dominant to tonic resolution): C (tonic) → F (subdominant) → G (dominant) → C (tonic). Overall, this progression establishes a clear tonal center in C Major, following traditional harmonic conventions.",
+  "is_tonal": true,
+  "identified_tonality": "C Major"
+}
+```
+
+#### Bilingual Support
+
+Both endpoints support explanations in multiple languages:
+
+**English (default):**
+```sh
+curl "http://localhost:8000/explain?lang=en" \
+  -H "Content-Type: application/json" \
+  -d '{"chords": ["C", "F", "G", "C"]}'
+```
+
+**Portuguese:**
+```sh
+curl "http://localhost:8000/analyze?lang=pt_br" \
+  -H "Content-Type: application/json" \
+  -d '{"chords": ["C", "F", "G", "C"]}'
+```
+
+The human-readable explanations automatically identify and describe:
+- **🎵 Authentic Cadences** (V-I progressions)
+- **🎵 Plagal Cadences** (IV-I progressions)  
+- **🎵 Pivot Modulations** (key changes)
+- **🎵 Functional Progressions** (tonic-subdominant-dominant patterns)
 
 ### 2. Generate a Visualization
 
@@ -260,119 +311,6 @@ The theme affects all visual elements including:
 - Node colors (automatically adjusted per tonality)
 - Edge colors and connecting lines
 - Text labels
-
-### 3. 🆕 Get Human-Readable Explanations
-
-**NEW FEATURE**: The API now provides natural language explanations that make harmonic analysis accessible to everyone - from music students to experienced musicians who want clear, narrative descriptions of their progressions.
-
-#### Enhanced `/analyze` Endpoint
-
-The standard analysis endpoint now includes a `human_readable_explanation` field:
-
-**Request:**
-```sh
-curl -X 'POST' \
-  'http://localhost:8000/analyze' \
-  -H 'accept: application/json' \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "chords": ["C", "F", "G", "C"]
-}'
-```
-
-**Enhanced Response:**
-```json
-{
-  "is_tonal_progression": true,
-  "identified_tonality": "C Major",
-  "explanation_details": [...], // Technical steps (unchanged)
-  "human_readable_explanation": "We're analyzing the chord progression C → F → G → C. This progression appears to be tonal and is anchored in the key of C Major. In C Major, this progression features an authentic cadence pattern (dominant to tonic resolution): C (tonic) → F (subdominant) → G (dominant) → C (tonic). Overall, this progression establishes a clear tonal center in C Major, following traditional harmonic conventions."
-}
-```
-
-#### New `/explain` Endpoint
-
-For applications that only need human-readable explanations:
-
-**Request:**
-```sh
-curl -X 'POST' \
-  'http://localhost:8000/explain' \
-  -H 'accept: application/json' \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "chords": ["Am", "F", "C", "G"]
-}'
-```
-
-**Response:**
-```json
-{
-  "explanation": "We're analyzing the chord progression Am → F → C → G. This progression appears to be tonal and is anchored in the key of C Major. The progression moves through C Major with the following functional sequence: Am (tonic) → F (subdominant) → C (tonic) → G (dominant). Overall, this progression establishes a clear tonal center in C Major, following traditional harmonic conventions.",
-  "is_tonal": true,
-  "identified_tonality": "C Major"
-}
-```
-
-#### Bilingual Support
-
-Both endpoints support natural language explanations in multiple languages:
-
-**English (default):**
-```sh
-curl "http://localhost:8000/explain?lang=en" \
-  -H "Content-Type: application/json" \
-  -d '{"chords": ["C", "F", "G", "C"]}'
-```
-
-**Portuguese:**
-```sh
-curl "http://localhost:8000/explain?lang=pt_br" \
-  -H "Content-Type: application/json" \
-  -d '{"chords": ["C", "F", "G", "C"]}'
-```
-
-**Portuguese Response Example:**
-```json
-{
-  "explanation": "Estamos analisando a progressão de acordes C → F → G → C. Esta progressão parece ser tonal e está ancorada na tonalidade de Dó Maior. Em Dó Maior, esta progressão apresenta um padrão de cadência autêntica (resolução dominante para tônica): C (tônica) → F (subdominante) → G (dominante) → C (tônica). No geral, esta progressão estabelece um centro tonal claro em Dó Maior, seguindo convenções harmônicas tradicionais.",
-  "is_tonal": true,
-  "identified_tonality": "Dó Maior"
-}
-```
-
-#### Smart Pattern Recognition
-
-The human-readable explanations automatically identify and describe:
-
-- **🎵 Authentic Cadences** (V-I progressions)
-- **🎵 Plagal Cadences** (IV-I progressions)  
-- **🎵 Pivot Modulations** (key changes)
-- **🎵 Functional Progressions** (tonic-subdominant-dominant patterns)
-
-#### Try These Examples
-
-Test the new feature with these classic progressions:
-
-**Pop/Rock I-IV-V-I:**
-```json
-{"chords": ["C", "F", "G", "C"]}
-```
-
-**Pop Ballad vi-IV-I-V:**
-```json  
-{"chords": ["Am", "F", "C", "G"]}
-```
-
-**Jazz ii-V-I:**
-```json
-{"chords": ["Dm7", "G7", "Cmaj7"]}
-```
-
-**Complex progression with modulation:**
-```json
-{"chords": ["Em", "A", "Dm", "G", "C"]}
-```
 
 
 ### 📚 Interactive API Documentation
