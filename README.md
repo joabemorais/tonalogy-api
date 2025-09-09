@@ -196,7 +196,7 @@ curl -X 'POST' \
 }
 ```
 
-#### New `/explain` Endpoint
+#### New `/explain` Endpoint 🎵
 
 For applications that only need human-readable explanations without technical details:
 
@@ -220,7 +220,7 @@ curl -X 'POST' \
 }
 ```
 
-#### Bilingual Support
+#### Bilingual Support 🌍
 
 Both endpoints support explanations in multiple languages:
 
@@ -238,11 +238,40 @@ curl "http://localhost:8000/analyze?lang=pt_br" \
   -d '{"chords": ["C", "F", "G", "C"]}'
 ```
 
+#### Pattern Recognition 🎯
+
 The human-readable explanations automatically identify and describe:
 - **🎵 Authentic Cadences** (V-I progressions)
 - **🎵 Plagal Cadences** (IV-I progressions)  
 - **🎵 Pivot Modulations** (key changes)
+- **🎵 Secondary Dominants** (V/V patterns)
 - **🎵 Functional Progressions** (tonic-subdominant-dominant patterns)
+
+#### Example Progression Outputs
+
+**Classic I-IV-V-I (Pop/Rock):**
+```json
+{"chords": ["C", "F", "G", "C"]}
+```
+> "This progression features an authentic cadence pattern (dominant to tonic resolution): C (tonic) → F (subdominant) → G (dominant) → C (tonic)."
+
+**vi-IV-I-V (Pop ballad):**
+```json  
+{"chords": ["Am", "F", "C", "G"]}
+```
+> "This progression moves through C Major with the following functional sequence: Am (tonic) → F (subdominant) → C (tonic) → G (dominant)."
+
+**Secondary Dominant (V/V pattern):**
+```json
+{"chords": ["F", "D", "G", "C"]}
+```
+> "The chord D acts as a dominant of the dominant (V/V), tonicizing G before it resolves to the tonic in C Major."
+
+#### Use Cases
+
+- **🎓 Educational Applications**: Music theory learning apps, harmony exercise feedback
+- **🎵 Musician Tools**: Chord progression analysis, songwriting assistance  
+- **🔧 Developer Integration**: Chatbots explaining music, AI-powered music tutors
 
 ### 2. Generate a Visualization
 
