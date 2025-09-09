@@ -117,14 +117,16 @@ class ExplanationFormatter:
         if not steps or not self._chord_sequence_cache:
             return ""
         
-        # Create a mapping of chord -> function from the analysis steps
+        # Create mappings of chord -> function and chord -> tonality
         chord_to_function = {}
+        chord_to_tonality = {}
         current_tonality = None
         
         for step in steps:
             if step.processed_chord and step.evaluated_functional_state:
                 function = step.evaluated_functional_state.split(" ")[0]  # Extract function name
                 chord_to_function[step.processed_chord] = function
+                chord_to_tonality[step.processed_chord] = step.tonality_used_in_step or current_tonality
                 if step.tonality_used_in_step:
                     current_tonality = step.tonality_used_in_step
         
@@ -132,23 +134,144 @@ class ExplanationFormatter:
         chord_functions = []
         for chord in self._chord_sequence_cache:
             if chord in chord_to_function:
-                chord_functions.append((chord, chord_to_function[chord]))
+                tonality = chord_to_tonality[chord]
+                chord_functions.append((chord, chord_to_function[chord], tonality))
         
         if not chord_functions:
             return ""
         
-        # Describe the sequence maintaining original order
-        if len(chord_functions) == 1:
-            chord, function = chord_functions[0]
+        # Check for tonicizations and secondary dominants
+        tonicization_info = self._analyze_tonicizations(chord_functions)
+        
+        # Build the main functional description
+        main_description = self._build_functional_description(chord_functions, current_tonality or "unknown")
+        
+        # Add tonicization explanations
+        if tonicization_info:
+            return f"{main_description} {tonicization_info}"
+        else:
+            return main_description
+
+    def _analyze_tonicizations(self, chord_functions: List[Tuple[str, str, str]]) -> str:
+        """Analyze and describe tonicizations and secondary dominants."""
+        tonicizations = []
+        main_tonality = self._main_tonality_cache
+        
+        # Create a map for easier lookup
+        chord_info = {chord: (function, tonality) for chord, function, tonality in chord_functions}
+        
+        # Go through the original chord order to check for secondary dominants
+        for i, chord in enumerate(self._chord_sequence_cache):
+            if chord not in chord_info:
+                continue
+                
+            function, tonality = chord_info[chord]
+            
+            # Check if this chord is functioning as a dominant in a different tonality
+            if tonality != main_tonality and function == "DOMINANT":
+                # Look for the target chord (what this dominant resolves to)
+                target_chord = None
+                target_tonality = tonality
+                
+                # Check the next chord in the original order
+                if i + 1 < len(self._chord_sequence_cache):
+                    next_chord = self._chord_sequence_cache[i + 1]
+                    if next_chord in chord_info:
+                        next_function, next_tonality = chord_info[next_chord]
+                        # Check if the next chord can be the target of this tonicization
+                        if (next_tonality == tonality and next_function in ["TONIC", "SUBDOMINANT"]) or \
+                           (next_tonality == main_tonality and next_function == "SUBDOMINANT"):
+                            target_chord = next_chord
+                
+                if target_chord:
+                    tonicizations.append(T(
+                        "explanation.formatter.secondary_dominant",
+                        dominant_chord=chord,
+                        target_chord=target_chord,
+                        target_tonality=target_tonality,
+                        main_tonality=main_tonality
+                    ))
+            
+            # Additional check: Look for V/V patterns (dominant of dominant)
+            elif function == "DOMINANT" and tonality != main_tonality:
+                # Check if the next chord is the dominant of the main tonality
+                if i + 1 < len(self._chord_sequence_cache):
+                    next_chord = self._chord_sequence_cache[i + 1]
+                    if next_chord in chord_info:
+                        next_function, next_tonality = chord_info[next_chord]
+                        if next_function == "DOMINANT" and next_tonality == main_tonality:
+                            # This is likely a V/V pattern
+                            tonicizations.append(T(
+                                "explanation.formatter.dominant_of_dominant",
+                                secondary_dominant=chord,
+                                primary_dominant=next_chord,
+                                main_tonality=main_tonality
+                            ))
+        
+        # Additional heuristic check for common V/V patterns based on chord relationships
+        tonicizations.extend(self._detect_common_secondary_patterns())
+        
+        if tonicizations:
+            return " ".join(tonicizations)
+        return ""
+
+    def _detect_common_secondary_patterns(self) -> List[str]:
+        """Detect common secondary dominant patterns based on chord relationships."""
+        patterns = []
+        main_tonality = self._main_tonality_cache
+        
+        if not main_tonality or len(self._chord_sequence_cache) < 2:
+            return patterns
+        
+        # Check for V/V in C Major: D → G (in context of C Major)
+        if main_tonality == "C Major":
+            for i in range(len(self._chord_sequence_cache) - 1):
+                current = self._chord_sequence_cache[i]
+                next_chord = self._chord_sequence_cache[i + 1]
+                
+                # D → G pattern (V/V → V in C Major)
+                if current == "D" and next_chord == "G":
+                    patterns.append(T(
+                        "explanation.formatter.dominant_of_dominant_pattern",
+                        secondary_dominant="D",
+                        primary_dominant="G",
+                        main_tonality=main_tonality
+                    ))
+        
+        # Add more patterns for other keys as needed
+        elif main_tonality == "G Major":
+            for i in range(len(self._chord_sequence_cache) - 1):
+                current = self._chord_sequence_cache[i]
+                next_chord = self._chord_sequence_cache[i + 1]
+                
+                # A → D pattern (V/V → V in G Major)
+                if current == "A" and next_chord == "D":
+                    patterns.append(T(
+                        "explanation.formatter.dominant_of_dominant_pattern",
+                        secondary_dominant="A",
+                        primary_dominant="D",
+                        main_tonality=main_tonality
+                    ))
+        
+        return patterns
+
+    def _build_functional_description(self, chord_functions: List[Tuple[str, str, str]], main_tonality: str) -> str:
+        """Build the main functional description, grouping by primary tonality."""
+        # Filter chords that belong to the main tonality for the main description
+        main_tonality_chords = [(chord, func) for chord, func, tonality in chord_functions 
+                               if tonality == main_tonality or tonality is None]
+        
+        if len(main_tonality_chords) == 1:
+            chord, function = main_tonality_chords[0]
             return T(
                 "explanation.formatter.single_function",
                 chord=chord,
                 function=function.lower(),
-                tonality=current_tonality or "unknown"
+                tonality=main_tonality
             )
         else:
-            # Describe the functional sequence
-            return self._describe_function_sequence(chord_functions, current_tonality or "unknown")
+            # Use the existing pattern identification system
+            return self._identify_progression_patterns(main_tonality_chords, main_tonality)
 
     def _connect_descriptions_with_transitions(self, descriptions: List[str]) -> str:
         """Connect multiple tonality descriptions with smooth transitions."""
@@ -334,9 +457,28 @@ class ExplanationFormatter:
     def _build_conclusion(self, analysis: ProgressionAnalysisResponse) -> str:
         """Build a concluding statement about the analysis."""
         if analysis.is_tonal_progression and self._main_tonality_cache:
-            return T(
-                "explanation.formatter.conclusion_tonal",
-                tonality=self._main_tonality_cache
-            )
+            # Check if there are tonicizations to mention in conclusion
+            has_tonicizations = self._has_secondary_functions(analysis.explanation_details)
+            
+            if has_tonicizations:
+                return T(
+                    "explanation.formatter.conclusion_tonal_with_tonicizations",
+                    tonality=self._main_tonality_cache
+                )
+            else:
+                return T(
+                    "explanation.formatter.conclusion_tonal",
+                    tonality=self._main_tonality_cache
+                )
         else:
             return T("explanation.formatter.conclusion_non_tonal")
+
+    def _has_secondary_functions(self, steps: List[ExplanationStepAPI]) -> bool:
+        """Check if the progression contains secondary functions (tonicizations)."""
+        main_tonality = self._main_tonality_cache
+        
+        for step in steps:
+            if (step.processed_chord and step.tonality_used_in_step and 
+                step.tonality_used_in_step != main_tonality):
+                return True
+        return False

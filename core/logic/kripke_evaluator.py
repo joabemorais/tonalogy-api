@@ -181,17 +181,44 @@ class SatisfactionEvaluator:
 
         # First, add the prioritized tonalities from the heuristic
         if hasattr(self, "ranked_tonalities"):
-            for tonality in self.ranked_tonalities:
+            ranked = list(self.ranked_tonalities)
+            
+            # TONICIZATION PRIORITY: Ensure tonalities where the pivot chord is tonic are tested first
+            if p_chord:
+                # Find tonalities where P is tonic that aren't in ranked
+                tonic_tonalities = []
+                for tonality in self.all_available_tonalities:
+                    if (tonality.chord_fulfills_function(p_chord, TonalFunction.TONIC) and 
+                        tonality.tonality_name not in [r.tonality_name for r in ranked]):
+                        tonic_tonalities.append(tonality)
+                
+                # Sort tonic tonalities (major first in major context)
+                if current_tonality and current_tonality.quality == "Major":
+                    tonic_tonalities.sort(key=lambda t: (t.quality != "Major", t.tonality_name))
+                
+                # Insert tonic tonalities at the beginning
+                ranked = tonic_tonalities + ranked
+            
+            for tonality in ranked:
                 if tonality.tonality_name not in seen_tonalities:
                     tonalities_to_check.append(tonality)
                     seen_tonalities.add(tonality.tonality_name)
 
         # Then, add any remaining tonalities to ensure the search is exhaustive
-        for tonality in self.all_available_tonalities:
-            if tonality.tonality_name not in seen_tonalities:
-                tonalities_to_check.append(tonality)
-                seen_tonalities.add(tonality.tonality_name)
-        # --- FIX END ---
+        # TONICIZATION PRIORITY: Prioritize tonalities where the pivot chord is actually the tonic
+        remaining_tonalities = [t for t in self.all_available_tonalities if t.tonality_name not in seen_tonalities]
+        
+        # Sort remaining tonalities: put those where P is tonic first
+        if p_chord:
+            remaining_tonalities.sort(key=lambda t: (
+                not t.chord_fulfills_function(p_chord, TonalFunction.TONIC),  # Tonic first
+                t.quality != "Major" if current_tonality and current_tonality.quality == "Major" else False,  # Major tonalities first in major context
+                t.tonality_name
+            ))
+        
+        for tonality in remaining_tonalities:
+            tonalities_to_check.append(tonality)
+            seen_tonalities.add(tonality.tonality_name)
 
         for l_prime_tonality in tonalities_to_check:
             if l_prime_tonality.tonality_name == current_tonality.tonality_name:
