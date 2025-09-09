@@ -23,11 +23,11 @@
 ### ✨ Features
 
 -   **Harmonic Analysis:** Evaluates chord progressions to determine their tonal characteristics.
--   **🆕 Human-Readable Explanations:** Transforms technical analysis into accessible, narrative explanations in natural language.
+-   **Human-Readable Explanations:** Transforms technical analysis into accessible, narrative explanations in natural language.
 -   **Kripke Model:** Uses modal logic to model the "possible worlds" of a harmonic progression.
 -   **Graphic Visualization:** Generates PNG graphs that represent the tonal journey of the chords.
 -   **Dark & Light Themes:** Support for both light and dark visualization themes with automatic color adaptation.
--   **🌍 Bilingual Support:** Available in English and Portuguese with automatic pattern recognition.
+-   **Bilingual Support:** Available in English and Portuguese with automatic pattern recognition.
 -   **RESTful API:** A simple, HTTP-based interface for easy integration with other applications.
 
 ### 🛠️ Tech Stack
@@ -157,7 +157,7 @@ You can interact with the API using any HTTP client. Here are some examples with
 
 Send a list of chords to the `/analyze` endpoint to receive a detailed analysis.
 
-🆕 **NEW FEATURE**: The response now includes `human_readable_explanation` - natural language explanations that make harmonic analysis accessible to everyone!
+The response includes `human_readable_explanation` - natural language explanations that make harmonic analysis accessible.
 
 **Request:**
 ```sh
