@@ -181,17 +181,44 @@ class SatisfactionEvaluator:
 
         # First, add the prioritized tonalities from the heuristic
         if hasattr(self, "ranked_tonalities"):
-            for tonality in self.ranked_tonalities:
+            ranked = list(self.ranked_tonalities)
+            
+            # TONICIZATION PRIORITY: Ensure tonalities where the pivot chord is tonic are tested first
+            if p_chord:
+                # Find tonalities where P is tonic that aren't in ranked
+                tonic_tonalities = []
+                for tonality in self.all_available_tonalities:
+                    if (tonality.chord_fulfills_function(p_chord, TonalFunction.TONIC) and 
+                        tonality.tonality_name not in [r.tonality_name for r in ranked]):
+                        tonic_tonalities.append(tonality)
+                
+                # Sort tonic tonalities (major first in major context)
+                if current_tonality and current_tonality.quality == "Major":
+                    tonic_tonalities.sort(key=lambda t: (t.quality != "Major", t.tonality_name))
+                
+                # Insert tonic tonalities at the beginning
+                ranked = tonic_tonalities + ranked
+            
+            for tonality in ranked:
                 if tonality.tonality_name not in seen_tonalities:
                     tonalities_to_check.append(tonality)
                     seen_tonalities.add(tonality.tonality_name)
 
         # Then, add any remaining tonalities to ensure the search is exhaustive
-        for tonality in self.all_available_tonalities:
-            if tonality.tonality_name not in seen_tonalities:
-                tonalities_to_check.append(tonality)
-                seen_tonalities.add(tonality.tonality_name)
-        # --- FIX END ---
+        # TONICIZATION PRIORITY: Prioritize tonalities where the pivot chord is actually the tonic
+        remaining_tonalities = [t for t in self.all_available_tonalities if t.tonality_name not in seen_tonalities]
+        
+        # Sort remaining tonalities: put those where P is tonic first
+        if p_chord:
+            remaining_tonalities.sort(key=lambda t: (
+                not t.chord_fulfills_function(p_chord, TonalFunction.TONIC),  # Tonic first
+                t.quality != "Major" if current_tonality and current_tonality.quality == "Major" else False,  # Major tonalities first in major context
+                t.tonality_name
+            ))
+        
+        for tonality in remaining_tonalities:
+            tonalities_to_check.append(tonality)
+            seen_tonalities.add(tonality.tonality_name)
 
         for l_prime_tonality in tonalities_to_check:
             if l_prime_tonality.tonality_name == current_tonality.tonality_name:
@@ -234,6 +261,19 @@ class SatisfactionEvaluator:
                     if p_functions_in_L
                     else "a transitional role"
                 )
+                
+                # Find the correct state for the pivot chord's function in the current tonality
+                pivot_state = None
+                if p_functions_in_L:
+                    # Use the first (primary) function of the pivot chord in the current tonality
+                    primary_function = p_functions_in_L[0]
+                    # Find the state that corresponds to this function
+                    pivot_state = self.kripke_config.get_state_by_tonal_function(primary_function)
+                
+                # Fallback to current_state if no specific function state found
+                if pivot_state is None:
+                    pivot_state = current_state
+                
                 explanation_for_pivot.add_step(
                     formal_rule_applied=T("analysis.rules.pivot_modulation"),
                     observation=T(
@@ -248,7 +288,7 @@ class SatisfactionEvaluator:
                         ),
                         reinforcement_status=tonicization_reinforced,
                     ),
-                    evaluated_functional_state=current_state,
+                    evaluated_functional_state=pivot_state,
                     processed_chord=p_chord,
                     tonality_used_in_step=current_tonality,
                     pivot_target_tonality=l_prime_tonality,  # Add structured pivot target

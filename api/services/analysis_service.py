@@ -6,6 +6,7 @@ from api.schemas.analysis_schemas import (
     ProgressionAnalysisRequest,
     ProgressionAnalysisResponse,
 )
+from api.services.explanation_formatter import ExplanationFormatter
 from core.config.knowledge_base import TonalKnowledgeBase
 from core.domain.models import Chord, Explanation, Tonality
 from core.i18n import T, translate_function, translate_tonality
@@ -30,6 +31,7 @@ class TonalAnalysisService:
             all_available_tonalities=self.knowledge_base.all_tonalities,
         )
         self.candidate_processor = CandidateProcessor()
+        self.explanation_formatter = ExplanationFormatter()
         self.tonalities_map: Dict[str, Tonality] = {
             t.tonality_name: t for t in self.knowledge_base.all_tonalities
         }
@@ -46,6 +48,7 @@ class TonalAnalysisService:
                     is_tonal_progression=False,
                     identified_tonality=None,
                     explanation_details=[],
+                    human_readable_explanation=None,
                     error=T("errors.chord_list_empty"),
                 )
 
@@ -63,6 +66,7 @@ class TonalAnalysisService:
                         is_tonal_progression=False,
                         identified_tonality=None,
                         explanation_details=[],
+                        human_readable_explanation=None,
                         error="None of the specified tonalities are known by the system.",
                     )
             else:
@@ -77,6 +81,7 @@ class TonalAnalysisService:
                     is_tonal_progression=False,
                     identified_tonality=None,
                     explanation_details=[],
+                    human_readable_explanation=None,
                     error=error,
                 )
 
@@ -142,17 +147,29 @@ class TonalAnalysisService:
                 )
                 explanation_steps_api.append(api_step)
 
-            return ProgressionAnalysisResponse(
+            # Create the basic response
+            response = ProgressionAnalysisResponse(
                 is_tonal_progression=success,
                 identified_tonality=identified_tonality,
                 explanation_details=explanation_steps_api,
                 error=None,
             )
+
+            # Generate human-readable explanation
+            try:
+                human_readable = self.explanation_formatter.format_explanation(response, request.chords)
+                response.human_readable_explanation = human_readable
+            except Exception as e:
+                logger.warning(f"Failed to generate human-readable explanation: {e}")
+                response.human_readable_explanation = None
+
+            return response
         except Exception as e:
             logging.error("Unexpected error during progression analysis", exc_info=True)
             return ProgressionAnalysisResponse(
                 is_tonal_progression=False,
                 identified_tonality=None,
                 explanation_details=[],
+                human_readable_explanation=None,
                 error="An unexpected error occurred during analysis.",
             )
