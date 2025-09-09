@@ -3,6 +3,7 @@ Tests for the ExplanationFormatter service.
 """
 
 import pytest
+
 from api.schemas.analysis_schemas import ExplanationStepAPI, ProgressionAnalysisResponse
 from api.services.explanation_formatter import ExplanationFormatter
 from core.i18n.locale_manager import locale_manager

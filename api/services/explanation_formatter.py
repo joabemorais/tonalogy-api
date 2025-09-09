@@ -3,7 +3,8 @@ Service for formatting technical explanations into human-readable narratives.
 This service transforms the formal analytical steps into more accessible language.
 """
 
-from typing import List, Optional, Dict, Tuple
+from typing import Dict, List, Optional, Tuple
+
 from api.schemas.analysis_schemas import ExplanationStepAPI, ProgressionAnalysisResponse
 from core.i18n import T, translate_tonality
 from core.i18n.locale_manager import locale_manager
