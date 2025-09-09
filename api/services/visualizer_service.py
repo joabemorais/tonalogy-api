@@ -32,10 +32,10 @@ def _is_pivot_modulation(step: ExplanationStepAPI) -> bool:
 
 def _get_secondary_style_variant(target_tonality: str) -> str:
     """Determine the style variant for secondary chords based on tonality quality.
-    
+
     Args:
         target_tonality: The name of the target tonality (e.g., "G Major", "D minor")
-        
+
     Returns:
         "dashed_filled" for minor tonalities, "solid_filled" for major tonalities
     """

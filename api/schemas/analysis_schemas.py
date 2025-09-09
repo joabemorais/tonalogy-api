@@ -20,7 +20,7 @@ class ProgressionAnalysisRequest(BaseModel):
                 ["Em", "A", "Dm", "G", "C"],
                 ["Am", "F", "C", "G"],
                 ["Dm7", "G7", "Cmaj7"],
-                ["C", "G", "Am", "F"]
+                ["C", "G", "Am", "F"],
             ]
         },
     )
@@ -28,19 +28,13 @@ class ProgressionAnalysisRequest(BaseModel):
         None,
         description=T("schemas.progression_analysis_request.tonalities_to_test.description"),
         json_schema_extra={
-            "examples": [
-                [],
-                ["C Major", "A minor"],
-                ["F Major", "D minor", "G Major"]
-            ]
+            "examples": [[], ["C Major", "A minor"], ["F Major", "D minor", "G Major"]]
         },
     )
     theme: Optional[Literal["light", "dark"]] = Field(
         "light",
         description=T("schemas.progression_analysis_request.theme.description"),
-        json_schema_extra={
-            "examples": ["light", "dark"]
-        },
+        json_schema_extra={"examples": ["light", "dark"]},
     )
 
 
@@ -115,11 +109,13 @@ class ProgressionAnalysisResponse(BaseModel):
         [], description=T("schemas.progression_analysis_response.explanation_details.description")
     )
     human_readable_explanation: Optional[str] = Field(
-        None, 
-        description=T("schemas.progression_analysis_response.human_readable_explanation.description"),
+        None,
+        description=T(
+            "schemas.progression_analysis_response.human_readable_explanation.description"
+        ),
         json_schema_extra={
             "example": "We're analyzing the chord progression C → F → G → C. This progression appears to be tonal and is anchored in the key of C Major. In C Major, this progression features an authentic cadence pattern..."
-        }
+        },
     )
     error: Optional[str] = Field(
         None, description=T("schemas.progression_analysis_response.error.description")

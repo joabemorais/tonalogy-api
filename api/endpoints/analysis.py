@@ -10,22 +10,23 @@ from core.i18n import T
 
 class HumanReadableExplanationResponse(BaseModel):
     """Response model for human-readable explanation endpoint."""
+
     explanation: str = Field(
-        ..., 
+        ...,
         description="A narrative explanation of the harmonic analysis in plain language",
         json_schema_extra={
             "example": "We're analyzing the chord progression C → F → G → C. This progression appears to be tonal and is anchored in the key of C Major. In C Major, this progression features a plagal cadence pattern (subdominant to tonic resolution): C (tonic) → F (subdominant) → G (dominant) → C (tonic). Overall, this progression establishes a clear tonal center in C Major, following traditional harmonic conventions."
-        }
+        },
     )
     is_tonal: bool = Field(
-        ..., 
+        ...,
         description="Whether the progression follows traditional tonal patterns",
-        json_schema_extra={"example": True}
+        json_schema_extra={"example": True},
     )
     identified_tonality: Optional[str] = Field(
-        None, 
+        None,
         description="The key/tonality identified for the progression",
-        json_schema_extra={"example": "C Major"}
+        json_schema_extra={"example": "C Major"},
     )
 
 
@@ -50,9 +51,7 @@ async def analyze_progression(
     request: ProgressionAnalysisRequest,
     service: TonalAnalysisService = Depends(get_analysis_service),
     lang: Optional[str] = Query(
-        None, 
-        description="Language for the response (en, pt_br)",
-        example="en"
+        None, description="Language for the response (en, pt_br)", example="en"
     ),
 ) -> ProgressionAnalysisResponse:
     """
@@ -93,21 +92,19 @@ async def get_human_readable_explanation(
     request: ProgressionAnalysisRequest,
     service: TonalAnalysisService = Depends(get_analysis_service),
     lang: Optional[str] = Query(
-        None, 
-        description="Language for the response (en, pt_br)",
-        example="en"
+        None, description="Language for the response (en, pt_br)", example="en"
     ),
 ) -> HumanReadableExplanationResponse:
     """
     Returns only the human-readable explanation portion of the harmonic analysis.
-    
-    This is a simplified endpoint that extracts just the narrative explanation 
+
+    This is a simplified endpoint that extracts just the narrative explanation
     from the full analysis performed by the /analyze endpoint.
-    
+
     **Parameters:**
     - **chords**: List of chord symbols to analyze
     - **lang**: Language for explanation (en, pt_br)
-    
+
     **For full analysis with technical details, use the /analyze endpoint.**
     """
     # Set locale based on query parameter
@@ -120,13 +117,13 @@ async def get_human_readable_explanation(
         result: ProgressionAnalysisResponse = service.analyze_progression(request)
         if result.error:
             raise HTTPException(status_code=400, detail=result.error)
-        
+
         explanation = result.human_readable_explanation or "No explanation available."
-        
+
         return HumanReadableExplanationResponse(
             explanation=explanation,
             is_tonal=result.is_tonal_progression,
-            identified_tonality=result.identified_tonality
+            identified_tonality=result.identified_tonality,
         )
     except Exception as e:
         # Handle unexpected server errors
