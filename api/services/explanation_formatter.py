@@ -18,12 +18,13 @@ class ExplanationFormatter:
         self._chord_sequence_cache: Optional[List[str]] = None
         self._main_tonality_cache: Optional[str] = None
 
-    def format_explanation(self, analysis: ProgressionAnalysisResponse) -> str:
+    def format_explanation(self, analysis: ProgressionAnalysisResponse, original_chords: Optional[List[str]] = None) -> str:
         """
         Convert a technical explanation into a human-readable narrative.
         
         Args:
             analysis: The progression analysis response containing technical steps
+            original_chords: The original chord sequence as provided by the user
             
         Returns:
             A formatted, human-readable explanation string
@@ -32,7 +33,8 @@ class ExplanationFormatter:
             return T("explanation.formatter.no_steps_available")
 
         # Cache the chord sequence and main tonality for reference
-        self._extract_progression_info(analysis)
+        # Extract basic progression information
+        self._extract_progression_info(analysis, original_chords)
         
         # Build the narrative sections
         sections = []
@@ -54,15 +56,19 @@ class ExplanationFormatter:
         
         return "\n\n".join(sections)
 
-    def _extract_progression_info(self, analysis: ProgressionAnalysisResponse) -> None:
+    def _extract_progression_info(self, analysis: ProgressionAnalysisResponse, original_chords: Optional[List[str]] = None) -> None:
         """Extract and cache basic information about the progression."""
-        # Extract chord sequence from steps that have processed chords
-        chord_sequence = []
-        for step in analysis.explanation_details:
-            if step.processed_chord and step.processed_chord not in chord_sequence:
-                chord_sequence.append(step.processed_chord)
+        # Use original chord order if provided, otherwise extract from steps
+        if original_chords:
+            self._chord_sequence_cache = original_chords
+        else:
+            # Extract chord sequence maintaining original order (including duplicates)
+            chord_sequence = []
+            for step in analysis.explanation_details:
+                if step.processed_chord:
+                    chord_sequence.append(step.processed_chord)
+            self._chord_sequence_cache = chord_sequence
         
-        self._chord_sequence_cache = chord_sequence
         self._main_tonality_cache = analysis.identified_tonality
 
     def _build_introduction(self, analysis: ProgressionAnalysisResponse) -> str:
@@ -188,47 +194,85 @@ class ExplanationFormatter:
                 tonality=tonality
             )
         else:
-            # Complex progression - identify patterns
+            # Complex progression - map functions to original chord order
+            return self._describe_with_original_order(chord_functions, tonality)
+
+    def _describe_with_original_order(self, chord_functions: List[Tuple[str, str]], tonality: str) -> str:
+        """Describe progression using the original chord order."""
+        if not self._chord_sequence_cache:
             return self._identify_progression_patterns(chord_functions, tonality)
+        
+        # Create a mapping of chord to function
+        chord_to_function = {chord: func for chord, func in chord_functions}
+        
+        # Build the sequence using original order
+        ordered_sequence = []
+        ordered_functions = []
+        
+        for chord in self._chord_sequence_cache:
+            if chord in chord_to_function:
+                func = chord_to_function[chord]
+                ordered_sequence.append((chord, func))
+                ordered_functions.append(func)
+        
+        # Check for cadences at the end using the correct order
+        cadence_description = self._identify_cadences(ordered_functions)
+        
+        if cadence_description:
+            chord_sequence = " → ".join([f"{c} ({f.lower()})" for c, f in ordered_sequence])
+            return T(
+                "explanation.formatter.progression_with_cadence",
+                tonality=tonality,
+                chord_sequence=chord_sequence,
+                cadence_description=cadence_description
+            )
+        else:
+            chord_sequence = " → ".join([f"{c} ({f.lower()})" for c, f in ordered_sequence])
+            return T(
+                "explanation.formatter.functional_progression",
+                tonality=tonality,
+                chord_sequence=chord_sequence
+            )
 
     def _identify_progression_patterns(self, chord_functions: List[Tuple[str, str]], tonality: str) -> str:
         """Identify and describe common harmonic patterns."""
         functions = [func for _, func in chord_functions]
         
-        # Check for common patterns
-        if self._is_authentic_cadence_pattern(functions):
+        # Check for cadences at the end of the progression only
+        cadence_description = self._identify_cadences(functions)
+        
+        if cadence_description:
+            # Build description with cadence information
+            chord_sequence = " → ".join([f"{c} ({f.lower()})" for c, f in chord_functions])
             return T(
-                "explanation.formatter.authentic_cadence_pattern",
+                "explanation.formatter.progression_with_cadence",
                 tonality=tonality,
-                chord_sequence=" → ".join([f"{c} ({f.lower()})" for c, f in chord_functions])
-            )
-        elif self._is_plagal_cadence_pattern(functions):
-            return T(
-                "explanation.formatter.plagal_cadence_pattern",
-                tonality=tonality,
-                chord_sequence=" → ".join([f"{c} ({f.lower()})" for c, f in chord_functions])
+                chord_sequence=chord_sequence,
+                cadence_description=cadence_description
             )
         else:
-            # Generic functional progression
+            # Generic functional progression without specific cadence
             return T(
                 "explanation.formatter.functional_progression",
                 tonality=tonality,
                 chord_sequence=" → ".join([f"{c} ({f.lower()})" for c, f in chord_functions])
             )
 
-    def _is_authentic_cadence_pattern(self, functions: List[str]) -> bool:
-        """Check if the progression contains an authentic cadence pattern (V-I)."""
-        for i in range(len(functions) - 1):
-            if functions[i] == "DOMINANT" and functions[i + 1] == "TONIC":
-                return True
-        return False
-
-    def _is_plagal_cadence_pattern(self, functions: List[str]) -> bool:
-        """Check if the progression contains a plagal cadence pattern (IV-I)."""
-        for i in range(len(functions) - 1):
-            if functions[i] == "SUBDOMINANT" and functions[i + 1] == "TONIC":
-                return True
-        return False
+    def _identify_cadences(self, functions: List[str]) -> str:
+        """Identify cadences at the end of the progression."""
+        if len(functions) < 2:
+            return ""
+        
+        # Check the last two functions for cadential motion
+        penultimate = functions[-2]
+        ultimate = functions[-1]
+        
+        if penultimate == "DOMINANT" and ultimate == "TONIC":
+            return T("explanation.formatter.authentic_cadence")
+        elif penultimate == "SUBDOMINANT" and ultimate == "TONIC":
+            return T("explanation.formatter.plagal_cadence")
+        
+        return ""
 
     def _describe_modulations(self, pivot_steps: List[ExplanationStepAPI]) -> str:
         """Describe pivot modulations in narrative form."""

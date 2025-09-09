@@ -157,7 +157,7 @@ class TonalAnalysisService:
 
             # Generate human-readable explanation
             try:
-                human_readable = self.explanation_formatter.format_explanation(response)
+                human_readable = self.explanation_formatter.format_explanation(response, request.chords)
                 response.human_readable_explanation = human_readable
             except Exception as e:
                 logger.warning(f"Failed to generate human-readable explanation: {e}")

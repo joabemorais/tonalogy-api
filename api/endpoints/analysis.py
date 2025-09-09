@@ -60,18 +60,6 @@ async def analyze_progression(
 
     Includes natural language explanations alongside technical analysis!
 
-    **What you get:**
-    - **Technical analysis steps** for formal verification and advanced users
-    - **Human-readable explanation** in plain language for students and general users
-    - **Bilingual support** (English/Portuguese) 
-    - **Pattern recognition** for cadences, modulations, and functional progressions
-
-    **Perfect for:**
-    - Music theory education and teaching
-    - Applications requiring both technical and accessible explanations
-    - Musicians wanting to understand harmonic progressions
-    - Developers building music theory tools
-
     **Input Parameters:**
     - **chords**: List of chord symbols (e.g., ["C", "Am", "F", "G"])
     - **tonalities_to_test**: (Optional) Limit analysis to specific keys
