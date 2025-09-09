@@ -42,8 +42,8 @@ router = APIRouter()
     "/analyze",
     response_model=ProgressionAnalysisResponse,
     summary=T("endpoints.analyze.summary"),
-    description="🎵 **Comprehensive Harmonic Analysis** - Analyzes chord progressions using Kripke semantics and modal logic. Now includes human-readable explanations perfect for education and non-technical users!",
-    response_description="Complete analysis with technical steps AND natural language explanation",
+    description="**Comprehensive Harmonic Analysis** - Analyzes chord progressions using Kripke semantics and modal logic. Includes human-readable explanations perfect for education and non-technical users!",
+    response_description="Complete analysis with technical steps and natural language explanation",
     tags=["Analysis"],
 )
 async def analyze_progression(
@@ -56,9 +56,9 @@ async def analyze_progression(
     ),
 ) -> ProgressionAnalysisResponse:
     """
-    🎼 **Complete Harmonic Analysis with Human-Readable Explanations** 🎼
+    **Complete Harmonic Analysis with Human-Readable Explanations**
 
-    **🆕 NEW FEATURE**: Now includes natural language explanations alongside technical analysis!
+    Includes natural language explanations alongside technical analysis!
 
     **What you get:**
     - **Technical analysis steps** for formal verification and advanced users
@@ -76,14 +76,6 @@ async def analyze_progression(
     - **chords**: List of chord symbols (e.g., ["C", "Am", "F", "G"])
     - **tonalities_to_test**: (Optional) Limit analysis to specific keys
     - **lang**: Response language (en for English, pt_br for Portuguese)
-
-    **Try these examples:**
-    - **Pop I-vi-IV-V**: ["C", "Am", "F", "G"]  
-    - **Jazz ii-V-I**: ["Dm7", "G7", "Cmaj7"]
-    - **Classical cadence**: ["C", "F", "G", "C"]
-    - **Modal progression**: ["Em", "Am", "D", "G"]
-
-    **💡 Tip**: Use `/explain` endpoint if you only need the human-readable explanation.
     """
     # Set locale based on query parameter
     from core.i18n.locale_manager import locale_manager
