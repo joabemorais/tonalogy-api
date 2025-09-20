@@ -103,3 +103,6 @@ celerybeat.pid
 # Backup files
 *.bak
 *.backup
+
+relatorio*
+WARP.md
