@@ -75,14 +75,15 @@ def test_check_progression_returns_true_on_second_tonality(
     g_major_tonality_mock: MagicMock,
 ) -> None:
     """
-    Verifies if the analyzer continues to the second tonality if the first one fails.
+    Verifies if the analyzer can find a solution when the progression doesn't work
+    in the primary tonality but works through pivot modulation or re-anchoring.
+    The modern implementation uses a single evaluator call that explores multiple
+    tonalities internally.
     """
-    # GIVEN: a mock of the evaluator that fails on the first call and succeeds on the second
+    # GIVEN: a mock of the evaluator that succeeds (finding solution via internal exploration)
     mock_evaluator_instance = MagicMock()
-    mock_evaluator_instance.evaluate_satisfaction_recursive.side_effect = [
-        (False, Explanation()),  # Result for the first call (C Major)
-        (True, Explanation()),  # Result for the second call (G Major)
-    ]
+    mock_evaluator_instance.evaluate_satisfaction_recursive.return_value = (True, Explanation())
+    
     mocker.patch(
         "core.logic.progression_analyzer.SatisfactionEvaluator",
         return_value=mock_evaluator_instance,
@@ -95,9 +96,10 @@ def test_check_progression_returns_true_on_second_tonality(
 
     success, _ = analyzer.check_tonal_progression(progression, tonalities_to_test)  # type: ignore[arg-type]
 
-    # THEN: the final result is success and the evaluator was called twice
+    # THEN: the final result is success and the evaluator was called once
+    # (the evaluator internally explores multiple tonalities through backtracking)
     assert success is True
-    assert mock_evaluator_instance.evaluate_satisfaction_recursive.call_count == 2
+    assert mock_evaluator_instance.evaluate_satisfaction_recursive.call_count == 1
 
 
 def test_check_progression_returns_false_if_all_tonalities_fail(

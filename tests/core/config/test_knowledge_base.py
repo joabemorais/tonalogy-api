@@ -39,17 +39,17 @@ def temp_tonalities_config_file(tmp_path: Path) -> Path:
         {
             "tonality_name": "Test Major",
             "function_to_chords_map": {
-                "TONIC": ["C", "Am"],
-                "DOMINANT": ["G"],
-                "SUBDOMINANT": ["F", "Dm"],
+                "TONIC": {"C": "natural", "Am": "natural"},
+                "DOMINANT": {"G": "natural"},
+                "SUBDOMINANT": {"F": "natural", "Dm": "natural"},
             },
         },
         {
             "tonality_name": "Test minor",
             "function_to_chords_map": {
-                "TONIC": ["Cm"],
-                "DOMINANT": ["G", "Bdim"],
-                "SUBDOMINANT": ["Fm"],
+                "TONIC": {"Cm": "natural"},
+                "DOMINANT": {"G": "natural", "Bdim": "natural"},
+                "SUBDOMINANT": {"Fm": "natural"},
             },
         },
     ]
