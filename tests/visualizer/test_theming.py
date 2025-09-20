@@ -177,9 +177,9 @@ class TestTheming:
         # THEN
         assert theme == DEFAULT_THEME
 
-    @patch("visualizer.theming.TONALITY_THEMES", {})
+    @patch("visualizer.theming.LIGHT_TONALITY_THEMES", {})
     def test_get_theme_for_tonality_empty_themes_returns_default(self) -> None:
-        """Test getting theme when TONALITY_THEMES is empty."""
+        """Test getting theme when LIGHT_TONALITY_THEMES is empty."""
         # WHEN
         theme = get_theme_for_tonality("C Major")
 
