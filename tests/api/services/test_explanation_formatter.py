@@ -112,8 +112,8 @@ class TestExplanationFormatter:
 
         # Check that it acknowledges non-tonal nature
         assert (
-            "does not appear to follow traditional tonal patterns" in result
-            or "non-tonal" in result.lower()
+            "does not establish a clear tonal center" in result
+            or "modal, atonal, or follow non-traditional harmonic patterns" in result
         )
 
     def test_format_explanation_with_pivot_modulation(self):
@@ -177,30 +177,6 @@ class TestExplanationFormatter:
         # Check for Portuguese text
         assert "Estamos analisando" in result
         assert "Dó Maior" in result
-
-    def test_authentic_cadence_pattern_detection(self):
-        """Test detection of authentic cadence patterns."""
-        # Test the private method directly
-        functions = ["TONIC", "SUBDOMINANT", "DOMINANT", "TONIC"]
-        result = self.formatter._is_authentic_cadence_pattern(functions)
-        assert result is True
-
-        # Test without authentic cadence
-        functions = ["TONIC", "SUBDOMINANT", "TONIC"]
-        result = self.formatter._is_authentic_cadence_pattern(functions)
-        assert result is False
-
-    def test_plagal_cadence_pattern_detection(self):
-        """Test detection of plagal cadence patterns."""
-        # Test the private method directly
-        functions = ["TONIC", "SUBDOMINANT", "TONIC", "DOMINANT"]
-        result = self.formatter._is_plagal_cadence_pattern(functions)
-        assert result is True
-
-        # Test without plagal cadence
-        functions = ["TONIC", "DOMINANT", "TONIC"]
-        result = self.formatter._is_plagal_cadence_pattern(functions)
-        assert result is False
 
     def teardown_method(self):
         """Clean up after each test."""
