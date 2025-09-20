@@ -178,6 +178,119 @@ class TestExplanationFormatter:
         assert "Estamos analisando" in result
         assert "Dó Maior" in result
 
+    def test_format_non_tonal_progression(self):
+        """Test handling non-tonal progression results."""
+        # GIVEN: Empty progression
+        result = ProgressionAnalysisResponse(
+            is_tonal_progression=False,
+            explanation_details=[],
+            human_readable_explanation="Non-tonal progression"
+        )
+        
+        # WHEN: Formatting the explanation
+        formatted = self.formatter.format_explanation(result)
+        
+        # THEN: Should handle empty progression gracefully
+        assert formatted is not None
+        assert isinstance(formatted, str)
+
+    def test_connect_descriptions_with_transitions_single(self):
+        """Test connecting single description."""
+        descriptions = ["First description"]
+        result = self.formatter._connect_descriptions_with_transitions(descriptions)
+        assert result == "First description"
+
+    def test_connect_descriptions_with_transitions_multiple(self):
+        """Test connecting multiple descriptions with transitions."""
+        descriptions = ["First", "Second", "Third", "Fourth"]
+        result = self.formatter._connect_descriptions_with_transitions(descriptions)
+        # Should contain all descriptions and transition words
+        assert "First" in result
+        assert "Second" in result
+        assert "Third" in result
+        assert "Fourth" in result
+
+    def test_group_by_tonality_empty(self):
+        """Test grouping empty steps."""
+        result = self.formatter._group_by_tonality([])
+        assert result == []
+
+    def test_group_by_tonality_with_steps(self):
+        """Test grouping steps by tonality."""
+        # Create mock steps with different tonalities
+        step1 = ExplanationStepAPI(
+            step_number=1,
+            processed_chord="C",
+            evaluated_functional_state="Tonic I",
+            tonality_used_in_step="C major",
+            raw_chord="C",
+            observation="First chord",
+            formal_rule_applied="Rule 1"
+        )
+        step2 = ExplanationStepAPI(
+            step_number=2,
+            processed_chord="F",
+            evaluated_functional_state="Subdominant IV",
+            tonality_used_in_step="C major",
+            raw_chord="F",
+            observation="Second chord",
+            formal_rule_applied="Rule 2"
+        )
+        step3 = ExplanationStepAPI(
+            step_number=3,
+            processed_chord="Am",
+            evaluated_functional_state="Tonic i",
+            tonality_used_in_step="A minor",
+            raw_chord="Am",
+            observation="Third chord",
+            formal_rule_applied="Rule 3"
+        )
+        
+        result = self.formatter._group_by_tonality([step1, step2, step3])
+        
+        # Should have two groups
+        assert len(result) == 2
+        assert result[0][0] == "C major"  # First group tonality
+        assert len(result[0][1]) == 2    # Two chords in first group
+        assert result[1][0] == "A minor"  # Second group tonality
+        assert len(result[1][1]) == 1    # One chord in second group
+
+    def test_describe_function_sequence_simple(self):
+        """Test describing simple function sequence."""
+        chord_functions = [("C", "I"), ("G", "V")]
+        result = self.formatter._describe_function_sequence(chord_functions, "C major")
+        assert "C major" in result
+
+    def test_describe_function_sequence_complex(self):
+        """Test describing complex function sequence."""
+        chord_functions = [("C", "I"), ("Am", "vi"), ("F", "IV"), ("G", "V")]
+        result = self.formatter._describe_function_sequence(chord_functions, "C major")
+        assert "C major" in result
+
+    def test_identify_progression_patterns_single_chord(self):
+        """Test pattern identification with single chord."""
+        chord_functions = [("C", "I")]
+        result = self.formatter._identify_progression_patterns(chord_functions, "C major")
+        assert "C major" in result
+
+    def test_identify_progression_patterns_with_cadences(self):
+        """Test pattern identification with cadences."""
+        # V-I progression (authentic cadence)
+        chord_functions = [("G", "V"), ("C", "I")]
+        result = self.formatter._identify_progression_patterns(chord_functions, "C major")
+        assert "C major" in result
+
+    def test_identify_all_cadences_empty(self):
+        """Test cadence identification with empty progression."""
+        result = self.formatter._identify_all_cadences([])
+        assert result == ""
+
+    def test_identify_all_cadences_single_chord(self):
+        """Test cadence identification with single chord."""
+        chord_functions = [("C", "I")]
+        result = self.formatter._identify_all_cadences(chord_functions)
+        assert result == ""
+
     def teardown_method(self):
         """Clean up after each test."""
         # Reset locale to English

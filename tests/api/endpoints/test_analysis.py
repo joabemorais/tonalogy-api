@@ -145,6 +145,33 @@ def test_root_endpoint() -> None:
     }
 
 
+def test_analyze_endpoint_with_language_parameter() -> None:
+    """
+    Tests the /analyze endpoint with language parameter.
+    """
+    # GIVEN
+    mock_service = MagicMock(spec=TonalAnalysisService)
+    mock_response = ProgressionAnalysisResponse(
+        is_tonal_progression=True,
+        identified_tonality="C Major",
+        explanation_details=[],
+        error=None,
+    )
+    mock_service.analyze_progression.return_value = mock_response
+
+    app.dependency_overrides[get_analysis_service] = lambda: mock_service
+
+    # WHEN: We call the endpoint with a language parameter
+    response = client.post(
+        "/analyze?lang=pt_br",
+        json={"chords": ["C", "G", "C"]},
+    )
+
+    # THEN: The response should be successful
+    assert response.status_code == 200
+    assert mock_service.analyze_progression.called
+
+
 # --- Dependency Cleanup ---
 
 

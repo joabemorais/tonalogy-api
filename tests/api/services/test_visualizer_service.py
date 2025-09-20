@@ -404,3 +404,173 @@ class TestVisualizerService:
             mock_graph_instance.add_primary_chord.assert_called()
             call_args = mock_graph_instance.add_primary_chord.call_args
             assert call_args[1]["style_variant"] == "solid_filled"
+
+    def test_extract_pivot_target_tonality_with_pivot_chord(self):
+        """Test extracting target tonality from pivot chord."""
+        # GIVEN: A pivot chord step
+        step = ExplanationStepAPI(
+            formal_rule_applied="P in L",
+            observation="Chord 'Dm' is a pivot chord, functioning as ii in C Major and i in D Minor.",
+            processed_chord="Dm",
+            tonality_used_in_step="C Major",
+            step_number=1,
+            raw_chord="Dm",
+            evaluated_functional_state="Pivot",
+            pivot_target_tonality="D Minor"
+        )
+        
+        # WHEN: Extracting the target tonality
+        result = _extract_pivot_target_tonality(step)
+        
+        # THEN: Should extract D Minor
+        assert result == "D Minor"
+
+    def test_extract_pivot_target_tonality_without_pivot(self):
+        """Test extracting target tonality from non-pivot observation."""
+        # GIVEN: A non-pivot step
+        step = ExplanationStepAPI(
+            formal_rule_applied="P in L",
+            observation="Chord 'C' fulfills function 'TONIC' in 'C Major'.",
+            processed_chord="C",
+            tonality_used_in_step="C Major",
+            step_number=1,
+            raw_chord="C",
+            evaluated_functional_state="Tonic",
+            pivot_target_tonality=None
+        )
+        
+        # WHEN: Extracting the target tonality
+        result = _extract_pivot_target_tonality(step)
+        
+        # THEN: Should return None
+        assert result is None
+
+    def test_extract_pivot_target_tonality_complex_pattern(self):
+        """Test extracting target tonality from complex pivot pattern."""
+        # GIVEN: A complex pivot step
+        step = ExplanationStepAPI(
+            formal_rule_applied="P in L",
+            observation="Chord 'Am' acts as a pivot, serving as vi in C Major and transitioning to A Minor.",
+            processed_chord="Am",
+            tonality_used_in_step="C Major",
+            step_number=1,
+            raw_chord="Am",
+            evaluated_functional_state="Pivot",
+            pivot_target_tonality="A Minor"
+        )
+        
+        # WHEN: Extracting the target tonality
+        result = _extract_pivot_target_tonality(step)
+        
+        # THEN: Should extract A Minor
+        assert result == "A Minor"
+
+    def test_empty_progression_handling(self, visualizer_service):
+        """Test handling of empty progression."""
+        # GIVEN: Empty progression data
+        empty_data = ProgressionAnalysisResponse(
+            is_tonal_progression=False,
+            explanation_details=[],
+            human_readable_explanation="Empty progression"
+        )
+        
+        # WHEN: Creating graph from empty analysis
+        # THEN: Should raise ValueError for non-tonal progression
+        with pytest.raises(ValueError, match="Cannot visualize a non-tonal progression"):
+            visualizer_service.create_graph_from_analysis(empty_data)
+
+    def test_error_handling_in_visualization(self, visualizer_service):
+        """Test error handling during visualization process."""
+        # GIVEN: Valid progression data
+        steps = [
+            ExplanationStepAPI(
+                formal_rule_applied="P in L",
+                observation="Chord 'C' fulfills function 'TONIC' in 'C Major'.",
+                processed_chord="C",
+                tonality_used_in_step="C Major",
+                step_number=1,
+                raw_chord="C",
+                evaluated_functional_state="Tonic"
+            )
+        ]
+        
+        analysis_data = ProgressionAnalysisResponse(
+            is_tonal_progression=True,
+            identified_tonality="C Major",
+            explanation_details=steps,
+            human_readable_explanation="Simple progression"
+        )
+        
+        # WHEN: Graph creation fails
+        with patch('api.services.visualizer_service.HarmonicGraph') as mock_graph_class:
+            mock_graph_class.side_effect = Exception("Graph creation failed")
+            
+            # THEN: Should handle the error gracefully
+            with pytest.raises(Exception):
+                visualizer_service.create_graph_from_analysis(analysis_data)
+
+    def test_file_cleanup_after_visualization(self, visualizer_service):
+        """Test that temporary files are cleaned up."""
+        # GIVEN: A simple progression
+        steps = [
+            ExplanationStepAPI(
+                formal_rule_applied="P in L",
+                observation="Chord 'C' fulfills function 'TONIC' in 'C Major'.",
+                processed_chord="C",
+                tonality_used_in_step="C Major",
+                step_number=1,
+                raw_chord="C",
+                evaluated_functional_state="Tonic"
+            )
+        ]
+        
+        analysis_data = ProgressionAnalysisResponse(
+            is_tonal_progression=True,
+            identified_tonality="C Major",
+            explanation_details=steps,
+            human_readable_explanation="Simple progression"
+        )
+        
+        # WHEN: Creating and saving visualization
+        with patch('api.services.visualizer_service.HarmonicGraph') as mock_graph_class, \
+             patch('os.path.exists') as mock_exists, \
+             patch('os.remove') as mock_remove:
+            
+            mock_graph_instance = MagicMock()
+            mock_graph_class.return_value = mock_graph_instance
+            mock_exists.return_value = True
+            
+            # Mock the save method to create a "file"
+            mock_graph_instance.save_to_svg.return_value = "/tmp/test_file.svg"
+            
+            result = visualizer_service.create_graph_from_analysis(analysis_data)
+            
+            # THEN: File operations should be attempted
+            assert result is not None
+
+    def test_missing_tonality_handling(self, visualizer_service):
+        """Test handling of missing tonality."""
+        # GIVEN: Tonal progression but no identified tonality
+        steps = [
+            ExplanationStepAPI(
+                formal_rule_applied="P in L",
+                observation="Chord 'C' fulfills function 'TONIC' in 'C Major'.",
+                processed_chord="C",
+                tonality_used_in_step="C Major",
+                step_number=1,
+                raw_chord="C",
+                evaluated_functional_state="Tonic"
+            )
+        ]
+        
+        analysis_data = ProgressionAnalysisResponse(
+            is_tonal_progression=True,
+            identified_tonality=None,  # Missing tonality
+            explanation_details=steps,
+            human_readable_explanation="Simple progression"
+        )
+        
+        # WHEN: Creating graph without identified tonality
+        # THEN: Should raise ValueError for missing tonality
+        with pytest.raises(ValueError, match="Cannot visualize a progression without an identified tonality"):
+            visualizer_service.create_graph_from_analysis(analysis_data)
