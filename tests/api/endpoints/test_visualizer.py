@@ -1,4 +1,5 @@
 import os
+import tempfile
 from typing import Any, Dict
 from unittest.mock import MagicMock, patch
 
@@ -14,6 +15,22 @@ from api.services.visualizer_service import VisualizerService
 
 # Create a test client that can make calls to our API
 client = TestClient(app)
+
+
+def create_temp_image_file() -> str:
+    """Helper function to create a temporary image file for testing."""
+    temp_file = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
+    temp_file.write(b"fake image data")
+    temp_file.close()
+    return temp_file.name
+
+
+def cleanup_temp_file(filepath: str) -> None:
+    """Helper function to clean up temporary files."""
+    try:
+        os.unlink(filepath)
+    except FileNotFoundError:
+        pass
 
 
 class TestVisualizerEndpoint:
@@ -48,13 +65,12 @@ class TestVisualizerEndpoint:
         )
         mock_analysis_service.analyze_progression.return_value = mock_analysis_response
 
-        # Mock the visualizer service to return a fake image path
+        # Mock the visualizer service to return a temporary image path
         mock_visualizer_service = MagicMock(spec=VisualizerService)
-        fake_image_path = "/fake/path/to/image.png"
+        fake_image_path = create_temp_image_file()
         mock_visualizer_service.create_graph_from_analysis.return_value = fake_image_path
 
-        # Mock os.path.exists to return True for our fake path
-        with patch("os.path.exists", return_value=True):
+        try:
             # Replace the real dependencies with our mocks
             app.dependency_overrides[get_analysis_service] = lambda: mock_analysis_service
             app.dependency_overrides[get_visualizer_service] = lambda: mock_visualizer_service
@@ -63,13 +79,16 @@ class TestVisualizerEndpoint:
             request_payload = {"chords": ["C", "G", "F"]}
             response = client.post("/visualize", json=request_payload)
 
-        # THEN
-        assert response.status_code == 200
-        assert response.headers["content-type"] == "image/png"
-        mock_analysis_service.analyze_progression.assert_called_once()
-        mock_visualizer_service.create_graph_from_analysis.assert_called_once_with(
-            mock_analysis_response
-        )
+            # THEN
+            assert response.status_code == 200
+            assert response.headers["content-type"] == "image/png"
+            mock_analysis_service.analyze_progression.assert_called_once()
+            mock_visualizer_service.create_graph_from_analysis.assert_called_once_with(
+                mock_analysis_response, theme_mode="light"
+            )
+        finally:
+            # Clean up the temporary file
+            cleanup_temp_file(fake_image_path)
 
     def test_visualize_endpoint_non_tonal_progression(self) -> None:
         """Test visualization fails with 400 when progression is not tonal."""
@@ -213,10 +232,10 @@ class TestVisualizerEndpoint:
         mock_analysis_service.analyze_progression.return_value = mock_analysis_response
 
         mock_visualizer_service = MagicMock(spec=VisualizerService)
-        fake_image_path = "/fake/path/to/image.png"
+        fake_image_path = create_temp_image_file()
         mock_visualizer_service.create_graph_from_analysis.return_value = fake_image_path
 
-        with patch("os.path.exists", return_value=True):
+        try:
             app.dependency_overrides[get_analysis_service] = lambda: mock_analysis_service
             app.dependency_overrides[get_visualizer_service] = lambda: mock_visualizer_service
 
@@ -227,12 +246,14 @@ class TestVisualizerEndpoint:
             }
             response = client.post("/visualize", json=request_payload)
 
-        # THEN
-        assert response.status_code == 200
-        # Verify that the analysis service was called with the complete request
-        call_args = mock_analysis_service.analyze_progression.call_args[0][0]
-        assert call_args.chords == ["G", "D", "C"]
-        assert call_args.tonalities_to_test == ["G Major", "C Major"]
+            # THEN
+            assert response.status_code == 200
+            # Verify that the analysis service was called with the complete request
+            call_args = mock_analysis_service.analyze_progression.call_args[0][0]
+            assert call_args.chords == ["G", "D", "C"]
+            assert call_args.tonalities_to_test == ["G Major", "C Major"]
+        finally:
+            cleanup_temp_file(fake_image_path)
 
     def test_visualize_endpoint_error_message_propagation(self) -> None:
         """Test that error messages from non-tonal progressions are properly propagated."""
@@ -270,10 +291,10 @@ class TestVisualizerEndpoint:
         mock_analysis_service.analyze_progression.return_value = mock_analysis_response
 
         mock_visualizer_service = MagicMock(spec=VisualizerService)
-        fake_image_path = "/fake/path/to/image.png"
+        fake_image_path = create_temp_image_file()
         mock_visualizer_service.create_graph_from_analysis.return_value = fake_image_path
 
-        with patch("os.path.exists", return_value=True):
+        try:
             app.dependency_overrides[get_analysis_service] = lambda: mock_analysis_service
             app.dependency_overrides[get_visualizer_service] = lambda: mock_visualizer_service
 
@@ -281,13 +302,15 @@ class TestVisualizerEndpoint:
             request_payload = {"chords": ["C", "Am", "F", "G"]}
             response = client.post("/visualize", json=request_payload)
 
-        # THEN
-        assert response.status_code == 200
+            # THEN
+            assert response.status_code == 200
 
-        # Verify analysis service was called exactly once with correct arguments
-        assert mock_analysis_service.analyze_progression.call_count == 1
+            # Verify analysis service was called exactly once with correct arguments
+            assert mock_analysis_service.analyze_progression.call_count == 1
 
-        # Verify visualizer service was called exactly once with the analysis response
-        assert mock_visualizer_service.create_graph_from_analysis.call_count == 1
-        visualizer_call_args = mock_visualizer_service.create_graph_from_analysis.call_args[0][0]
-        assert visualizer_call_args == mock_analysis_response
+            # Verify visualizer service was called exactly once with the analysis response
+            assert mock_visualizer_service.create_graph_from_analysis.call_count == 1
+            visualizer_call_args = mock_visualizer_service.create_graph_from_analysis.call_args[0][0]
+            assert visualizer_call_args == mock_analysis_response
+        finally:
+            cleanup_temp_file(fake_image_path)

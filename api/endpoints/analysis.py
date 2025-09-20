@@ -75,6 +75,9 @@ async def analyze_progression(
         if result.error:
             raise HTTPException(status_code=400, detail=result.error)
         return result
+    except HTTPException:
+        # Re-raise HTTP exceptions (like 400 errors above)
+        raise
     except Exception as e:
         # Handle unexpected server errors
         raise HTTPException(status_code=500, detail=T("errors.internal_server_error", error=str(e)))
@@ -125,6 +128,9 @@ async def get_human_readable_explanation(
             is_tonal=result.is_tonal_progression,
             identified_tonality=result.identified_tonality,
         )
+    except HTTPException:
+        # Re-raise HTTP exceptions (like 400 errors above)
+        raise
     except Exception as e:
         # Handle unexpected server errors
         raise HTTPException(status_code=500, detail=T("errors.internal_server_error", error=str(e)))
