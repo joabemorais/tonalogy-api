@@ -106,10 +106,9 @@ addopts = [
 markers = [
     "integration: Integration tests",
     "unit: Unit tests",
-    "slow: Slow running tests"
-]
-
-# Code formatting with Black
+    "slow: Slow running tests",
+    "asyncio: Async test functions"
+]# Code formatting with Black
 [tool.black]
 line-length = 100
 target-version = ['py39', 'py310', 'py311', 'py312']
